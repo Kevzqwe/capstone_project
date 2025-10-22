@@ -1,5 +1,5 @@
 <?php
-// CORS Headers first
+// CORS Headers
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
 $allowed_origins = ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
 $isLocalhost = (strpos($origin, 'localhost') !== false || strpos($origin, '127.0.0.1') !== false);
@@ -30,7 +30,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-error_log("=== PAYMENT SUCCESS HANDLER STARTED ===");
+error_log("=== PAYMENT SUCCESS HANDLER ===");
 
 // Security headers
 header('X-Content-Type-Options: nosniff');
@@ -39,23 +39,7 @@ header('X-XSS-Protection: 1; mode=block');
 
 require_once __DIR__ . '/config.php';
 
-// CRITICAL: Explicitly load environment variables
-try {
-    Config::loadEnv();
-    error_log("✓ Config loaded successfully - .env file path: " . Config::getEnvPath());
-    
-    // Verify critical configs are loaded
-    if (!Config::has('IPROG_API_TOKEN')) {
-        error_log("⚠️ WARNING: IPROG_API_TOKEN not found in config!");
-    }
-    if (!Config::has('PAYMONGO_SECRET_KEY')) {
-        error_log("⚠️ WARNING: PAYMONGO_SECRET_KEY not found in config!");
-    }
-} catch (Exception $e) {
-    error_log("❌ CRITICAL: Failed to load config: " . $e->getMessage());
-}
-
-// PayMongo API Class for verification
+// PayMongo API
 class PayMongoAPI {
     private $secretKey;
     private $apiUrl = 'https://api.paymongo.com/v1';
@@ -65,7 +49,7 @@ class PayMongoAPI {
     }
     
     public function verifyPayment($checkoutSessionId) {
-        error_log("Verifying PayMongo payment for session: $checkoutSessionId");
+        error_log("Verifying: $checkoutSessionId");
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->apiUrl . '/checkout_sessions/' . $checkoutSessionId);
@@ -82,32 +66,29 @@ class PayMongoAPI {
         $error = curl_error($ch);
         curl_close($ch);
         
-        error_log("PayMongo API Response Code: $httpCode");
+        error_log("Response Code: $httpCode");
         
         if ($error) {
             error_log("cURL Error: $error");
-            throw new Exception('Payment verification connection error');
+            throw new Exception('Verification connection error');
         }
         
         if ($httpCode === 404) {
-            error_log("Session ID not found in PayMongo");
             return false;
         }
         
         if ($httpCode !== 200) {
-            throw new Exception('Payment verification error: HTTP ' . $httpCode);
+            throw new Exception('Verification error: HTTP ' . $httpCode);
         }
         
         $result = json_decode($response, true);
         
         if (!isset($result['data']['attributes'])) {
-            throw new Exception('Invalid payment verification response');
+            throw new Exception('Invalid verification response');
         }
         
-        $attributes = $result['data']['attributes'];
-        $status = $attributes['status'] ?? '';
-        
-        error_log("Payment status: $status");
+        $status = $result['data']['attributes']['status'] ?? '';
+        error_log("Status: $status");
         
         return $status === 'paid';
     }
@@ -120,38 +101,49 @@ class IProgSMS {
     
     public function __construct($apiToken) {
         $this->apiToken = $apiToken;
+        error_log("✓ IProgSMS initialized");
     }
     
     public function sendSMS($phoneNumber, $message) {
+        error_log("=== SMS SEND ===");
+        error_log("📱 Input: $phoneNumber");
+        error_log("💬 Message: $message");
+        
         if (empty($phoneNumber) || empty($message)) {
-            throw new Exception('Phone number and message are required');
+            throw new Exception('Phone and message required');
         }
         
-        // Clean phone number - more robust cleaning
+        // Clean
         $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+        error_log("🧹 Cleaned: $phoneNumber");
         
-        // Format to Philippine number format (639XXXXXXXXX)
+        // Format to 639XXXXXXXXX
         if (strlen($phoneNumber) === 10 && substr($phoneNumber, 0, 1) === '9') {
             $phoneNumber = '63' . $phoneNumber;
         } elseif (strlen($phoneNumber) === 11 && substr($phoneNumber, 0, 2) === '09') {
             $phoneNumber = '63' . substr($phoneNumber, 1);
+        } elseif (strlen($phoneNumber) === 13 && substr($phoneNumber, 0, 4) === '+639') {
+            $phoneNumber = substr($phoneNumber, 1);
         }
         
-        error_log("Formatted phone number: $phoneNumber");
+        error_log("📱 Formatted: $phoneNumber");
         
         if (!preg_match('/^639[0-9]{9}$/', $phoneNumber)) {
-            error_log("Invalid phone format after processing: $phoneNumber");
-            throw new Exception('Invalid Philippine phone number format: ' . $phoneNumber);
+            error_log("❌ Invalid");
+            throw new Exception('Invalid phone: ' . $phoneNumber);
         }
         
-        // Prepare data for IPROG API
+        if (strlen($message) > 160) {
+            $message = substr($message, 0, 157) . '...';
+        }
+        
         $data = [
             'api_token' => $this->apiToken,
-            'message' => substr($message, 0, 160),
+            'message' => $message,
             'phone_number' => $phoneNumber
         ];
         
-        error_log("Sending SMS to: $phoneNumber with message: " . substr($message, 0, 50) . "...");
+        error_log("🚀 Sending...");
         
         $ch = curl_init($this->apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -168,121 +160,138 @@ class IProgSMS {
         $error = curl_error($ch);
         curl_close($ch);
         
-        error_log("IPROG API Response Code: $httpCode");
-        error_log("IPROG API Full Response: " . $response);
+        error_log("📡 HTTP: $httpCode");
+        error_log("📨 Response: $response");
         
         if ($error) {
-            error_log("IPROG SMS cURL Error: " . $error);
-            throw new Exception('SMS service connection error: ' . $error);
+            error_log("❌ cURL: $error");
+            throw new Exception('Connection error: ' . $error);
         }
         
-        // Parse the response to check for actual success
         $responseData = json_decode($response, true);
         
         if ($httpCode !== 200) {
-            error_log("IPROG SMS HTTP Error: " . $httpCode . " - " . $response);
-            
-            // Check if it's a content filtering error
-            if (isset($responseData['message']) && is_array($responseData['message'])) {
-                $errorMsg = implode(', ', $responseData['message']);
-                if (strpos($errorMsg, 'phishing') !== false || strpos($errorMsg, 'suspicious') !== false) {
-                    throw new Exception('Message blocked by content filter: ' . $errorMsg);
-                }
+            $errorMsg = 'HTTP ' . $httpCode;
+            if (isset($responseData['message'])) {
+                $errorMsg .= ': ' . (is_array($responseData['message']) 
+                    ? implode(', ', $responseData['message']) 
+                    : $responseData['message']);
             }
-            
-            throw new Exception('SMS service error: HTTP ' . $httpCode);
+            throw new Exception($errorMsg);
         }
         
-        // Check if the response indicates success
         if (isset($responseData['status']) && $responseData['status'] !== 200) {
             $errorMsg = isset($responseData['message']) ? 
                 (is_array($responseData['message']) ? implode(', ', $responseData['message']) : $responseData['message']) 
                 : 'Unknown error';
-            throw new Exception('SMS API error: ' . $errorMsg);
+            throw new Exception($errorMsg);
+        }
+        
+        error_log("✅ SMS SENT");
+        if (isset($responseData['message_id'])) {
+            error_log("📧 ID: " . $responseData['message_id']);
         }
         
         return true;
     }
 }
 
+// SMS NOTIFICATION FUNCTION - FIXED FOR CASH AND ONLINE PAYMENTS
 function sendNotificationSMS($phoneNumber, $requestId, $studentName, $totalAmount, $paymentMethod, $scheduledPickup) {
+    error_log("=== SMS NOTIFICATION START ===");
+    error_log("Phone: $phoneNumber | Request: #$requestId | Method: $paymentMethod");
+    
     try {
         if (empty($phoneNumber)) {
-            error_log("❌ No phone number provided for SMS");
+            error_log("❌ No phone number");
             return false;
         }
         
-        error_log("📱 Attempting SMS with phone: $phoneNumber");
-        
         $iprogApiToken = Config::get('IPROG_API_TOKEN', '');
         
-        error_log("IPROG Token retrieved: " . (empty($iprogApiToken) ? 'EMPTY/NOT SET' : 'LENGTH=' . strlen($iprogApiToken)));
-        
         if (empty($iprogApiToken)) {
-            error_log("❌ CRITICAL: IPROG API token is empty or not configured!");
-            error_log("Check: Config::has('IPROG_API_TOKEN') = " . (Config::has('IPROG_API_TOKEN') ? 'true' : 'false'));
-            error_log("SMS not sent.");
+            error_log("❌ No IPROG API token");
             return false;
         }
         
         $sms = new IProgSMS($iprogApiToken);
         
-        // Extract first name from student name (format: Surname, Firstname Middlename)
+        // Extract first name
         $nameParts = explode(',', $studentName);
-        $firstName = trim($nameParts[1] ?? $studentName);
+        $firstName = trim($nameParts[1] ?? $nameParts[0]);
         $firstName = explode(' ', $firstName)[0];
         
+        // Format date - Full date format
         $pickupDate = date('F j, Y', strtotime($scheduledPickup));
         
-        // ALWAYS USE "Online payment" FOR ONLINE PAYMENTS TO AVOID PHISHING DETECTION
-        $smsPaymentMethod = "Online payment";
+        // Format amount without peso sign (avoid Unicode issues)
+        $formattedAmount = number_format($totalAmount, 2);
         
-        // SAFE MESSAGE FORMAT
-        $message = "Hi! $firstName your request document #$requestId is received. ";
-        $message .= "Mode of payment: $smsPaymentMethod. ";
-        $message .= "Please prepare the receipt. ";
-        $message .= "Pickup: $pickupDate. Thank you.";
+        // BUILD MESSAGE BASED ON PAYMENT METHOD
+        $paymentLower = strtolower(trim($paymentMethod));
         
-        error_log("Attempting to send SMS to: $phoneNumber");
-        error_log("SMS Message: $message");
+        if ($paymentLower === 'cash') {
+            // CASH PAYMENT MESSAGE
+            $message = "Hi! $firstName your request document #$requestId is received. ";
+            $message .= "Mode of payment: Cash. ";
+            $message .= "Please prepare P$formattedAmount. ";
+            $message .= "Pickup: $pickupDate. ";
+            $message .= "Thank you.";
+            
+        } else {
+            // ONLINE PAYMENT MESSAGE (GCash/Maya)
+            $message = "Hi! $firstName your request document #$requestId is received. ";
+            $message .= "Mode of payment: Online payment. ";
+            $message .= "Please prepare the receipt. ";
+            $message .= "Pickup: $pickupDate. ";
+            $message .= "Thank you.";
+        }
         
-        $result = $sms->sendSMS($phoneNumber, $message);
+        error_log("📱 Sending SMS to: $phoneNumber");
+        error_log("💬 Message: $message");
         
-        error_log("✓ SMS sent successfully to {$phoneNumber} for request #{$requestId}");
-        return true;
-        
-    } catch (Exception $e) {
-        error_log("❌ SMS sending failed: " . $e->getMessage());
-        
-        // Try with alternative safe message if first attempt fails
         try {
-            error_log("🔄 Attempting with alternative safe message...");
-            
-            $nameParts = explode(',', $studentName);
-            $firstName = trim($nameParts[1] ?? $studentName);
-            $firstName = explode(' ', $firstName)[0];
-            
-            $pickupDate = date('M j, Y', strtotime($scheduledPickup));
-            
-            // Ultra-safe message without payment references
-            $altMessage = "Hi $firstName! Your document request #$requestId is confirmed. ";
-            $altMessage .= "Pickup date: $pickupDate. ";
-            $altMessage .= "Please bring confirmation details. Thank you!";
-            
-            $sms->sendSMS($phoneNumber, $altMessage);
-            error_log("✓ Alternative SMS sent successfully");
+            $sms->sendSMS($phoneNumber, $message);
+            error_log("✅ SMS SENT SUCCESSFULLY");
             return true;
             
-        } catch (Exception $altException) {
-            error_log("❌ Alternative SMS also failed: " . $altException->getMessage());
-            return false;
+        } catch (Exception $e) {
+            error_log("❌ Primary SMS failed: " . $e->getMessage());
+            
+            // FALLBACK: Try alternative format if primary fails
+            try {
+                error_log("🔄 Trying fallback message...");
+                
+                if ($paymentLower === 'cash') {
+                    $fallbackMessage = "Hi! $firstName your document request #$requestId is confirmed. ";
+                    $fallbackMessage .= "Payment: Cash. ";
+                    $fallbackMessage .= "Amount: P$formattedAmount. ";
+                    $fallbackMessage .= "Pickup: $pickupDate. ";
+                    $fallbackMessage .= "Thank you!";
+                } else {
+                    $fallbackMessage = "Hi! $firstName your document request #$requestId is confirmed. ";
+                    $fallbackMessage .= "Total: P$formattedAmount. ";
+                    $fallbackMessage .= "Pickup date: $pickupDate. ";
+                    $fallbackMessage .= "Thank you!";
+                }
+                
+                error_log("💬 Fallback: $fallbackMessage");
+                $sms->sendSMS($phoneNumber, $fallbackMessage);
+                error_log("✅ FALLBACK SMS SENT");
+                return true;
+                
+            } catch (Exception $e2) {
+                error_log("❌ Fallback also failed: " . $e2->getMessage());
+                return false;
+            }
         }
+        
+    } catch (Exception $e) {
+        error_log("❌ SMS Exception: " . $e->getMessage());
+        return false;
     }
 }
 
-/**
- * Creates a notification in the database for a student's document request
- */
 function createRequestNotification($studentNumber, $requestId, $paymentMethod, $totalAmount, $scheduledPickup) {
     try {
         $dbConfig = Config::database();
@@ -294,13 +303,12 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
         );
         
         if ($conn->connect_error) {
-            error_log("Database connection failed for notification: " . $conn->connect_error);
+            error_log("DB failed: " . $conn->connect_error);
             return false;
         }
         
         $conn->set_charset('utf8mb4');
         
-        // Create notification message
         $message = sprintf(
             "Document Request #%d submitted. Amount: ₱%.2f via %s. Pickup: %s",
             $requestId,
@@ -309,14 +317,13 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
             date('F j, Y', strtotime($scheduledPickup))
         );
         
-        // Insert notification
         $stmt = $conn->prepare("
             INSERT INTO notifications (Notification_type, Student_ID, Created_At) 
             VALUES (?, ?, NOW())
         ");
         
         if (!$stmt) {
-            error_log("Failed to prepare notification statement: " . $conn->error);
+            error_log("Prepare failed: " . $conn->error);
             $conn->close();
             return false;
         }
@@ -324,7 +331,7 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
         $stmt->bind_param("si", $message, $studentNumber);
         
         if (!$stmt->execute()) {
-            error_log("Failed to insert notification: " . $stmt->error);
+            error_log("Execute failed: " . $stmt->error);
             $stmt->close();
             $conn->close();
             return false;
@@ -333,36 +340,30 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
         $stmt->close();
         $conn->close();
         
-        error_log("✓ Notification created successfully for student #$studentNumber");
-        
+        error_log("✓ Notification created");
         return true;
         
     } catch (Exception $e) {
-        error_log("Error creating notification: " . $e->getMessage());
+        error_log("Error: " . $e->getMessage());
         return false;
     }
 }
 
 try {
-    error_log("=== INCOMING REQUEST DEBUG ===");
-    error_log("GET parameters: " . print_r($_GET, true));
-    error_log("Request URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
-    error_log("Session ID: " . session_id());
-    error_log("Session data keys: " . implode(", ", array_keys($_SESSION)));
+    error_log("=== PAYMENT SUCCESS ===");
+    error_log("GET: " . print_r($_GET, true));
     
     $paymongoSessionId = null;
     
-    // Get session ID from GET parameters
     if (isset($_GET['session_id'])) {
         $paymongoSessionId = trim($_GET['session_id']);
-        error_log("Found session_id in GET: $paymongoSessionId");
+        error_log("Session: $paymongoSessionId");
     }
     
-    // Check for placeholder or empty
+    // Check placeholder
     if (empty($paymongoSessionId) || $paymongoSessionId === '{checkout_session_id}' || strpos($paymongoSessionId, '{') !== false) {
-        error_log("⚠ Invalid or missing session ID, checking session storage...");
+        error_log("⚠ Invalid, searching...");
         
-        // Try to find the most recent pending payment from session
         $mostRecent = null;
         $mostRecentKey = null;
         $mostRecentTime = 0;
@@ -382,37 +383,36 @@ try {
         
         if ($mostRecentKey) {
             $paymongoSessionId = str_replace('pending_payment_', '', $mostRecentKey);
-            error_log("✓ Using most recent session from storage: $paymongoSessionId");
+            error_log("✓ Using: $paymongoSessionId");
         }
     }
     
-    // Validate session ID format
+    // Validate
     if (empty($paymongoSessionId) || !preg_match('/^cs_[a-zA-Z0-9]+$/', $paymongoSessionId)) {
-        error_log("❌ ERROR: Invalid PayMongo session ID format: $paymongoSessionId");
+        error_log("❌ Invalid: $paymongoSessionId");
         
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'invalid_session',
-            'message' => 'Invalid payment session format.'
+            'message' => 'Invalid session'
         ]);
         
         header('Location: ' . $redirectUrl);
         exit();
     }
     
-    error_log("Processing payment for PayMongo session: $paymongoSessionId");
+    error_log("Processing: $paymongoSessionId");
     
-    // Get PayMongo secret key
     $paymongoSecretKey = Config::get('PAYMONGO_SECRET_KEY', '');
     
     if (empty($paymongoSecretKey)) {
-        error_log("❌ ERROR: PayMongo secret key not configured");
+        error_log("❌ No key");
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'config_error',
-            'message' => 'Payment system not configured.'
+            'message' => 'Not configured'
         ]);
         header('Location: ' . $redirectUrl);
         exit();
@@ -421,28 +421,28 @@ try {
     $paymongo = new PayMongoAPI($paymongoSecretKey);
     $isTestMode = (strpos($paymongoSecretKey, 'sk_test_') === 0);
     
-    // Verify payment with PayMongo
+    // Verify
     try {
         $isPaid = $paymongo->verifyPayment($paymongoSessionId);
         
         if (!$isPaid && !$isTestMode) {
-            error_log("❌ Payment verification failed");
+            error_log("❌ Not verified");
             
             $reactAppUrl = Config::getReactUrl();
             $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
                 'success' => '0',
-                'error' => 'payment_not_completed',
-                'message' => 'Payment was not completed or verified'
+                'error' => 'not_completed',
+                'message' => 'Not completed'
             ]);
             
             header('Location: ' . $redirectUrl);
             exit();
         }
         
-        error_log("✓ Payment verified successfully");
+        error_log("✓ Verified");
         
     } catch (Exception $e) {
-        error_log("❌ Payment verification error: " . $e->getMessage());
+        error_log("❌ Verification: " . $e->getMessage());
         
         if (!$isTestMode) {
             $reactAppUrl = Config::getReactUrl();
@@ -457,24 +457,23 @@ try {
         }
     }
     
-    // Search for session data
-    error_log("=== SEARCHING FOR SESSION DATA ===");
+    // Get session data
+    error_log("=== FINDING DATA ===");
     $sessionKey = 'pending_payment_' . $paymongoSessionId;
     $paymentData = null;
 
     if (isset($_SESSION[$sessionKey])) {
         $paymentData = $_SESSION[$sessionKey];
-        error_log("✓ Found payment data using direct lookup");
+        error_log("✓ Found");
     } else {
-        error_log("⚠ Direct lookup failed, searching all keys...");
-        error_log("Available session keys: " . implode(", ", array_keys($_SESSION)));
+        error_log("⚠ Searching...");
         
         foreach ($_SESSION as $key => $value) {
             if (strpos($key, 'pending_payment_') === 0 && is_array($value)) {
                 if (isset($value['paymongo_checkout_id']) && $value['paymongo_checkout_id'] === $paymongoSessionId) {
                     $paymentData = $value;
                     $sessionKey = $key;
-                    error_log("✓ Found matching payment data!");
+                    error_log("✓ Found");
                     break;
                 }
             }
@@ -482,23 +481,22 @@ try {
     }
 
     if (!$paymentData) {
-        error_log("❌ CRITICAL: No session data found for session ID: $paymongoSessionId");
-        error_log("Session data dump: " . print_r($_SESSION, true));
+        error_log("❌ No data");
         
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'session_not_found',
-            'message' => 'Payment session not found. Please contact support.'
+            'message' => 'Session not found'
         ]);
         
         header('Location: ' . $redirectUrl);
         exit();
     }
 
-    error_log("✓ Session data retrieved successfully");
+    error_log("✓ Data retrieved");
     
-    // Extract payment data
+    // Extract
     $studentNumber = intval($paymentData['student_number'] ?? 0);
     $studentName = $paymentData['student_name'] ?? '';
     $grade = $paymentData['grade'] ?? '';
@@ -510,35 +508,33 @@ try {
     $documentJson = $paymentData['document_json'] ?? '[]';
     $totalAmount = floatval($paymentData['total_amount'] ?? 0);
     
-    error_log("✓ Payment data extracted: $studentName - ₱$totalAmount - Phone: $contactNo");
+    error_log("✓ $studentName - ₱$totalAmount - Phone: $contactNo");
     
-    // Validate extracted data
     if (empty($studentNumber) || empty($contactNo)) {
-        error_log("❌ CRITICAL: Missing essential payment data");
-        error_log("Student Number: $studentNumber, Contact: $contactNo");
+        error_log("❌ Missing data");
         
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'incomplete_data',
-            'message' => 'Missing required payment information'
+            'message' => 'Missing info'
         ]);
         
         header('Location: ' . $redirectUrl);
         exit();
     }
     
-    // Connect to database
+    // Database
     $dbConfig = Config::database();
     $conn = new mysqli($dbConfig['host'], $dbConfig['user'], $dbConfig['pass'], $dbConfig['name']);
     
     if ($conn->connect_error) {
-        error_log("Database connection failed: " . $conn->connect_error);
+        error_log("DB failed: " . $conn->connect_error);
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'db_error',
-            'message' => 'Database connection failed'
+            'message' => 'Database error'
         ]);
         header('Location: ' . $redirectUrl);
         exit();
@@ -546,7 +542,7 @@ try {
     
     $conn->set_charset('utf8mb4');
 
-    // Check if this payment was already processed
+    // Check duplicate
     $checkStmt = $conn->prepare("SELECT Request_ID FROM payment WHERE Paymongo_Session_ID = ?");
     if ($checkStmt) {
         $checkStmt->bind_param("s", $paymongoSessionId);
@@ -557,7 +553,7 @@ try {
             $existingRow = $checkResult->fetch_assoc();
             $existingRequestId = $existingRow['Request_ID'];
             
-            error_log("⚠️ Payment already processed! Request ID: $existingRequestId");
+            error_log("⚠️ Duplicate: #$existingRequestId");
             
             $checkStmt->close();
             $conn->close();
@@ -582,19 +578,19 @@ try {
         $checkStmt->close();
     }
 
-    // Call stored procedure
-    error_log("Calling InsertDocumentRequest stored procedure");
+    // Call procedure
+    error_log("Calling InsertDocumentRequest");
     
     $stmt = $conn->prepare("CALL InsertDocumentRequest(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     
     if (!$stmt) {
-        error_log("Database prepare failed: " . $conn->error);
+        error_log("Prepare failed: " . $conn->error);
         $conn->close();
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'prepare_failed',
-            'message' => 'Failed to process request'
+            'message' => 'Failed to process'
         ]);
         header('Location: ' . $redirectUrl);
         exit();
@@ -603,20 +599,20 @@ try {
     $stmt->bind_param("isssssssss", $studentNumber, $studentName, $grade, $section, $contactNo, $email, $paymentMethod, $scheduledPickup, $documentJson, $paymongoSessionId);
     
     if (!$stmt->execute()) {
-        error_log("Stored procedure execution failed: " . $stmt->error);
+        error_log("Execute failed: " . $stmt->error);
         $stmt->close();
         $conn->close();
         $reactAppUrl = Config::getReactUrl();
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'execute_failed',
-            'message' => 'Failed to save request'
+            'message' => 'Failed'
         ]);
         header('Location: ' . $redirectUrl);
         exit();
     }
     
-    error_log("✓ Stored procedure executed");
+    error_log("✓ Procedure executed");
     
     // Get results
     $requestId = 0;
@@ -650,15 +646,15 @@ try {
         $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
             'success' => '0',
             'error' => 'no_request_id',
-            'message' => 'Failed to retrieve request ID'
+            'message' => 'Failed to get ID'
         ]);
         header('Location: ' . $redirectUrl);
         exit();
     }
     
-    error_log("✓ Request ID: $requestId");
+    error_log("✓ Request: #$requestId");
     
-    // Update payment status
+    // Update payment
     $updateStmt = $conn->prepare("UPDATE payment SET Status = 'Paid', Payment_Date = NOW() WHERE Request_ID = ?");
     if ($updateStmt) {
         $updateStmt->bind_param("i", $requestId);
@@ -668,31 +664,26 @@ try {
     
     $conn->close();
     
-    // SEND SMS NOTIFICATION - IMPROVED ERROR HANDLING
-    error_log("=== INITIATING SMS NOTIFICATION ===");
-    error_log("SMS Parameters - Phone: $contactNo | Name: $studentName | Amount: ₱$finalAmount | Method: $paymentMethod");
+    // SEND SMS
+    error_log("=== SENDING SMS ===");
     
     $smsSent = sendNotificationSMS($contactNo, $requestId, $studentName, $finalAmount, $paymentMethod, $scheduledPickup);
     
-    if ($smsSent) {
-        error_log("✓✓✓ SMS SUCCESSFULLY SENT ✓✓✓");
-    } else {
-        error_log("❌❌❌ SMS FAILED TO SEND ❌❌❌");
-    }
+    error_log("SMS: " . ($smsSent ? 'SUCCESS ✅' : 'FAILED ❌'));
     
-    // Create notification in database
+    // Create notification
     $notificationCreated = createRequestNotification($studentNumber, $requestId, $paymentMethod, $finalAmount, $scheduledPickup);
     
-    // Clean up session
+    // Clean up
     if (isset($_SESSION[$sessionKey])) {
         unset($_SESSION[$sessionKey]);
     }
     
-    // Redirect to success page with all parameters
-    error_log("=== PAYMENT COMPLETED SUCCESSFULLY ===");
-    error_log("Request ID: $requestId - Amount: ₱$finalAmount");
-    error_log("SMS Sent: " . ($smsSent ? 'Yes' : 'No'));
-    error_log("Notification Created: " . ($notificationCreated ? 'Yes' : 'No'));
+    // Redirect
+    error_log("=== COMPLETED ===");
+    error_log("Request: #$requestId - ₱$finalAmount");
+    error_log("SMS: " . ($smsSent ? 'Sent' : 'Failed'));
+    error_log("Notification: " . ($notificationCreated ? 'Created' : 'Failed'));
     
     $reactAppUrl = Config::getReactUrl();
     $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([
@@ -710,9 +701,9 @@ try {
     exit();
     
 } catch (Exception $e) {
-    error_log("=== PAYMENT ERROR ===");
+    error_log("=== ERROR ===");
     error_log("Error: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
+    error_log("Stack: " . $e->getTraceAsString());
     
     $reactAppUrl = Config::getReactUrl();
     $redirectUrl = rtrim($reactAppUrl, '/') . '/Pay_Success?' . http_build_query([

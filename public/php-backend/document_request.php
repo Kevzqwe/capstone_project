@@ -16,7 +16,7 @@ ini_set('log_errors', 1);
 
 error_log("=== DOCUMENT REQUEST HANDLER STARTED ===");
 
-// Dynamic CORS handling - MUST be before any output
+// Dynamic CORS handling
 $allowed_origins = [
     'http://localhost:3000',
     'http://localhost:3001',
@@ -27,12 +27,10 @@ $allowed_origins = [
 
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
 
-// Always set CORS headers for allowed origins
 if (in_array($origin, $allowed_origins)) {
     header("Access-Control-Allow-Origin: $origin");
     header('Access-Control-Allow-Credentials: true');
 } elseif (getenv('APP_ENV') === 'development') {
-    // In development, allow localhost with any port
     if (strpos($origin, 'http://localhost') === 0 || strpos($origin, 'http://127.0.0.1') === 0) {
         header("Access-Control-Allow-Origin: $origin");
         header('Access-Control-Allow-Credentials: true');
@@ -43,13 +41,11 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control');
 header('Access-Control-Max-Age: 86400');
 
-// Handle preflight OPTIONS request - MUST be early
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Regular headers
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -175,37 +171,57 @@ class IProgSMS {
     
     public function __construct($apiToken) {
         $this->apiToken = $apiToken;
+        error_log("✓ IProgSMS initialized");
     }
     
     public function sendSMS($phoneNumber, $message) {
+        error_log("=== SMS SEND ===");
+        error_log("📱 Input Phone: $phoneNumber");
+        error_log("💬 Message: $message");
+        
         if (empty($phoneNumber) || empty($message)) {
-            throw new Exception('Phone number and message are required');
+            throw new Exception('Phone and message required');
         }
         
         // Clean phone number
         $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+        error_log("🧹 Cleaned: $phoneNumber (length: " . strlen($phoneNumber) . ")");
         
-        // Format to Philippine number format (639XXXXXXXXX)
+        // Format to 639XXXXXXXXX
         if (strlen($phoneNumber) === 10 && substr($phoneNumber, 0, 1) === '9') {
             $phoneNumber = '63' . $phoneNumber;
         } elseif (strlen($phoneNumber) === 11 && substr($phoneNumber, 0, 2) === '09') {
             $phoneNumber = '63' . substr($phoneNumber, 1);
+        } elseif (strlen($phoneNumber) === 12 && substr($phoneNumber, 0, 3) === '639') {
+            // Already correct
+        } elseif (strlen($phoneNumber) === 13 && substr($phoneNumber, 0, 4) === '+639') {
+            $phoneNumber = substr($phoneNumber, 1);
+        } else {
+            error_log("❌ Invalid format: $phoneNumber");
+            throw new Exception('Invalid phone number format');
         }
         
+        error_log("📱 Formatted: $phoneNumber");
+        
+        // Validate
         if (!preg_match('/^639[0-9]{9}$/', $phoneNumber)) {
-            throw new Exception('Invalid Philippine phone number format');
+            error_log("❌ Failed validation");
+            throw new Exception('Invalid Philippine mobile number: ' . $phoneNumber);
         }
         
+        // Truncate message
         if (strlen($message) > 160) {
             $message = substr($message, 0, 157) . '...';
         }
         
-        // Prepare data for IPROG API
+        // API Request
         $data = [
             'api_token' => $this->apiToken,
             'message' => $message,
             'phone_number' => $phoneNumber
         ];
+        
+        error_log("🚀 Sending to IPROG...");
         
         $ch = curl_init($this->apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -222,67 +238,136 @@ class IProgSMS {
         $error = curl_error($ch);
         curl_close($ch);
         
-        if ($error || $httpCode !== 200) {
-            error_log("IPROG SMS Error: $error - HTTP $httpCode");
-            throw new Exception('SMS service error');
+        error_log("📡 HTTP: $httpCode");
+        error_log("📨 Response: $response");
+        
+        if ($error) {
+            error_log("❌ cURL Error: $error");
+            throw new Exception('SMS connection error: ' . $error);
+        }
+        
+        $responseData = json_decode($response, true);
+        
+        if ($httpCode !== 200) {
+            error_log("❌ HTTP Error");
+            $errorMsg = isset($responseData['message']) ? 
+                (is_array($responseData['message']) ? implode(', ', $responseData['message']) : $responseData['message']) 
+                : 'HTTP ' . $httpCode;
+            throw new Exception('SMS API error: ' . $errorMsg);
+        }
+        
+        if (isset($responseData['status']) && $responseData['status'] !== 200) {
+            $errorMsg = isset($responseData['message']) ? 
+                (is_array($responseData['message']) ? implode(', ', $responseData['message']) : $responseData['message']) 
+                : 'Unknown error';
+            throw new Exception('SMS rejected: ' . $errorMsg);
+        }
+        
+        error_log("✅ SMS SENT - To: $phoneNumber");
+        if (isset($responseData['message_id'])) {
+            error_log("📧 Message ID: " . $responseData['message_id']);
         }
         
         return true;
     }
 }
 
+// SMS NOTIFICATION FUNCTION - FIXED FOR CASH AND ONLINE PAYMENTS
 function sendNotificationSMS($phoneNumber, $requestId, $studentName, $totalAmount, $paymentMethod, $scheduledPickup) {
+    error_log("=== SMS NOTIFICATION START ===");
+    error_log("Phone: $phoneNumber | Request: #$requestId | Method: $paymentMethod");
+    
     try {
         if (empty($phoneNumber)) {
-            error_log("No phone number provided for SMS");
+            error_log("❌ No phone number");
             return false;
         }
         
         $iprogApiToken = Config::get('IPROG_API_TOKEN', '');
         
         if (empty($iprogApiToken)) {
-            error_log("IPROG API token not configured. SMS not sent.");
+            error_log("❌ No IPROG API token");
             return false;
         }
         
         $sms = new IProgSMS($iprogApiToken);
         
-        // Extract first name from student name (format: Surname, Firstname Middlename)
+        // Extract first name
         $nameParts = explode(',', $studentName);
-        $firstName = trim($nameParts[1] ?? $studentName);
+        $firstName = trim($nameParts[1] ?? $nameParts[0]);
         $firstName = explode(' ', $firstName)[0];
         
+        // Format date - Full date format
         $pickupDate = date('F j, Y', strtotime($scheduledPickup));
+        
+        // Format amount without peso sign (avoid Unicode issues)
         $formattedAmount = number_format($totalAmount, 2);
         
-        // UPDATED MESSAGE FORMAT FOR CASH PAYMENT
-        $message = "Hi! $firstName your request document #$requestId is received. ";
-        $message .= "Mode of payment: " . ucfirst($paymentMethod) . ". ";
-        $message .= "Please prepare ₱$formattedAmount. ";
-        $message .= "Pickup: $pickupDate. Thank you.";
+        // BUILD MESSAGE BASED ON PAYMENT METHOD
+        $paymentLower = strtolower(trim($paymentMethod));
         
-        $sms->sendSMS($phoneNumber, $message);
+        if ($paymentLower === 'cash') {
+            // CASH PAYMENT MESSAGE
+            $message = "Hi! $firstName your request document #$requestId is received. ";
+            $message .= "Mode of payment: Cash. ";
+            $message .= "Please prepare P$formattedAmount. ";
+            $message .= "Pickup: $pickupDate. ";
+            $message .= "Thank you.";
+            
+        } else {
+            // ONLINE PAYMENT MESSAGE (GCash/Maya)
+            $message = "Hi! $firstName your request document #$requestId is received. ";
+            $message .= "Mode of payment: Online payment. ";
+            $message .= "Please prepare the receipt. ";
+            $message .= "Pickup: $pickupDate. ";
+            $message .= "Thank you.";
+        }
         
-        error_log("SMS sent successfully to {$phoneNumber}");
-        return true;
+        error_log("📱 Sending SMS to: $phoneNumber");
+        error_log("💬 Message: $message");
+        
+        try {
+            $sms->sendSMS($phoneNumber, $message);
+            error_log("✅ SMS SENT SUCCESSFULLY");
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("❌ Primary SMS failed: " . $e->getMessage());
+            
+            // FALLBACK: Try alternative format if primary fails
+            try {
+                error_log("🔄 Trying fallback message...");
+                
+                if ($paymentLower === 'cash') {
+                    $fallbackMessage = "Hi! $firstName your document request #$requestId is confirmed. ";
+                    $fallbackMessage .= "Payment: Cash. ";
+                    $fallbackMessage .= "Amount: P$formattedAmount. ";
+                    $fallbackMessage .= "Pickup: $pickupDate. ";
+                    $fallbackMessage .= "Thank you!";
+                } else {
+                    $fallbackMessage = "Hi! $firstName your document request #$requestId is confirmed. ";
+                    $fallbackMessage .= "Total: P$formattedAmount. ";
+                    $fallbackMessage .= "Pickup date: $pickupDate. ";
+                    $fallbackMessage .= "Thank you!";
+                }
+                
+                error_log("💬 Fallback: $fallbackMessage");
+                $sms->sendSMS($phoneNumber, $fallbackMessage);
+                error_log("✅ FALLBACK SMS SENT");
+                return true;
+                
+            } catch (Exception $e2) {
+                error_log("❌ Fallback also failed: " . $e2->getMessage());
+                return false;
+            }
+        }
         
     } catch (Exception $e) {
-        error_log("SMS sending failed: " . $e->getMessage());
+        error_log("❌ SMS Exception: " . $e->getMessage());
         return false;
     }
 }
 
-/**
- * Creates a notification in the database for a student's document request
- * Matches the table structure from your image
- * 
- * @param int $studentNumber - The student's ID number
- * @param int $requestId - The document request ID
- * @param string $paymentMethod - Payment method used (cash/gcash/maya)
- * @param float $totalAmount - Total amount of the request
- * @param string $scheduledPickup - Scheduled pickup date
- * @return bool - True if notification was created successfully, false otherwise
- */
 function createRequestNotification($studentNumber, $requestId, $paymentMethod, $totalAmount, $scheduledPickup) {
     try {
         $dbConfig = Config::database();
@@ -294,14 +379,12 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
         );
         
         if ($conn->connect_error) {
-            error_log("Database connection failed for notification: " . $conn->connect_error);
+            error_log("DB failed: " . $conn->connect_error);
             return false;
         }
         
         $conn->set_charset('utf8mb4');
         
-        // Create notification message based on your table structure
-        $notificationType = "document_request";
         $message = sprintf(
             "Document Request #%d submitted. Amount: ₱%.2f via %s. Pickup: %s",
             $requestId,
@@ -310,14 +393,13 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
             date('F j, Y', strtotime($scheduledPickup))
         );
         
-        // Insert notification - adjusted for your table structure
         $stmt = $conn->prepare("
             INSERT INTO notifications (Notification_type, Student_ID, Created_At) 
             VALUES (?, ?, NOW())
         ");
         
         if (!$stmt) {
-            error_log("Failed to prepare notification statement: " . $conn->error);
+            error_log("Prepare failed: " . $conn->error);
             $conn->close();
             return false;
         }
@@ -325,23 +407,20 @@ function createRequestNotification($studentNumber, $requestId, $paymentMethod, $
         $stmt->bind_param("si", $message, $studentNumber);
         
         if (!$stmt->execute()) {
-            error_log("Failed to insert notification: " . $stmt->error);
+            error_log("Execute failed: " . $stmt->error);
             $stmt->close();
             $conn->close();
             return false;
         }
         
-        $notificationId = $conn->insert_id;
-        
         $stmt->close();
         $conn->close();
         
-        error_log("✓ Notification created successfully (ID: $notificationId) for student #$studentNumber");
-        
+        error_log("✓ Notification created");
         return true;
         
     } catch (Exception $e) {
-        error_log("Error creating notification: " . $e->getMessage());
+        error_log("Notification error: " . $e->getMessage());
         return false;
     }
 }
@@ -356,19 +435,18 @@ function saveToDatabase($studentNumber, $studentName, $grade, $section, $contact
     );
     
     if ($conn->connect_error) {
-        error_log("Database connection failed: " . $conn->connect_error);
+        error_log("DB connection failed: " . $conn->connect_error);
         throw new Exception('Database connection failed');
     }
     
     $conn->set_charset('utf8mb4');
     
-    error_log("Calling stored procedure InsertDocumentRequest");
-    error_log("Parameters: StudentID=$studentNumber, Name=$studentName, PaymentMethod=$paymentMethod");
+    error_log("Calling InsertDocumentRequest");
     
     $stmt = $conn->prepare("CALL InsertDocumentRequest(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     
     if (!$stmt) {
-        $error = 'Database prepare failed: ' . $conn->error;
+        $error = 'Prepare failed: ' . $conn->error;
         error_log($error);
         $conn->close();
         throw new Exception($error);
@@ -388,17 +466,15 @@ function saveToDatabase($studentNumber, $studentName, $grade, $section, $contact
         $paymongoSessionId
     );
 
-    error_log("Executing stored procedure...");
-    
     if (!$stmt->execute()) {
-        $error = 'Database execute failed: ' . $stmt->error;
+        $error = 'Execute failed: ' . $stmt->error;
         error_log($error);
         $stmt->close();
         $conn->close();
         throw new Exception($error);
     }
 
-    error_log("✓ Stored procedure executed successfully");
+    error_log("✓ Procedure executed");
 
     $result = $stmt->get_result();
     $requestId = 0;
@@ -410,9 +486,7 @@ function saveToDatabase($studentNumber, $studentName, $grade, $section, $contact
         $finalAmount = isset($row['total_amount']) ? floatval($row['total_amount']) : 0;
         $message = isset($row['message']) ? $row['message'] : $message;
         
-        error_log("✓ Retrieved from SP: RequestID=$requestId, Amount=₱$finalAmount");
-    } else {
-        error_log("⚠ No result set returned from stored procedure");
+        error_log("✓ RequestID=$requestId, Amount=₱$finalAmount");
     }
 
     if ($result) {
@@ -421,14 +495,10 @@ function saveToDatabase($studentNumber, $studentName, $grade, $section, $contact
     $stmt->close();
 
     if ($requestId == 0) {
-        error_log("Attempting to get request_id from LAST_INSERT_ID()");
         $idResult = $conn->query("SELECT LAST_INSERT_ID() as last_id");
-        
         if ($idResult && $idRow = $idResult->fetch_assoc()) {
             $requestId = intval($idRow['last_id']);
-            error_log("✓ Got request_id from LAST_INSERT_ID: $requestId");
         }
-        
         if ($idResult) {
             $idResult->close();
         }
@@ -437,7 +507,7 @@ function saveToDatabase($studentNumber, $studentName, $grade, $section, $contact
     $conn->close();
     
     if ($requestId == 0) {
-        throw new Exception('Failed to retrieve request ID after insert');
+        throw new Exception('Failed to get request ID');
     }
     
     return [
@@ -515,18 +585,13 @@ try {
         $studentName .= ' ' . $middlename;
     }
 
-    // Calculate scheduled pickup as 3 business days from today
-    // Skip weekends (Saturday and Sunday)
+    // Calculate pickup (3 business days)
     $scheduledPickup = new DateTime();
     $daysAdded = 0;
     
     while ($daysAdded < 3) {
         $scheduledPickup->modify('+1 day');
-        
-        // Get day of week (1 = Monday, 7 = Sunday)
         $dayOfWeek = $scheduledPickup->format('N');
-        
-        // Only count weekdays (Monday to Friday)
         if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
             $daysAdded++;
         }
@@ -534,17 +599,15 @@ try {
     
     $scheduledPickupDate = $scheduledPickup->format('Y-m-d');
     
-    error_log("Scheduled pickup calculated: $scheduledPickupDate (3 business days from " . date('Y-m-d') . ")");
-    
     $studentNumber = intval(getArrayValue($student, 'studentNumber'));
     $grade = getArrayValue($student, 'grade');
     $section = getArrayValue($student, 'section');
     $contactNo = getArrayValue($student, 'contactNo');
     $documentJson = json_encode($documentData, JSON_UNESCAPED_UNICODE);
 
-    // CASH PAYMENT - SAVE DIRECTLY TO DATABASE
+    // CASH PAYMENT
     if ($paymentMethod === 'cash') {
-        error_log("Processing CASH payment for student: $studentName");
+        error_log("=== CASH PAYMENT ===");
         
         $result = saveToDatabase(
             $studentNumber,
@@ -558,13 +621,35 @@ try {
             $documentJson
         );
         
-        // Send SMS notification
-        $smsSent = sendNotificationSMS($contactNo, $result['request_id'], $studentName, $result['final_amount'], $paymentMethod, $scheduledPickupDate);
+        error_log("✓ Saved - Request: #" . $result['request_id']);
         
-        // Create notification in database
-        $notificationCreated = createRequestNotification($studentNumber, $result['request_id'], $paymentMethod, $result['final_amount'], $scheduledPickupDate);
+        // Send SMS
+        $smsSent = sendNotificationSMS(
+            $contactNo, 
+            $result['request_id'], 
+            $studentName, 
+            $result['final_amount'], 
+            $paymentMethod, 
+            $scheduledPickupDate
+        );
         
-        $responseData = [
+        error_log("SMS: " . ($smsSent ? 'SUCCESS ✅' : 'FAILED ❌'));
+        
+        // Create notification
+        $notificationCreated = createRequestNotification(
+            $studentNumber, 
+            $result['request_id'], 
+            $paymentMethod, 
+            $result['final_amount'], 
+            $scheduledPickupDate
+        );
+        
+        $responseMessage = $result['message'];
+        if ($smsSent) {
+            $responseMessage .= " SMS sent.";
+        }
+        
+        sendResponse(true, $responseMessage, [
             'grand_total' => $result['final_amount'],
             'student_name' => $studentName,
             'documents_processed' => count($documentData),
@@ -575,21 +660,11 @@ try {
             'scheduled_pickup' => $scheduledPickupDate,
             'payment_redirect' => false,
             'payment_status' => 'paid'
-        ];
-        
-        $message = $result['message'];
-        if ($smsSent) {
-            $message .= " SMS notification sent.";
-        }
-        if ($notificationCreated) {
-            $message .= " Notification created.";
-        }
-        
-        sendResponse(true, $message, $responseData);
+        ]);
         
     } else {
-        // ONLINE PAYMENT - ONLY CREATE PAYMENT SESSION
-        error_log("Processing ONLINE payment ($paymentMethod)");
+        // ONLINE PAYMENT
+        error_log("=== ONLINE PAYMENT ===");
         
         $paymongoSecretKey = Config::get('PAYMONGO_SECRET_KEY', '');
         $paymongo = new PayMongoAPI($paymongoSecretKey);
@@ -602,18 +677,13 @@ try {
             $reactAppUrl = Config::getReactUrl();
             $phpApiUrl = Config::getPhpApiUrl();
             
-            // Ensure URLs don't have trailing slashes
             $reactAppUrl = rtrim($reactAppUrl, '/');
             $phpApiUrl = rtrim($phpApiUrl, '/');
             
             $description = "Document Request - " . substr($studentName, 0, 50);
             
-            // Both success and cancel URLs use PHP handlers with {checkout_session_id} placeholder
             $successUrl = $phpApiUrl . '/payment-success.php?session_id={checkout_session_id}';
             $cancelUrl = $phpApiUrl . '/payment-cancel.php?session_id={checkout_session_id}';
-            
-            error_log("Success URL: $successUrl");
-            error_log("Cancel URL: $cancelUrl");
             
             $metadata = [
                 'student_number' => (string)$studentNumber,
@@ -621,18 +691,8 @@ try {
                 'total_amount' => number_format($totalAmount, 2, '.', '')
             ];
             
-            // Determine payment methods
-            $paymongoMethods = [];
-            if ($paymentMethod === 'gcash') {
-                $paymongoMethods = ['gcash'];
-            } elseif ($paymentMethod === 'maya') {
-                $paymongoMethods = ['paymaya'];
-            } else {
-                $paymongoMethods = ['gcash', 'paymaya'];
-            }
+            $paymongoMethods = ($paymentMethod === 'gcash') ? ['gcash'] : ['paymaya'];
             
-            // STEP 1: Create PayMongo checkout session
-            error_log("Creating PayMongo checkout session...");
             $checkoutSession = $paymongo->createCheckoutSession(
                 $totalAmount,
                 $description,
@@ -645,11 +705,7 @@ try {
             $paymongoCheckoutId = $checkoutSession['session_id'];
             $checkoutUrl = $checkoutSession['checkout_url'];
             
-            error_log("✓ PayMongo checkout created successfully");
-            error_log("  Checkout ID: $paymongoCheckoutId");
-            error_log("  Checkout URL: $checkoutUrl");
-            
-            // STEP 2: Store payment data in session
+            // Store in session
             $paymentSessionData = [
                 'student_number' => $studentNumber,
                 'student_name' => $studentName,
@@ -669,23 +725,12 @@ try {
             $sessionKey = 'pending_payment_' . $paymongoCheckoutId;
             $_SESSION[$sessionKey] = $paymentSessionData;
             
-            // Force session write
             session_write_close();
             session_start();
             
-            error_log("✓ Payment data stored in PHP session");
-            error_log("  Session Key: $sessionKey");
-            error_log("  PHP Session ID: " . session_id());
+            error_log("✓ Session stored: $sessionKey");
             
-            if (!isset($_SESSION[$sessionKey])) {
-                error_log("❌ CRITICAL: Session data not found after storage!");
-                throw new Exception('Failed to store payment session data');
-            }
-            
-            error_log("✓ Session data verified present");
-            
-            // STEP 3: Return checkout URL to frontend
-            sendResponse(true, 'Redirecting to payment gateway...', [
+            sendResponse(true, 'Redirecting...', [
                 'grand_total' => $totalAmount,
                 'student_name' => $studentName,
                 'documents_processed' => count($documentData),
@@ -698,15 +743,13 @@ try {
             ]);
             
         } catch (Exception $e) {
-            error_log("❌ Online payment error: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
+            error_log("❌ Payment error: " . $e->getMessage());
             sendResponse(false, 'Payment setup failed: ' . $e->getMessage());
         }
     }
 
 } catch (Exception $e) {
     error_log("Exception: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
     sendResponse(false, 'An error occurred. Please try again later.');
 }
 ?>
