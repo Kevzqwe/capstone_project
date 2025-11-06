@@ -10,6 +10,12 @@ export const useDocumentRequest = () => {
 
   // Initialize on mount
   useEffect(() => {
+    // CRITICAL: Hide modal immediately on mount before anything else
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+
     initDocumentRequestSystem();
     loadStudentData();
 
@@ -184,6 +190,9 @@ export const useDocumentRequest = () => {
     const openBtn = document.getElementById('openModalBtn');
     const closeBtn = document.getElementById('closeModalBtn');
     if (!modal || !openBtn || !closeBtn) return;
+
+    // CRITICAL: Ensure modal is hidden initially
+    modal.style.display = 'none';
 
     // Remove existing listeners first
     const newOpenBtn = openBtn.cloneNode(true);

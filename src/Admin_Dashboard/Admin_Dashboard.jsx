@@ -51,11 +51,23 @@ const AdminDashboard = () => {
         handleTransactionEdit,
         handleTransactionPublish,
         handleTransactionChange,
-        handleStatusChange
+        handleStatusChange,
+        handleSaveRequest,
+        filterRequestsByDateRange,
+        resetDateFilter,
+        filteredData
     } = useAdminDashboard();
 
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
+    
+    // Date filter states
+    const [startDate, setStartDate] = useState('2020-01-01');
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [isFiltered, setIsFiltered] = useState(false);
+
+    // Local state for rescheduled pickup dates
+    const [rescheduledPickups, setRescheduledPickups] = useState({});
 
     useEffect(() => {
         initializeChatbase();
@@ -97,12 +109,37 @@ const AdminDashboard = () => {
         return date.toLocaleDateString();
     };
 
-    const pendingCount = dashboardData?.pending_requests || 0;
-    const ongoingCount = dashboardData?.ongoing_requests || 0;
-    const readyCount = dashboardData?.ready_requests || 0;
-    const completedCount = dashboardData?.completed_requests || 0;
+    // Handle date filter
+    const handleApplyFilter = async () => {
+        await filterRequestsByDateRange(startDate, endDate);
+        setIsFiltered(true);
+    };
+
+    const handleResetFilter = () => {
+        const today = new Date().toISOString().split('T')[0];
+        setStartDate('2020-01-01');
+        setEndDate(today);
+        resetDateFilter();
+        setIsFiltered(false);
+    };
+
+    // Handle rescheduled pickup date change
+    const handleRescheduledPickupChange = (requestId, newDate) => {
+        setRescheduledPickups(prev => ({
+            ...prev,
+            [requestId]: newDate
+        }));
+    };
+
+    // Use filtered data if available, otherwise use dashboard data
+    const displayData = filteredData || dashboardData;
+    
+    const pendingCount = displayData?.pending_requests || 0;
+    const ongoingCount = displayData?.ongoing_requests || 0;
+    const readyCount = displayData?.ready_requests || 0;
+    const completedCount = displayData?.completed_requests || 0;
     const totalRequests = pendingCount + ongoingCount + readyCount + completedCount;
-    const circumference = 2 * Math.PI * 120;
+    const circumference = 2 * Math.PI * 180;
     
     const pendingDash = totalRequests > 0 ? (pendingCount / totalRequests) * circumference : circumference;
     const ongoingDash = totalRequests > 0 ? (ongoingCount / totalRequests) * circumference : 0;
@@ -497,7 +534,7 @@ const AdminDashboard = () => {
                     </div>
                 )}
 
-                {/* REQUEST DETAILS MODAL WITH PAYMENT STATUS */}
+                {/* REQUEST DETAILS MODAL WITH PAYMENT STATUS AND SAVE BUTTON */}
                 {showModal && selectedRequest && (
                     <div className="modal-overlay" onClick={handleCloseModal}>
                         <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
@@ -648,8 +685,17 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Modal Footer */}
+                            {/* Modal Footer with Save Button */}
                             <div className="modal-footer">
+                                <button 
+                                    onClick={() => {
+                                        handleSaveRequest(selectedRequest);
+                                        handleCloseModal();
+                                    }} 
+                                    className="btn-modal-save"
+                                >
+                                    Save
+                                </button>
                                 <button onClick={handleCloseModal} className="btn-modal-close">
                                     Close
                                 </button>
@@ -717,17 +763,19 @@ const AdminDashboard = () => {
                                         <input 
                                             type="text" 
                                             className="announcement-title" 
-                                            value={announcementData.title}
-                                            onChange={(e) => handleAnnouncementChange('title', e.target.value)}
+                                            value={announcementData.Title}
+                                            onChange={(e) => handleAnnouncementChange('Title', e.target.value)}
                                             placeholder="Enter announcement title..." 
+                                            disabled={!isEditingAnnouncement}
                                         />
                                     </div>
                                     <div className="announcement-body">
                                         <textarea 
                                             className="announcement-text" 
                                             placeholder="Enter announcement content..."
-                                            value={announcementData.content}
-                                            onChange={(e) => handleAnnouncementChange('content', e.target.value)}
+                                            value={announcementData.Content}
+                                            onChange={(e) => handleAnnouncementChange('Content', e.target.value)}
+                                            disabled={!isEditingAnnouncement}
                                         />
                                     </div>
                                     <div className="announcement-actions">
@@ -745,7 +793,7 @@ const AdminDashboard = () => {
                                             Publish
                                         </button>
                                     </div>
-                                    {announcementData.is_published && (
+                                    {announcementData.Is_Active && (
                                         <div className="published-badge">
                                             ✓ Published
                                         </div>
@@ -760,8 +808,9 @@ const AdminDashboard = () => {
                                     <textarea 
                                         className="transaction-text" 
                                         placeholder="Enter transaction information..."
-                                        value={transactionData.content}
+                                        value={transactionData.Description}
                                         onChange={(e) => handleTransactionChange(e.target.value)}
+                                        disabled={!isEditingTransaction}
                                     />
                                     <div className="transaction-actions">
                                         <button 
@@ -778,7 +827,7 @@ const AdminDashboard = () => {
                                             Publish
                                         </button>
                                     </div>
-                                    {transactionData.is_published && (
+                                    {transactionData.Is_Active && (
                                         <div className="published-badge">
                                             ✓ Published
                                         </div>
@@ -817,6 +866,7 @@ const AdminDashboard = () => {
                                         <th>Payment Method</th>
                                         <th>Date Requested</th>
                                         <th>Scheduled Pick Up</th>
+                                        <th>Reschedule Pick Up</th>
                                         <th>Status</th>
                                         <th>Total Amount</th>
                                         <th>Actions</th>
@@ -825,7 +875,7 @@ const AdminDashboard = () => {
                                 <tbody>
                                     {loading && documentRequests.length === 0 ? (
                                         <tr>
-                                            <td colSpan="13" className="loading-cell">
+                                            <td colSpan="14" className="loading-cell">
                                                 <div className="loading-container">
                                                     <div className="spinner"></div>
                                                     <span>Loading requests...</span>
@@ -856,6 +906,19 @@ const AdminDashboard = () => {
                                                         new Date(request.scheduled_pick_up).toISOString().split('T')[0] : 'N/A'}
                                                 </td>
                                                 <td>
+                                                    <input 
+                                                        type="date"
+                                                        className="reschedule-date-input"
+                                                        value={rescheduledPickups[request.request_id] || request.rescheduled_pick_up || ''}
+                                                        onChange={(e) => {
+                                                            handleRescheduledPickupChange(request.request_id, e.target.value);
+                                                            // Update the request object
+                                                            request.rescheduled_pick_up = e.target.value;
+                                                        }}
+                                                        min={new Date().toISOString().split('T')[0]}
+                                                    />
+                                                </td>
+                                                <td>
                                                     <select 
                                                         className={`status-select status-${request.status?.toLowerCase().replace(/ /g, '-')}`}
                                                         value={request.status || 'Pending'}
@@ -873,18 +936,21 @@ const AdminDashboard = () => {
                                                 </td>
                                                 <td>
                                                     <button 
-                                                        className="btn-action btn-view"
-                                                        title="View Details"
-                                                        onClick={() => handleViewRequest(request)}
+                                                        className="btn-action btn-save"
+                                                        title="Save Changes"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleSaveRequest(request);
+                                                        }}
                                                     >
-                                                        View
+                                                        Save
                                                     </button>
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="13" className="empty-cell">
+                                            <td colSpan="14" className="empty-cell">
                                                 <div className="empty-container">
                                                     <i className="fas fa-inbox"></i>
                                                     <span>No document requests found</span>
@@ -941,103 +1007,167 @@ const AdminDashboard = () => {
                         <h2 className="section-title">Document Requests Analytics</h2>
                         
                         <div className="analytics-container">
-                            <div className="circle-chart-container">
-                                <svg width="300" height="300" viewBox="0 0 300 300">
-                                    <circle 
-                                        cx="150" 
-                                        cy="150" 
-                                        r="120" 
-                                        fill="none" 
-                                        stroke="#f0f0f0" 
-                                        strokeWidth="30"
-                                    />
-                                    
-                                    {pendingCount > 0 && (
+                            {/* Left Side - Chart and Legend */}
+                            <div className="analytics-left">
+                                <div className="circle-chart-container">
+                                    <svg width="450" height="450" viewBox="0 0 450 450">
                                         <circle 
-                                            cx="150" 
-                                            cy="150" 
-                                            r="120" 
+                                            cx="225" 
+                                            cy="225" 
+                                            r="180" 
                                             fill="none" 
-                                            stroke="#ef5350" 
-                                            strokeWidth="30"
-                                            strokeDasharray={`${pendingDash} ${circumference}`}
-                                            strokeDashoffset="0"
-                                            transform="rotate(-90 150 150)"
+                                            stroke="#f0f0f0" 
+                                            strokeWidth="45"
                                         />
-                                    )}
+                                        
+                                        {pendingCount > 0 && (
+                                            <circle 
+                                                cx="225" 
+                                                cy="225" 
+                                                r="180" 
+                                                fill="none" 
+                                                stroke="#ef5350" 
+                                                strokeWidth="45"
+                                                strokeDasharray={`${pendingDash} ${circumference}`}
+                                                strokeDashoffset="0"
+                                                transform="rotate(-90 225 225)"
+                                            />
+                                        )}
+                                        
+                                        {ongoingCount > 0 && (
+                                            <circle 
+                                                cx="225" 
+                                                cy="225" 
+                                                r="180" 
+                                                fill="none" 
+                                                stroke="#ffc107" 
+                                                strokeWidth="45"
+                                                strokeDasharray={`${ongoingDash} ${circumference}`}
+                                                strokeDashoffset={`${-pendingDash}`}
+                                                transform="rotate(-90 225 225)"
+                                            />
+                                        )}
+                                        
+                                        {readyCount > 0 && (
+                                            <circle 
+                                                cx="225" 
+                                                cy="225" 
+                                                r="180" 
+                                                fill="none" 
+                                                stroke="#ff9800" 
+                                                strokeWidth="45"
+                                                strokeDasharray={`${readyDash} ${circumference}`}
+                                                strokeDashoffset={`${-(pendingDash + ongoingDash)}`}
+                                                transform="rotate(-90 225 225)"
+                                            />
+                                        )}
+                                        
+                                        {completedCount > 0 && (
+                                            <circle 
+                                                cx="225" 
+                                                cy="225" 
+                                                r="180" 
+                                                fill="none" 
+                                                stroke="#66bb6a" 
+                                                strokeWidth="45"
+                                                strokeDasharray={`${completedDash} ${circumference}`}
+                                                strokeDashoffset={`${-(pendingDash + ongoingDash + readyDash)}`}
+                                                transform="rotate(-90 225 225)"
+                                            />
+                                        )}
+                                    </svg>
                                     
-                                    {ongoingCount > 0 && (
-                                        <circle 
-                                            cx="150" 
-                                            cy="150" 
-                                            r="120" 
-                                            fill="none" 
-                                            stroke="#ffc107" 
-                                            strokeWidth="30"
-                                            strokeDasharray={`${ongoingDash} ${circumference}`}
-                                            strokeDashoffset={`${-pendingDash}`}
-                                            transform="rotate(-90 150 150)"
-                                        />
-                                    )}
-                                    
-                                    {readyCount > 0 && (
-                                        <circle 
-                                            cx="150" 
-                                            cy="150" 
-                                            r="120" 
-                                            fill="none" 
-                                            stroke="#ff9800" 
-                                            strokeWidth="30"
-                                            strokeDasharray={`${readyDash} ${circumference}`}
-                                            strokeDashoffset={`${-(pendingDash + ongoingDash)}`}
-                                            transform="rotate(-90 150 150)"
-                                        />
-                                    )}
-                                    
-                                    {completedCount > 0 && (
-                                        <circle 
-                                            cx="150" 
-                                            cy="150" 
-                                            r="120" 
-                                            fill="none" 
-                                            stroke="#66bb6a" 
-                                            strokeWidth="30"
-                                            strokeDasharray={`${completedDash} ${circumference}`}
-                                            strokeDashoffset={`${-(pendingDash + ongoingDash + readyDash)}`}
-                                            transform="rotate(-90 150 150)"
-                                        />
-                                    )}
-                                </svg>
-                                
-                                <div className="chart-center-text">
-                                    <div className="chart-total-number">{totalRequests}</div>
-                                    <div className="chart-total-label">Total Requests</div>
+                                    <div className="chart-center-text">
+                                        <div className="chart-total-number">{totalRequests}</div>
+                                        <div className="chart-total-label">Total Requests</div>
+                                    </div>
+                                </div>
+
+                                <div className="analytics-legend">
+                                    <div className="legend-item">
+                                        <div className="legend-color legend-pending"></div>
+                                        <span>Pending: {pendingCount}</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div className="legend-color legend-ongoing"></div>
+                                        <span>Ongoing: {ongoingCount}</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div className="legend-color legend-ready"></div>
+                                        <span>Ready: {readyCount}</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div className="legend-color legend-completed"></div>
+                                        <span>Completed: {completedCount}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="analytics-legend">
-                                <div className="legend-item">
-                                    <div className="legend-color legend-pending"></div>
-                                    <span>Pending: {pendingCount}</span>
+                            {/* Right Side - Date Filter */}
+                            <div className="analytics-right">
+                                <div className="filter-header">
+                                    <h3>Filter by Date Range</h3>
+                                    <p>Select a date range to analyze requests</p>
                                 </div>
-                                <div className="legend-item">
-                                    <div className="legend-color legend-ongoing"></div>
-                                    <span>Ongoing: {ongoingCount}</span>
+
+                                {/* Date Inputs Row - Side by Side */}
+                                <div className="date-filter-row">
+                                    <div className="date-filter-group">
+                                        <label htmlFor="start-date">Start Date</label>
+                                        <input 
+                                            type="date" 
+                                            id="start-date"
+                                            min="2020-01-01"
+                                            max={new Date().toISOString().split('T')[0]}
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="date-filter-group">
+                                        <label htmlFor="end-date">End Date</label>
+                                        <input 
+                                            type="date" 
+                                            id="end-date"
+                                            min={startDate || "2020-01-01"}
+                                            max={new Date().toISOString().split('T')[0]}
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="legend-item">
-                                    <div className="legend-color legend-ready"></div>
-                                    <span>Ready: {readyCount}</span>
+
+                                <div className="filter-actions">
+                                    <button 
+                                        className="btn-filter btn-apply-filter"
+                                        onClick={handleApplyFilter}
+                                    >
+                                        <i className="fas fa-check"></i>
+                                        Apply
+                                    </button>
+                                    <button 
+                                        className="btn-filter btn-reset-filter"
+                                        onClick={handleResetFilter}
+                                    >
+                                        <i className="fas fa-redo"></i>
+                                        Reset
+                                    </button>
                                 </div>
-                                <div className="legend-item">
-                                    <div className="legend-color legend-completed"></div>
-                                    <span>Completed: {completedCount}</span>
-                                </div>
+
+                                {isFiltered && (
+                                    <div className="filter-summary">
+                                        <h4>Current Filter</h4>
+                                        <p><strong>From:</strong> {new Date(startDate).toLocaleDateString()}</p>
+                                        <p><strong>To:</strong> {new Date(endDate).toLocaleDateString()}</p>
+                                        <p><strong>Total Requests:</strong> {totalRequests}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                 {/* Account Section */}
+                {/* Account Section */}
                 <div className={`page-section ${activeSection === 'account' ? 'active' : ''}`}>
                     <div className="page-content">
                         <div className="account-header">

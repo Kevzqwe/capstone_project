@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./Student.css";
 import PCSlogo from "../Components/Assets/PCSlogo.png";
 import Icon from "../Components/Assets/Icon.png";
@@ -18,6 +18,10 @@ export default function StudentDashboard() {
     showFeedbackModal,
     feedback,
     isSubmitting,
+    announcement,
+    transactionDays,
+    announcementLoading,
+    transactionLoading,
     setFeedback,
     openFeedbackModal,
     closeFeedbackModal,
@@ -27,6 +31,9 @@ export default function StudentDashboard() {
   } = useStudentPortal();
 
   useDocumentRequest();
+
+  // Force re-render when announcement or transaction changes
+  const [renderKey, setRenderKey] = useState(0);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -51,14 +58,16 @@ export default function StudentDashboard() {
   }, []);
 
   useEffect(() => {
-    console.log('=== FEEDBACK MODAL STATE CHANGED ===', showFeedbackModal);
-  }, [showFeedbackModal]);
+    console.log('=== ANNOUNCEMENT DATA ===', announcement);
+    console.log('=== TRANSACTION DAYS DATA ===', transactionDays);
+    // Force re-render when data changes
+    setRenderKey(prev => prev + 1);
+  }, [announcement, transactionDays]);
 
   const handleFeedbackClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('=== FEEDBACK BUTTON CLICKED ===');
-    console.log('openFeedbackModal function:', openFeedbackModal);
     openFeedbackModal();
   };
 
@@ -192,14 +201,14 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="cards-grid">
+            <div className="cards-grid" key={renderKey}>
               <div className="info-card">
                 <h3>Announcement</h3>
-                <p></p>
+                <p>{announcementLoading ? 'Loading...' : announcement}</p>
               </div>
               <div className="info-card">
                 <h3>Transaction Days</h3>
-                <p></p>
+                <p>{transactionLoading ? 'Loading...' : transactionDays}</p>
               </div>
             </div>
 
@@ -505,7 +514,6 @@ export default function StudentDashboard() {
           style={{ display: 'flex', zIndex: 9999 }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              console.log('=== CLOSING MODAL - CLICKED OUTSIDE ===');
               closeFeedbackModal();
             }
           }}

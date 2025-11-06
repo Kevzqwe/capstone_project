@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 
 const API_BASE_URL = 'http://localhost/capstone_project/public/php-backend/student_data.php';
 const FEEDBACK_API_URL = 'http://localhost/capstone_project/public/php-backend/feedback.php';
+const ANNOUNCEMENT_API_URL = 'http://localhost/capstone_project/public/php-backend/announcement.php';
+const TRANSACTION_API_URL = 'http://localhost/capstone_project/public/php-backend/transaction.php';
 
 export const useStudentPortal = () => {
   const [studentData, setStudentData] = useState(null);
@@ -14,6 +16,11 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
+  const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [transactionLoading, setTransactionLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const showMessage = useCallback((message, type) => {
     const existing = document.querySelector('.status-message');
@@ -37,6 +44,96 @@ export const useStudentPortal = () => {
     
     document.body.appendChild(messageDiv);
     setTimeout(() => messageDiv.remove(), 5000);
+  }, []);
+
+  // Fetch announcement data - matching your backend structure
+  const loadAnnouncement = useCallback(async () => {
+    try {
+      console.log('Loading announcement...');
+      setAnnouncementLoading(true);
+      
+      const response = await fetch(`${ANNOUNCEMENT_API_URL}?action=get_announcement_data`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log('Announcement response status:', response.status);
+
+      if (!response.ok) {
+        console.error('Announcement request failed with status:', response.status);
+        setAnnouncementLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Announcement response:', data);
+      
+      if (data.status === 'success' && data.data) {
+        // Match your backend field names: Content, Title
+        const announcementText = data.data.Content || 
+                                data.data.content || 
+                                'Welcome to Pateros Catholic School Document Request System';
+        
+        console.log('✓ Setting announcement to:', announcementText);
+        setAnnouncement(announcementText);
+      } else if (data.status === 'error') {
+        console.warn('Announcement error:', data.message);
+        // Keep default announcement
+      }
+    } catch (error) {
+      console.error('Error fetching announcement:', error);
+    } finally {
+      setAnnouncementLoading(false);
+    }
+  }, []);
+
+  // Fetch transaction days data - matching your backend structure
+  const loadTransaction = useCallback(async () => {
+    try {
+      console.log('Loading transaction hours...');
+      setTransactionLoading(true);
+      
+      const response = await fetch(`${TRANSACTION_API_URL}?action=get_transaction_data`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log('Transaction response status:', response.status);
+
+      if (!response.ok) {
+        console.error('Transaction request failed with status:', response.status);
+        setTransactionLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Transaction response:', data);
+      
+      if (data.status === 'success' && data.data) {
+        // Match your backend field names: Description
+        const transactionText = data.data.Description || 
+                               data.data.description || 
+                               'Monday to Friday, 8:00 AM - 5:00 PM';
+        
+        console.log('✓ Setting transaction days to:', transactionText);
+        setTransactionDays(transactionText);
+      } else if (data.status === 'error') {
+        console.warn('Transaction error:', data.message);
+        // Keep default transaction days
+      }
+    } catch (error) {
+      console.error('Error fetching transaction:', error);
+    } finally {
+      setTransactionLoading(false);
+    }
   }, []);
 
   const updateNotificationBadge = useCallback((count) => {
@@ -70,7 +167,6 @@ export const useStudentPortal = () => {
     badge.style.display = count > 0 ? 'flex' : 'none';
   }, []);
 
-  // Get read notifications from localStorage
   const getReadNotifications = useCallback(() => {
     try {
       return JSON.parse(localStorage.getItem('readNotifications') || '[]');
@@ -80,7 +176,6 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // Save read notification to localStorage
   const saveReadNotification = useCallback((notificationId) => {
     try {
       const readNotifications = getReadNotifications();
@@ -184,6 +279,7 @@ export const useStudentPortal = () => {
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       }
     })
       .then(response => {
@@ -195,20 +291,29 @@ export const useStudentPortal = () => {
         console.log('User data response:', data);
         if (data.status === 'success') {
           setStudentData(data.data);
+          setIsAuthenticated(true);
           window.studentData = data.data;
+          
+          // Load announcement and transaction after authentication is confirmed
+          setTimeout(() => {
+            loadAnnouncement();
+            loadTransaction();
+          }, 300);
         } else {
           console.error('Failed to load student data:', data.message);
+          setIsAuthenticated(false);
           showMessage('Failed to load student data: ' + data.message, 'error');
         }
       })
       .catch(error => {
         console.error('Error loading user data:', error);
+        setIsAuthenticated(false);
         showMessage('Error loading student data', 'error');
       })
       .finally(() => {
         setIsLoadingUserData(false);
       });
-  }, [isLoadingUserData, showMessage]);
+  }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction]);
 
   const updateDashboard = useCallback((data) => {
     if (studentData) {
@@ -238,6 +343,7 @@ export const useStudentPortal = () => {
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       }
     })
       .then(response => response.json())
@@ -258,12 +364,12 @@ export const useStudentPortal = () => {
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       }
     })
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
-          // Filter out notifications that have been marked as read in localStorage
           const readNotifications = getReadNotifications();
           const filteredNotifications = data.notifications?.filter(notif => 
             !readNotifications.includes(notif.id)
@@ -351,22 +457,18 @@ export const useStudentPortal = () => {
 
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
-      // First, save to localStorage immediately for persistence
       saveReadNotification(notificationId);
       
-      // Update UI state immediately
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       setUnreadCount(prev => Math.max(0, prev - 1));
       updateNotificationBadge(Math.max(0, unreadCount - 1));
       
-      // Update global notifications
       if (window.studentNotifications) {
         window.studentNotifications = window.studentNotifications.filter(
           notif => notif.id !== notificationId
         );
       }
 
-      // Then call the backend API to mark as read in database
       const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
         method: 'POST',
         credentials: 'include',
@@ -384,12 +486,10 @@ export const useStudentPortal = () => {
         return true;
       } else {
         console.warn('Failed to mark notification as read in database:', result.message);
-        // Don't revert the UI change since we've already persisted in localStorage
         return false;
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      // Don't revert the UI change since we've already persisted in localStorage
       return false;
     }
   }, [unreadCount, updateNotificationBadge, saveReadNotification]);
@@ -503,9 +603,12 @@ export const useStudentPortal = () => {
     console.log('showFeedbackModal state changed to:', showFeedbackModal);
   }, [showFeedbackModal]);
 
+  // Load initial data on mount
   useEffect(() => {
+    // Load user data first to establish authentication
     loadUserData();
     fetchNotifications();
+    
     loadInitialData();
     setupNavigationHandlers();
     setupMenuToggleHandler();
@@ -522,6 +625,10 @@ export const useStudentPortal = () => {
   useEffect(() => {
     if (activePage === 'dashboard') {
       loadDashboardData();
+      if (isAuthenticated) {
+        loadAnnouncement();
+        loadTransaction();
+      }
     } else if (activePage === 'account' && studentData) {
       updateAccountPage(studentData);
     } else if (activePage === 'request-history') {
@@ -530,7 +637,7 @@ export const useStudentPortal = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage]);
+  }, [activePage, isAuthenticated]);
 
   return {
     studentData,
@@ -542,6 +649,11 @@ export const useStudentPortal = () => {
     dashboardData,
     feedback,
     isSubmitting,
+    announcement,
+    transactionDays,
+    announcementLoading,
+    transactionLoading,
+    isAuthenticated,
     setFeedback,
     openFeedbackModal,
     closeFeedbackModal,

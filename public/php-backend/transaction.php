@@ -28,11 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
-    exit();
-}
-
 // Handle both GET and POST requests
 $input = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -42,6 +37,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $action = isset($input['action']) ? $input['action'] : 'get_transaction_data';
+
+// Authentication check - UPDATED to allow students to read
+if ($action !== 'get_transaction_data' && $action !== 'get_all_transaction_schedules') {
+    // Write operations - Only admins can modify transaction schedules
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'admin') {
+        echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
+        exit();
+    }
+} else {
+    // Read operations - Allow both students and admins
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+        echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
+        exit();
+    }
+    
+    // Check if role is either student or admin
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'student' && $_SESSION['role'] !== 'admin')) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid role']);
+        exit();
+    }
+}
 
 // Get database configuration
 $dbConfig = Config::database();
@@ -71,7 +87,7 @@ try {
 
 try {
     if ($action === 'get_transaction_data') {
-        // Get current active transaction schedule
+        // Get current active transaction schedule - ACCESSIBLE TO STUDENTS AND ADMINS
         $stmt = $conn->prepare("
             SELECT Transaction_Sched_ID, Description, Is_Active, Updated_By, Updated_At 
             FROM transaction_schedule 
@@ -118,7 +134,7 @@ try {
         }
         
     } else if ($action === 'get_all_transaction_schedules') {
-        // Get all transaction schedules (for history/management)
+        // Get all transaction schedules (for history/management) - ACCESSIBLE TO STUDENTS AND ADMINS
         $stmt = $conn->prepare("
             SELECT Transaction_Sched_ID, Description, Is_Active, Updated_By, Updated_At 
             FROM transaction_schedule 

@@ -7,6 +7,8 @@ const API_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backe
 const API_UPDATE_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backend/update_announcement.php';
 const API_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/transaction.php';
 const API_UPDATE_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/update_transaction.php';
+const API_UPDATE_URL = 'http://localhost/capstone_project/public/php-backend/update_request.php';
+const API_FILTERED_DATE_URL = 'http://localhost/capstone_project/public/php-backend/filtered_date.php';
 
 export const useAdminDashboard = () => {
     const [currentDate, setCurrentDate] = useState('');
@@ -19,7 +21,7 @@ export const useAdminDashboard = () => {
         id: 'Loading...'
     });
     const [rawAdminData, setRawAdminData] = useState(null);
-    const [dashboardData, setDashboardData] = useState(null);
+    const [dashboardData, setDashboardData] = useState({});
     const [documentRequests, setDocumentRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,7 +46,7 @@ export const useAdminDashboard = () => {
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [notificationRequestData, setNotificationRequestData] = useState(null);
 
-    // Announcement states - FIXED: Use correct field names from your database
+    // Announcement states
     const [announcementData, setAnnouncementData] = useState({
         Announcement_ID: null,
         Title: 'School Announcement:',
@@ -56,7 +58,7 @@ export const useAdminDashboard = () => {
     const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
     const [announcementLoading, setAnnouncementLoading] = useState(false);
 
-    // Transaction states - FIXED: Use correct field names from your database
+    // Transaction states
     const [transactionData, setTransactionData] = useState({
         Transaction_Sched_ID: null,
         Description: 'Monday to Friday, 8:00 AM - 5:00 PM',
@@ -64,6 +66,16 @@ export const useAdminDashboard = () => {
     });
     const [isEditingTransaction, setIsEditingTransaction] = useState(false);
     const [transactionLoading, setTransactionLoading] = useState(false);
+
+    // Date filter states
+    const [filteredData, setFilteredData] = useState(null);
+    const [isFiltering, setIsFiltering] = useState(false);
+    const [dateFilterRange, setDateFilterRange] = useState({
+        startDate: '',
+        endDate: ''
+    });
+
+    // ==================== UTILITY FUNCTIONS ====================
 
     const showMessage = useCallback((message, type) => {
         const existing = document.querySelector('.status-message');
@@ -89,6 +101,34 @@ export const useAdminDashboard = () => {
         setTimeout(() => messageDiv.remove(), 5000);
     }, []);
 
+    const updateDate = useCallback(() => {
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        setCurrentDate(today.toLocaleDateString('en-US', options));
+    }, []);
+
+    const formatEmailForDisplay = useCallback((email) => {
+        if (!email) return 'Not set';
+        return email.toLowerCase();
+    }, []);
+
+    const getNameFromEmail = useCallback((email) => {
+        if (!email) return 'Administrator';
+        
+        const username = email.split('@')[0];
+        
+        let formattedName = username
+            .split(/[._]/)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+            .join(' ');
+        
+        if (formattedName.length > 20 || formattedName.split(' ').length > 3) {
+            return 'School Administrator';
+        }
+        
+        return formattedName;
+    }, []);
+
     // ==================== FIELD NORMALIZATION ====================
     
     const normalizeRequestData = useCallback((data) => {
@@ -106,7 +146,7 @@ export const useAdminDashboard = () => {
             scheduled_pick_up: data.Scheduled_Pick_Up || data.scheduled_pick_up || 'N/A',
             rescheduled_pick_up: data.Rescheduled_Pick_Up || data.rescheduled_pick_up || null,
             status: data.Status || data.status || 'N/A',
-            payment_method: data.Payment_Method || data.payment_method || data.payment_method || 'N/A',
+            payment_method: data.Payment_Method || data.payment_method || 'N/A',
             payment_amount: data.Total_Amount || data.payment_amount || data.total_amount || 0,
             payment_status_display: data.payment_status_display || 'Unpaid',
             paymongo_session_id: data.paymongo_session_id || null
@@ -184,7 +224,6 @@ export const useAdminDashboard = () => {
                     setAllNotifications(allNotifs);
                     setNotifications(allNotifs);
                     
-                    // Count unread (is_read must be exactly 0 or '0')
                     const unreadNotifications = allNotifs.filter(notif => 
                         notif.is_read === 0 || notif.is_read === '0'
                     );
@@ -406,8 +445,6 @@ export const useAdminDashboard = () => {
         setNotificationRequestData(null);
     }, []);
 
-    const readNotifications = allNotifications.filter(notif => notif.is_read === 1).map(notif => notif.id);
-
     // ==================== MAIL FUNCTIONS ====================
 
     const updateMailBadge = useCallback((count) => {
@@ -543,9 +580,7 @@ export const useAdminDashboard = () => {
         markMailAsRead(mail.id);
     }, [openMailModal, markMailAsRead]);
 
-    const actualUnreadMailCount = mails.filter(mail => !getReadMails().includes(mail.id)).length;
-
-    // ==================== ANNOUNCEMENT FUNCTIONS - FIXED ====================
+    // ==================== ANNOUNCEMENT FUNCTIONS ====================
 
     const loadAnnouncement = useCallback(async () => {
         try {
@@ -563,7 +598,6 @@ export const useAdminDashboard = () => {
             console.log('Announcement response:', data);
             
             if (data.status === 'success') {
-                // FIXED: Use correct database field names
                 setAnnouncementData({
                     Announcement_ID: data.data.Announcement_ID || data.data.id,
                     Title: data.data.Title || data.data.title || 'School Announcement:',
@@ -589,51 +623,6 @@ export const useAdminDashboard = () => {
         showMessage('You can now edit the announcement', 'info');
     }, [showMessage]);
 
-    const handleAnnouncementSave = useCallback(async () => {
-        try {
-            console.log('Saving announcement...');
-            setAnnouncementLoading(true);
-            
-            const response = await fetch(API_UPDATE_ANNOUNCEMENT_URL, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    // FIXED: Use correct field names for your database
-                    Announcement_ID: announcementData.Announcement_ID,
-                    Title: announcementData.Title,
-                    Content: announcementData.Content,
-                    Is_Active: announcementData.Is_Active,
-                    Start_Date: announcementData.Start_Date,
-                    End_Date: announcementData.End_Date,
-                    action: 'update_announcement'
-                })
-            });
-
-            const data = await response.json();
-            console.log('Save announcement response:', data);
-            
-            if (data.status === 'success') {
-                setAnnouncementData(prev => ({
-                    ...prev,
-                    ...data.data
-                }));
-                setIsEditingAnnouncement(false);
-                showMessage(data.message || 'Announcement saved successfully', 'success');
-            } else {
-                showMessage(data.message || 'Failed to save announcement', 'error');
-            }
-        } catch (error) {
-            console.error('Error saving announcement:', error);
-            showMessage('Failed to save announcement', 'error');
-        } finally {
-            setAnnouncementLoading(false);
-        }
-    }, [announcementData, showMessage]);
-
     const handleAnnouncementPublish = useCallback(async () => {
         try {
             console.log('Publishing announcement...');
@@ -647,11 +636,10 @@ export const useAdminDashboard = () => {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    // FIXED: Use correct field names
                     Announcement_ID: announcementData.Announcement_ID,
                     Title: announcementData.Title,
                     Content: announcementData.Content,
-                    Is_Active: true, // Set to active when publishing
+                    Is_Active: true,
                     Start_Date: announcementData.Start_Date || new Date().toISOString().split('T')[0],
                     End_Date: announcementData.End_Date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                     action: 'publish_announcement'
@@ -680,45 +668,6 @@ export const useAdminDashboard = () => {
         }
     }, [announcementData, showMessage]);
 
-    const handleAnnouncementUnpublish = useCallback(async () => {
-        try {
-            console.log('Unpublishing announcement...');
-            setAnnouncementLoading(true);
-            
-            const response = await fetch(API_UPDATE_ANNOUNCEMENT_URL, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    Announcement_ID: announcementData.Announcement_ID,
-                    Is_Active: false,
-                    action: 'unpublish_announcement'
-                })
-            });
-
-            const data = await response.json();
-            console.log('Unpublish announcement response:', data);
-            
-            if (data.status === 'success') {
-                setAnnouncementData(prev => ({
-                    ...prev,
-                    Is_Active: false
-                }));
-                showMessage(data.message || 'Announcement unpublished successfully', 'success');
-            } else {
-                showMessage(data.message || 'Failed to unpublish announcement', 'error');
-            }
-        } catch (error) {
-            console.error('Error unpublishing announcement:', error);
-            showMessage('Failed to unpublish announcement', 'error');
-        } finally {
-            setAnnouncementLoading(false);
-        }
-    }, [announcementData, showMessage]);
-
     const handleAnnouncementChange = useCallback((field, value) => {
         setAnnouncementData(prev => ({
             ...prev,
@@ -726,7 +675,7 @@ export const useAdminDashboard = () => {
         }));
     }, []);
 
-    // ==================== TRANSACTION FUNCTIONS - FIXED ====================
+    // ==================== TRANSACTION FUNCTIONS ====================
 
     const loadTransaction = useCallback(async () => {
         try {
@@ -744,7 +693,6 @@ export const useAdminDashboard = () => {
             console.log('Transaction response:', data);
             
             if (data.status === 'success') {
-                // FIXED: Use correct database field names
                 setTransactionData({
                     Transaction_Sched_ID: data.data.Transaction_Sched_ID || data.data.id,
                     Description: data.data.Description || data.data.content || 'Monday to Friday, 8:00 AM - 5:00 PM',
@@ -767,48 +715,6 @@ export const useAdminDashboard = () => {
         showMessage('You can now edit the transaction hours', 'info');
     }, [showMessage]);
 
-    const handleTransactionSave = useCallback(async () => {
-        try {
-            console.log('Saving transaction hours...');
-            setTransactionLoading(true);
-            
-            const response = await fetch(API_UPDATE_TRANSACTION_URL, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    // FIXED: Use correct field names
-                    Transaction_Sched_ID: transactionData.Transaction_Sched_ID,
-                    Description: transactionData.Description,
-                    Is_Active: transactionData.Is_Active,
-                    action: 'update_transaction'
-                })
-            });
-
-            const data = await response.json();
-            console.log('Save transaction response:', data);
-            
-            if (data.status === 'success') {
-                setTransactionData(prev => ({
-                    ...prev,
-                    ...data.data
-                }));
-                setIsEditingTransaction(false);
-                showMessage(data.message || 'Transaction hours saved successfully', 'success');
-            } else {
-                showMessage(data.message || 'Failed to save transaction hours', 'error');
-            }
-        } catch (error) {
-            console.error('Error saving transaction:', error);
-            showMessage('Failed to save transaction hours', 'error');
-        } finally {
-            setTransactionLoading(false);
-        }
-    }, [transactionData, showMessage]);
-
     const handleTransactionPublish = useCallback(async () => {
         try {
             console.log('Publishing transaction hours...');
@@ -824,7 +730,7 @@ export const useAdminDashboard = () => {
                 body: JSON.stringify({
                     Transaction_Sched_ID: transactionData.Transaction_Sched_ID,
                     Description: transactionData.Description,
-                    Is_Active: true, // Set to active when publishing
+                    Is_Active: true,
                     action: 'publish_transaction'
                 })
             });
@@ -851,116 +757,12 @@ export const useAdminDashboard = () => {
         }
     }, [transactionData, showMessage]);
 
-    const handleTransactionUnpublish = useCallback(async () => {
-        try {
-            console.log('Unpublishing transaction hours...');
-            setTransactionLoading(true);
-            
-            const response = await fetch(API_UPDATE_TRANSACTION_URL, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    Transaction_Sched_ID: transactionData.Transaction_Sched_ID,
-                    Is_Active: false,
-                    action: 'unpublish_transaction'
-                })
-            });
-
-            const data = await response.json();
-            console.log('Unpublish transaction response:', data);
-            
-            if (data.status === 'success') {
-                setTransactionData(prev => ({
-                    ...prev,
-                    Is_Active: false
-                }));
-                showMessage(data.message || 'Transaction hours unpublished successfully', 'success');
-            } else {
-                showMessage(data.message || 'Failed to unpublish transaction hours', 'error');
-            }
-        } catch (error) {
-            console.error('Error unpublishing transaction:', error);
-            showMessage('Failed to unpublish transaction hours', 'error');
-        } finally {
-            setTransactionLoading(false);
-        }
-    }, [transactionData, showMessage]);
-
     const handleTransactionChange = useCallback((value) => {
         setTransactionData(prev => ({
             ...prev,
             Description: value
         }));
     }, []);
-
-    // ==================== EXISTING FUNCTIONS ====================
-
-    const createRequestNotification = useCallback((request) => {
-        const notification = {
-            id: `request_${request.request_id}_${Date.now()}`,
-            title: `New Document Request - ${request.student_name || 'Student'}`,
-            message: `Requested: ${request.document_type || 'Document'}`,
-            type: 'request',
-            request_id: request.request_id,
-            student_name: request.student_name,
-            document_type: request.document_type,
-            created_at: new Date().toISOString(),
-            is_read: 0
-        };
-        
-        return notification;
-    }, []);
-
-    const createStatusNotification = useCallback((request, oldStatus, newStatus) => {
-        const notification = {
-            id: `status_${request.request_id}_${Date.now()}`,
-            title: `Request Status Updated`,
-            message: `Request ${request.request_id} changed from ${oldStatus} to ${newStatus}`,
-            type: 'status',
-            request_id: request.request_id,
-            student_name: request.student_name,
-            old_status: oldStatus,
-            new_status: newStatus,
-            created_at: new Date().toISOString(),
-            is_read: 0
-        };
-        
-        return notification;
-    }, []);
-
-    const addNewRequestNotification = useCallback((request) => {
-        const newNotification = createRequestNotification(request);
-        
-        setAllNotifications(prev => [newNotification, ...prev]);
-        setNotifications(prev => [newNotification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        updateNotificationBadge(unreadCount + 1);
-        
-        if (window.adminNotifications) {
-            window.adminNotifications = [newNotification, ...window.adminNotifications];
-        }
-        
-        showMessage(`New document request from ${request.student_name}`, 'success');
-    }, [createRequestNotification, unreadCount, updateNotificationBadge, showMessage]);
-
-    const addStatusChangeNotification = useCallback((request, oldStatus, newStatus) => {
-        const newNotification = createStatusNotification(request, oldStatus, newStatus);
-        
-        setAllNotifications(prev => [newNotification, ...prev]);
-        setNotifications(prev => [newNotification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        updateNotificationBadge(unreadCount + 1);
-        
-        if (window.adminNotifications) {
-            window.adminNotifications = [newNotification, ...window.adminNotifications];
-        }
-        
-        showMessage(`Request status updated to ${newStatus}`, 'success');
-    }, [createStatusNotification, unreadCount, updateNotificationBadge, showMessage]);
 
     // ==================== PAYMENT STATUS FUNCTION ====================
 
@@ -1009,35 +811,194 @@ export const useAdminDashboard = () => {
         }
     }, []);
 
-    // ==================== OTHER FUNCTIONS ====================
+    // ==================== DATE FILTER FUNCTIONS ====================
 
-    const updateDate = useCallback(() => {
-        const today = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        setCurrentDate(today.toLocaleDateString('en-US', options));
-    }, []);
+    /**
+     * Filters document requests by date range using filtered_date.php
+     * @param {string} startDate - Start date in YYYY-MM-DD format
+     * @param {string} endDate - End date in YYYY-MM-DD format
+     */
+    const filterRequestsByDateRange = useCallback(async (startDate, endDate) => {
+        try {
+            console.log(`Filtering requests from ${startDate} to ${endDate} using filtered_date.php`);
+            setIsFiltering(true);
+            setError(null);
+            
+            // Validate dates
+            if (!startDate || !endDate) {
+                showMessage('Please select both start and end dates', 'error');
+                setIsFiltering(false);
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                showMessage('Start date cannot be after end date', 'error');
+                setIsFiltering(false);
+                return;
+            }
+            
+            // Store the filter range
+            setDateFilterRange({ startDate, endDate });
+            
+            // Call the filtered_date.php endpoint with proper error handling
+            const url = `${API_FILTERED_DATE_URL}?action=filterByDateRange&start_date=${startDate}&end_date=${endDate}`;
+            console.log('Fetching from URL:', url);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                mode: 'cors' // Explicitly set CORS mode
+            });
 
-    const formatEmailForDisplay = useCallback((email) => {
-        if (!email) return 'Not set';
-        return email.toLowerCase();
-    }, []);
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
 
-    const getNameFromEmail = useCallback((email) => {
-        if (!email) return 'Administrator';
-        
-        const username = email.split('@')[0];
-        
-        let formattedName = username
-            .split(/[._]/)
-            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-            .join(' ');
-        
-        if (formattedName.length > 20 || formattedName.split(' ').length > 3) {
-            return 'School Administrator';
+            // Check if response is OK
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server error response:', errorText);
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            // Try to parse JSON
+            let data;
+            try {
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText);
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                throw new Error('Invalid JSON response from server');
+            }
+
+            console.log('Date filter response from filtered_date.php:', data);
+            
+            if (data.status === 'success') {
+                // Safe data access with fallbacks
+                const analyticsData = data.data?.analytics || {};
+                const requestsData = data.data?.requests || [];
+                
+                // Update filtered data for analytics with safe defaults
+                setFilteredData({
+                    pending_requests: analyticsData.pending_requests || 0,
+                    ongoing_requests: analyticsData.ongoing_requests || 0,
+                    ready_requests: analyticsData.ready_requests || 0,
+                    completed_requests: analyticsData.completed_requests || 0,
+                    total_requests: analyticsData.total_requests || 0
+                });
+                
+                // Update document requests list with filtered data
+                setDocumentRequests(requestsData);
+                
+                showMessage(
+                    `Filtered ${analyticsData.total_requests || requestsData.length} requests from ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`,
+                    'success'
+                );
+            } else {
+                const errorMsg = data.message || 'Unknown error';
+                console.error('Filter error:', errorMsg);
+                showMessage('Failed to filter requests: ' + errorMsg, 'error');
+                setFilteredData(null);
+            }
+        } catch (error) {
+            console.error('Error filtering requests by date range:', error);
+            
+            // Provide more specific error messages
+            let errorMessage = 'Error filtering requests. Please try again.';
+            if (error.message.includes('CORS')) {
+                errorMessage = 'CORS error: Please check your PHP CORS headers configuration.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Network error: Cannot connect to server. Check if PHP server is running.';
+            } else if (error.message.includes('Invalid JSON')) {
+                errorMessage = 'Server returned invalid response. Check PHP error logs.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+            setFilteredData(null);
+        } finally {
+            setIsFiltering(false);
         }
-        
-        return formattedName;
-    }, []);
+    }, [showMessage]);
+
+    /**
+     * Resets the date filter and shows all requests
+     */
+    const resetDateFilter = useCallback(async () => {
+        try {
+            console.log('Resetting date filter...');
+            setIsFiltering(true);
+            setError(null);
+            
+            // Reset the filter range
+            setDateFilterRange({ startDate: '', endDate: '' });
+            
+            // Call the filtered_date.php endpoint to reset
+            const response = await fetch(
+                `${API_FILTERED_DATE_URL}?action=resetDateFilter`,
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors'
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Reset filter response from filtered_date.php:', data);
+            
+            if (data.status === 'success') {
+                // Reset to show all data
+                setFilteredData(null);
+                
+                // Safe data access with fallbacks
+                const analyticsData = data.data?.analytics || {};
+                const requestsData = data.data?.requests || [];
+                
+                // Reload dashboard data with safe defaults
+                setDashboardData({
+                    pending_requests: analyticsData.pending_requests || 0,
+                    ongoing_requests: analyticsData.ongoing_requests || 0,
+                    ready_requests: analyticsData.ready_requests || 0,
+                    completed_requests: analyticsData.completed_requests || 0,
+                    total_requests: analyticsData.total_requests || 0
+                });
+                
+                // Reload document requests list with all data
+                setDocumentRequests(requestsData);
+                
+                showMessage('Filter reset. Showing all requests.', 'success');
+            } else {
+                showMessage('Failed to reset filter: ' + (data.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Error resetting date filter:', error);
+            showMessage('Error resetting filter. Please try again.', 'error');
+        } finally {
+            setIsFiltering(false);
+        }
+    }, [showMessage]);
+
+    /**
+     * Applies the current date filter (useful when switching sections)
+     */
+    const applyCurrentDateFilter = useCallback(() => {
+        if (dateFilterRange.startDate && dateFilterRange.endDate) {
+            filterRequestsByDateRange(dateFilterRange.startDate, dateFilterRange.endDate);
+        }
+    }, [dateFilterRange, filterRequestsByDateRange]);
+
+    // ==================== ADMIN DATA FUNCTIONS ====================
 
     const displayAdminData = useCallback((adminDataResponse) => {
         console.log('Admin data received:', adminDataResponse);
@@ -1132,6 +1093,8 @@ export const useAdminDashboard = () => {
         }
     }, [displayAdminData, displayFallbackAdminData, showMessage]);
 
+    // ==================== DASHBOARD DATA FUNCTIONS ====================
+
     const loadDashboardData = useCallback(async () => {
         try {
             console.log('Loading dashboard data...');
@@ -1147,14 +1110,18 @@ export const useAdminDashboard = () => {
             console.log('Dashboard data response:', data);
             
             if (data.status === 'success') {
-                setDashboardData(data.data);
+                setDashboardData(data.data || {});
             } else {
                 console.error('Error loading dashboard data:', data.message);
+                setDashboardData({});
             }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
+            setDashboardData({});
         }
     }, []);
+
+    // ==================== DOCUMENT REQUESTS FUNCTIONS ====================
 
     const loadDocumentRequests = useCallback(async () => {
         try {
@@ -1175,16 +1142,6 @@ export const useAdminDashboard = () => {
             if (data.status === 'success') {
                 setDocumentRequests(data.data || []);
                 setError(null);
-                
-                if (data.data && data.data.length > 0) {
-                    const newRequests = data.data.filter(request => 
-                        request.status === 'Pending' || request.status === 'pending'
-                    );
-                    
-                    if (newRequests.length > 0) {
-                        console.log(`Found ${newRequests.length} pending requests`);
-                    }
-                }
             } else {
                 console.error('Error loading document requests:', data.message);
                 setError(data.message);
@@ -1200,27 +1157,6 @@ export const useAdminDashboard = () => {
     const handleNavigation = useCallback((section) => {
         console.log('Navigating to:', section);
         setActiveSection(section);
-
-        const navItems = document.querySelectorAll('.nav-link');
-        navItems.forEach(item => {
-            item.classList.remove('active');
-            const itemSection = item.getAttribute('data-section');
-            if (itemSection === section) {
-                item.classList.add('active');
-            }
-        });
-
-        const pages = document.querySelectorAll('.page');
-        pages.forEach(page => {
-            page.classList.remove('active');
-            page.style.display = 'none';
-        });
-        
-        const activePageEl = document.getElementById(section);
-        if (activePageEl) {
-            activePageEl.classList.add('active');
-            activePageEl.style.display = 'block';
-        }
     }, []);
 
     const handleLogout = useCallback(async () => {
@@ -1246,19 +1182,6 @@ export const useAdminDashboard = () => {
             request.request_id === requestId ? { ...request, status: newStatus } : request
         ));
         showMessage(`Request status updated to ${newStatus}`, 'success');
-    }, [showMessage]);
-
-    const handleDocumentSelect = useCallback((documentType) => {
-        const documentTitles = {
-            'grades': 'Copy of Grades (Form 138)',
-            'diploma': 'Diploma',
-            'enrollment': 'Certificate of Enrollment (COE)',
-            'form137': 'Form 137 (Permanent Record)',
-            'moral': 'Good Moral Certificate'
-        };
-        
-        const title = documentTitles[documentType] || documentType;
-        showMessage(`Document selected: ${title}`, 'success');
     }, [showMessage]);
 
     const handleViewRequest = useCallback(async (request) => {
@@ -1297,146 +1220,55 @@ export const useAdminDashboard = () => {
         }
     }, [fetchPaymentStatus, normalizeRequestData, showMessage]);
 
-    const handleEditRequest = useCallback((request) => {
-        console.log('Editing request:', request);
-        showMessage(`Edit mode for Request ID: ${request.request_id}`, 'success');
-    }, [showMessage]);
-
-    const handleApproveRequest = useCallback(async (request) => {
-        if (window.confirm(`Approve Request ID: ${request.request_id}?`)) {
-            try {
-                console.log('Approving request:', request.request_id);
-                
-                const response = await fetch(`${API_RH_URL}?action=approveRequest`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ request_id: request.request_id })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    const oldStatus = request.status;
-                    
-                    setDocumentRequests(prev => prev.map(req => 
-                        req.request_id === request.request_id 
-                            ? { ...req, status: 'Approved' } 
-                            : req
-                    ));
-                    
-                    addStatusChangeNotification(request, oldStatus, 'Approved');
-                    
-                    showMessage(`Request ID ${request.request_id} approved successfully!`, 'success');
-                    
-                    loadDashboardData();
-                } else {
-                    showMessage(data.message || 'Failed to approve request', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error approving request:', error);
-                showMessage('Failed to approve request', 'error');
-            }
-        }
-    }, [showMessage, loadDashboardData, addStatusChangeNotification]);
-
-    const handleRejectRequest = useCallback(async (request) => {
-        if (window.confirm(`Reject Request ID: ${request.request_id}?`)) {
-            try {
-                console.log('Rejecting request:', request.request_id);
-                
-                const response = await fetch(`${API_RH_URL}?action=rejectRequest`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ request_id: request.request_id })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    const oldStatus = request.status;
-                    
-                    setDocumentRequests(prev => prev.map(req => 
-                        req.request_id === request.request_id 
-                            ? { ...req, status: 'Rejected' } 
-                            : req
-                    ));
-                    
-                    addStatusChangeNotification(request, oldStatus, 'Rejected');
-                    
-                    showMessage(`Request ID ${request.request_id} rejected`, 'success');
-                    
-                    loadDashboardData();
-                } else {
-                    showMessage(data.message || 'Failed to reject request', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error rejecting request:', error);
-                showMessage('Failed to reject request', 'error');
-            }
-        }
-    }, [showMessage, loadDashboardData, addStatusChangeNotification]);
-
     const handleCloseModal = useCallback(() => {
         setShowModal(false);
         setSelectedRequest(null);
     }, []);
 
-    const handleReschedulePickup = useCallback(async (requestId, newDate) => {
+    // ==================== SAVE REQUEST FUNCTION ====================
+    
+    const handleSaveRequest = useCallback(async (request) => {
         try {
-            console.log('Rescheduling pickup for request:', requestId, 'to:', newDate);
+            console.log('Saving request:', request);
             
-            const response = await fetch(`${API_RH_URL}?action=updateRequest`, {
+            showMessage('Saving request...', 'info');
+            
+            const response = await fetch(`${API_UPDATE_URL}?action=updateRequest`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    request_id: requestId,
-                    rescheduled_pickup: newDate
+                body: JSON.stringify({
+                    request_id: request.request_id,
+                    scheduled_pickup: request.scheduled_pick_up,
+                    rescheduled_pickup: request.rescheduled_pick_up,
+                    status: request.status
                 })
             });
+
+            const result = await response.json();
+            console.log('Save request response:', result);
             
-            const data = await response.json();
-            
-            if (data.status === 'success') {
+            if (result.status === 'success') {
                 setDocumentRequests(prev => prev.map(req => 
-                    req.request_id === requestId 
-                        ? { ...req, rescheduled_pick_up: newDate } 
+                    req.request_id === request.request_id 
+                        ? { ...req, ...result.data } 
                         : req
                 ));
-                
-                showMessage('Pickup date rescheduled successfully', 'success');
+                showMessage('Request saved successfully!', 'success');
+                loadDashboardData();
             } else {
-                showMessage(data.message || 'Failed to reschedule pickup', 'error');
+                showMessage('Failed to save request: ' + (result.message || 'Unknown error'), 'error');
             }
-            
         } catch (error) {
-            console.error('Error rescheduling pickup:', error);
-            showMessage('Failed to reschedule pickup', 'error');
+            console.error('Error saving request:', error);
+            showMessage('Error saving request. Please try again.', 'error');
         }
-    }, [showMessage]);
+    }, [showMessage, loadDashboardData]);
 
-    const setupNavigationHandlers = useCallback(() => {
-        const navItems = document.querySelectorAll('[data-section]');
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const section = this.getAttribute('data-section');
-                if (section) {
-                    handleNavigation(section);
-                }
-            });
-        });
-    }, [handleNavigation]);
+    // ==================== EFFECTS ====================
 
     // Poll notifications every 30 seconds
     useEffect(() => {
@@ -1451,7 +1283,6 @@ export const useAdminDashboard = () => {
     useEffect(() => {
         updateDate();
         loadAdminData();
-        setupNavigationHandlers();
         fetchNotifications();
         fetchMails();
         loadAnnouncement();
@@ -1471,6 +1302,18 @@ export const useAdminDashboard = () => {
         }
     }, [activeSection, loadDashboardData, loadDocumentRequests]);
 
+    // Re-apply date filter when switching to document-requests section if filter is active
+    useEffect(() => {
+        if (activeSection === 'document-requests' && dateFilterRange.startDate && dateFilterRange.endDate) {
+            applyCurrentDateFilter();
+        }
+    }, [activeSection, dateFilterRange, applyCurrentDateFilter]);
+
+    // Calculate actual unread mail count
+    const actualUnreadMailCount = mails.filter(mail => !getReadMails().includes(mail.id)).length;
+
+    // ==================== RETURN ====================
+
     return {
         currentDate,
         activeSection,
@@ -1488,13 +1331,10 @@ export const useAdminDashboard = () => {
         showNotificationDropdown,
         toggleNotificationDropdown,
         handleNotificationClick,
-        addNewRequestNotification,
-        addStatusChangeNotification,
-        readNotifications,
+        closeNotificationModal,
         // Notification modal states and functions
         showNotificationModal,
         notificationRequestData,
-        closeNotificationModal,
         // Mail states and functions
         mails,
         unreadMailCount: actualUnreadMailCount,
@@ -1503,42 +1343,35 @@ export const useAdminDashboard = () => {
         showMailModal,
         toggleMailDropdown,
         handleMailClick,
-        openMailModal,
         closeMailModal,
-        readMails,
-        // Payment function
-        fetchPaymentStatus,
-        // Announcement states and functions - UPDATED
+        // Announcement states and functions
         announcementData,
         isEditingAnnouncement,
         announcementLoading,
         handleAnnouncementEdit,
-        handleAnnouncementSave,
         handleAnnouncementPublish,
-        handleAnnouncementUnpublish,
         handleAnnouncementChange,
-        loadAnnouncement,
-        // Transaction states and functions - UPDATED
+        // Transaction states and functions
         transactionData,
         isEditingTransaction,
         transactionLoading,
         handleTransactionEdit,
-        handleTransactionSave,
         handleTransactionPublish,
-        handleTransactionUnpublish,
         handleTransactionChange,
-        loadTransaction,
-        // Existing functions
+        // Date filter functions and states
+        filterRequestsByDateRange,
+        resetDateFilter,
+        applyCurrentDateFilter,
+        filteredData,
+        isFiltering,
+        dateFilterRange,
+        // Core functions
         handleNavigation,
         handleLogout,
         handleStatusChange,
-        handleDocumentSelect,
         handleViewRequest,
-        handleEditRequest,
-        handleApproveRequest,
-        handleRejectRequest,
         handleCloseModal,
-        handleReschedulePickup,
+        handleSaveRequest,
         reloadAdminData: loadAdminData,
         loadDashboardData,
         loadDocumentRequests

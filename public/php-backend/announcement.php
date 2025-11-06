@@ -28,11 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
-    exit();
-}
-
 // Handle both GET and POST requests
 $input = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -42,6 +37,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $action = isset($input['action']) ? $input['action'] : 'get_announcement_data';
+
+// Authentication check - students can read, only admins can write
+if ($action !== 'get_announcement_data' && $action !== 'get_all_announcements') {
+    // Write operations require admin
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['role'] !== 'admin') {
+        echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
+        exit();
+    }
+} else {
+    // Read operations - allow both students and admins
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+        echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
+        exit();
+    }
+    
+    // Check if role is either student or admin
+    if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'student' && $_SESSION['role'] !== 'admin')) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid role']);
+        exit();
+    }
+}
 
 // Get database configuration
 $dbConfig = Config::database();
@@ -71,7 +87,7 @@ try {
 
 try {
     if ($action === 'get_announcement_data') {
-        // Get current active announcement
+        // Get current active announcement - ACCESSIBLE TO STUDENTS AND ADMINS
         $stmt = $conn->prepare("
             SELECT Announcement_ID, Title, Content, Is_Active, Created_By, Start_Date, End_Date, Created_At 
             FROM announcements 
@@ -113,7 +129,7 @@ try {
                 'data' => [
                     'Announcement_ID' => null,
                     'Title' => 'School Announcement:',
-                    'Content' => '',
+                    'Content' => 'Welcome to Pateros Catholic School Document Request System',
                     'Is_Active' => false,
                     'Created_By' => null,
                     'Start_Date' => null,
@@ -124,7 +140,7 @@ try {
         }
         
     } else if ($action === 'get_all_announcements') {
-        // Get all announcements (for history/management)
+        // Get all announcements (for history/management) - ACCESSIBLE TO STUDENTS AND ADMINS
         $stmt = $conn->prepare("
             SELECT Announcement_ID, Title, Content, Is_Active, Created_By, Start_Date, End_Date, Created_At 
             FROM announcements 
