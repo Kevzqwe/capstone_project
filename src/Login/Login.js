@@ -29,34 +29,23 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/login.php';
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/login.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include', // <-- keeps PHP session cookies
-        body: JSON.stringify({
-          email: trimmedEmail,
-          password: trimmedPassword
-        })
+        credentials: 'include',
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword })
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error('Invalid server response');
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        showError(data.message || `Error ${response.status}`);
+        showError(data.message || 'Invalid credentials.');
         return;
       }
 
-      // ✅ Handle backend responses from login.php
       if (data.status === 'success') {
         if (data.role === 'Admin') {
           alert('Welcome Admin!');
@@ -67,11 +56,8 @@ const Login = () => {
         } else {
           showError('Unknown user role.');
         }
-      } else if (data.status === 'error') {
-        // handle backend error message
-        showError(data.message || 'Login failed.');
       } else {
-        showError('Unexpected server response.');
+        showError(data.message || 'Login failed.');
       }
 
     } catch (err) {
@@ -121,7 +107,7 @@ const Login = () => {
                   required
                 />
                 <span
-                  className="pass-opeen"
+                  className="pass-open"
                   onClick={togglePassword}
                   role="button"
                   tabIndex={0}
@@ -136,9 +122,7 @@ const Login = () => {
               className={`login-btn ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
-              <span className="btn-text">
-                {isLoading ? 'Logging in...' : 'Login'}
-              </span>
+              <span className="btn-text">{isLoading ? 'Logging in...' : 'Login'}</span>
             </button>
           </form>
         </div>
