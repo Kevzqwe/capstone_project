@@ -11,75 +11,51 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const togglePassword = () => {
-        setShowPassword(!showPassword);
-    };
+    const togglePassword = () => setShowPassword(!showPassword);
 
-    const showError = (message) => {
-        alert(message);
-    };
+    const showError = (msg) => alert(msg);
 
-    const handleLogin = async (event) => {
-        event.preventDefault();
-        
+    const handleLogin = async (e) => {
+        e.preventDefault();
         if (isLoading) return;
 
         const trimmedEmail = email.trim().toLowerCase();
         const trimmedPassword = password.trim();
-
         if (!trimmedEmail || !trimmedPassword) {
             showError('Please enter both email and password');
-            return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trimmedEmail)) {
-            showError('Please enter a valid email address');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.co/public/php-backend';
-            
+            // ✅ Use your live Hostinger backend URL here
+            const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend';
+
             const response = await fetch(`${apiUrl}/login.php`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 credentials: 'include',
-                body: `email=${encodeURIComponent(trimmedEmail)}&password=${encodeURIComponent(trimmedPassword)}`
+                body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword })
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
             const data = await response.json();
-
             if (data.status === 'success') {
-                console.log('Login successful, role:', data.role);
-                
-                const userRole = data.role.toLowerCase();
-                
-                if (userRole === 'admin') {
+                console.log('Login successful', data);
+                if (data.role.toLowerCase() === 'admin') {
                     navigate('/admin-dashboard');
-                } else if (userRole === 'student') {
+                } else if (data.role.toLowerCase() === 'student') {
                     navigate('/student-dashboard');
                 } else {
-                    showError('Unknown user role');
-                    setIsLoading(false);
+                    showError('Unknown user role.');
                 }
             } else {
-                showError(data.message || 'Login failed. Please try again.');
-                setIsLoading(false);
+                showError(data.message || 'Login failed.');
             }
-
-        } catch (error) {
-            console.error('Network error:', error);
-            showError("Unable to connect to server. Please check your connection and try again.");
+        } catch (err) {
+            console.error('Network error:', err);
+            showError('Unable to connect to server.');
+        } finally {
             setIsLoading(false);
         }
     };
@@ -99,60 +75,47 @@ const Login = () => {
                     <form onSubmit={handleLogin}>
                         <div className="form-group">
                             <label htmlFor="email">Email</label>
-                            <input 
+                            <input
                                 id="email"
-                                type="email" 
-                                placeholder="Enter your email address"
+                                type="email"
+                                placeholder="Enter your email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={isLoading}
-                                required 
-                                autoComplete="email"
+                                required
                             />
                         </div>
 
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
                             <div className="password">
-                                <input 
+                                <input
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Enter your password" 
-                                    id="password" 
-                                    className="Password"
+                                    id="password"
+                                    placeholder="Enter your password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
-                                    required 
-                                    autoComplete="current-password"
-                                    data-form-type="password"
+                                    required
                                 />
-                                <span 
-                                    className="pass-opeen" 
-                                    onClick={togglePassword}
-                                    role="button"
-                                    tabIndex={0}
-                                    aria-label={showPassword ? "Hide password" : "Show password"}
-                                >
+                                <span className="pass-opeen" onClick={togglePassword}>
                                     <FaEye />
                                 </span>
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             type="submit"
                             className={`login-btn ${isLoading ? 'loading' : ''}`}
                             disabled={isLoading}
                         >
-                            <span className="loader"></span>
-                            <span className="btn-text">
-                                {isLoading ? 'Logging in...' : 'Login'}
-                            </span>
+                            {isLoading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export default Login;
