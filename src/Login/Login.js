@@ -27,16 +27,10 @@ const Login = () => {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      showError('Please enter a valid email address');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // ✅ Use your deployed backend
+      // ✅ Use your LIVE Hostinger backend URL (HTTPS)
       const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/login.php';
 
       const response = await fetch(apiUrl, {
@@ -99,7 +93,6 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                autoComplete="email"
               />
             </div>
 
@@ -114,7 +107,6 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  autoComplete="current-password"
                 />
                 <span
                   className="pass-opeen"
