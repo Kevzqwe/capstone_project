@@ -1463,7 +1463,7 @@ body {
 .analytics-container {
     display: flex;
     gap: 40px;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 30px;
     max-width: 1800px;
@@ -1569,7 +1569,7 @@ body {
     background-color: #4caf50;
 }
 
-/* Right side - Date Filter - LONG RECTANGLE WITH BETTER SPACING */
+/* Right side - Date Filter - FIXED TO PREVENT OVERLAP */
 .analytics-right {
     flex: 0 0 700px;
     background: transparent;
@@ -1577,10 +1577,11 @@ body {
     border-radius: 12px;
     border: 2px solid rgba(42, 54, 99, 0.3);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    height: 500px;
+    min-height: 500px;
+    height: auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .filter-header {
@@ -1691,8 +1692,8 @@ body {
 
 .filter-summary {
     margin-top: 30px;
-    padding: 18px;
-    background: transparent;
+    padding: 20px 24px;
+    background: rgba(102, 126, 234, 0.05);
     border-radius: 8px;
     border: 2px solid rgba(102, 126, 234, 0.3);
 }
@@ -1709,9 +1710,9 @@ body {
 .filter-summary p {
     font-size: 13px;
     color: #666;
-    margin-bottom: 6px;
     margin: 0 0 8px 0;
     text-align: center;
+    line-height: 1.6;
 }
 
 .filter-summary p:last-child {
@@ -2058,6 +2059,49 @@ body {
     .document-requests-section {
         box-shadow: none;
         border: 1px solid #e0e0e0;
+    }
+}
+
+/* Today Button Styling */
+.btn-today {
+    margin-top: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.btn-today:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+    background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.btn-today:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+}
+
+.btn-today i {
+    font-size: 14px;
+}
+
+/* Responsive adjustment for today button */
+@media (max-width: 768px) {
+    .btn-today {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 }
 

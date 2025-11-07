@@ -3,10 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 // API base URLs for your PHP backend
 const API_BASE_URL = 'http://localhost/capstone_project/public/php-backend/admin_data.php';
 const API_RH_URL = 'http://localhost/capstone_project/public/php-backend/admin_rh.php';
-const API_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backend/announcement.php';
-const API_UPDATE_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backend/update_announcement.php';
-const API_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/transaction.php';
-const API_UPDATE_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/update_transaction.php';
+const API_CREATE_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backend/create_announcement.php';
+const API_CREATE_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/create_transaction.php';
 const API_UPDATE_URL = 'http://localhost/capstone_project/public/php-backend/update_request.php';
 const API_FILTERED_DATE_URL = 'http://localhost/capstone_project/public/php-backend/filtered_date.php';
 
@@ -46,24 +44,26 @@ export const useAdminDashboard = () => {
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [notificationRequestData, setNotificationRequestData] = useState(null);
 
-    // Announcement states
+    // Announcement states - Enhanced for create and edit
     const [announcementData, setAnnouncementData] = useState({
         Announcement_ID: null,
-        Title: 'School Announcement:',
+        Title: '',
         Content: '',
         Is_Active: false,
         Start_Date: '',
         End_Date: ''
     });
+    const [announcements, setAnnouncements] = useState([]);
     const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
     const [announcementLoading, setAnnouncementLoading] = useState(false);
 
-    // Transaction states
+    // Transaction states - Enhanced for create and edit
     const [transactionData, setTransactionData] = useState({
         Transaction_Sched_ID: null,
-        Description: 'Monday to Friday, 8:00 AM - 5:00 PM',
+        Description: '',
         Is_Active: false
     });
+    const [transactions, setTransactions] = useState([]);
     const [isEditingTransaction, setIsEditingTransaction] = useState(false);
     const [transactionLoading, setTransactionLoading] = useState(false);
 
@@ -346,7 +346,7 @@ export const useAdminDashboard = () => {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
-                }
+                    }
             });
 
             const paymentData = await paymentResponse.json();
@@ -401,7 +401,6 @@ export const useAdminDashboard = () => {
                     setNotificationRequestData(requestData);
                     setShowNotificationModal(true);
                     setShowNotificationDropdown(false);
-                    showMessage(`Opened request ${requestId}`, 'success');
                 } else {
                     console.warn('Failed to fetch request details for:', requestId);
                     showMessage('Failed to load request details', 'error');
@@ -432,7 +431,6 @@ export const useAdminDashboard = () => {
                 setNotificationRequestData(basicNotificationData);
                 setShowNotificationModal(true);
                 setShowNotificationDropdown(false);
-                showMessage(notification.title || 'Notification opened', 'info');
             }
         } catch (error) {
             console.error('Error handling notification click:', error);
@@ -582,11 +580,10 @@ export const useAdminDashboard = () => {
 
     // ==================== ANNOUNCEMENT FUNCTIONS ====================
 
-    const loadAnnouncement = useCallback(async () => {
+    const loadAnnouncements = useCallback(async () => {
         try {
-            console.log('Loading announcement...');
-            setAnnouncementLoading(true);
-            const response = await fetch(`${API_ANNOUNCEMENT_URL}?action=get_announcement_data`, {
+            console.log('Loading announcements...');
+            const response = await fetch(`${API_BASE_URL}?action=getAnnouncements`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -595,78 +592,122 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Announcement response:', data);
+            console.log('Announcements response:', data);
             
-            if (data.status === 'success') {
-                setAnnouncementData({
-                    Announcement_ID: data.data.Announcement_ID || data.data.id,
-                    Title: data.data.Title || data.data.title || 'School Announcement:',
-                    Content: data.data.Content || data.data.content || '',
-                    Is_Active: data.data.Is_Active || data.data.is_active || false,
-                    Start_Date: data.data.Start_Date || data.data.start_date || '',
-                    End_Date: data.data.End_Date || data.data.end_date || ''
-                });
+            if (data.status === 'success' && data.data) {
+                setAnnouncements(data.data);
+                // Load the first announcement for editing if available
+                if (data.data.length > 0) {
+                    const firstAnnouncement = data.data[0];
+                    setAnnouncementData({
+                        Announcement_ID: firstAnnouncement.Announcement_ID || firstAnnouncement.id,
+                        Title: firstAnnouncement.Title || firstAnnouncement.title || '',
+                        Content: firstAnnouncement.Content || firstAnnouncement.content || '',
+                        Is_Active: firstAnnouncement.Is_Active || firstAnnouncement.is_active || false,
+                        Start_Date: firstAnnouncement.Start_Date || firstAnnouncement.start_date || '',
+                        End_Date: firstAnnouncement.End_Date || firstAnnouncement.end_date || ''
+                    });
+                }
             } else {
-                console.error('Error loading announcement:', data.message);
-                showMessage('Failed to load announcement: ' + data.message, 'error');
+                console.warn('No announcements found or error:', data.message);
+                setAnnouncements([]);
             }
         } catch (error) {
-            console.error('Error fetching announcement:', error);
-            showMessage('Failed to load announcement', 'error');
-        } finally {
-            setAnnouncementLoading(false);
+            console.error('Error loading announcements:', error);
+            setAnnouncements([]);
         }
-    }, [showMessage]);
+    }, []);
 
-    const handleAnnouncementEdit = useCallback(() => {
+    const handleAnnouncementEdit = useCallback((announcement = null) => {
+        if (announcement) {
+            // Load specific announcement for editing
+            setAnnouncementData({
+                Announcement_ID: announcement.Announcement_ID || announcement.id,
+                Title: announcement.Title || announcement.title || '',
+                Content: announcement.Content || announcement.content || '',
+                Is_Active: announcement.Is_Active || announcement.is_active || false,
+                Start_Date: announcement.Start_Date || announcement.start_date || '',
+                End_Date: announcement.End_Date || announcement.end_date || ''
+            });
+        } else {
+            // Start new announcement
+            setAnnouncementData({
+                Announcement_ID: null,
+                Title: '',
+                Content: '',
+                Is_Active: false,
+                Start_Date: '',
+                End_Date: ''
+            });
+        }
         setIsEditingAnnouncement(true);
-        showMessage('You can now edit the announcement', 'info');
-    }, [showMessage]);
+    }, []);
 
-    const handleAnnouncementPublish = useCallback(async () => {
+    const handleAnnouncementSave = useCallback(async () => {
         try {
-            console.log('Publishing announcement...');
+            console.log('Saving announcement...');
             setAnnouncementLoading(true);
             
-            const response = await fetch(API_UPDATE_ANNOUNCEMENT_URL, {
+            // Validate input
+            if (!announcementData.Title || !announcementData.Content) {
+                showMessage('Please fill in both title and content', 'error');
+                setAnnouncementLoading(false);
+                return;
+            }
+            
+            // Determine if we're creating or updating
+            const isUpdate = announcementData.Announcement_ID !== null;
+            
+            // Backend expects PascalCase keys: Title, Content, Is_Active, Start_Date, End_Date
+            const payload = {
+                Title: announcementData.Title,
+                Content: announcementData.Content,
+                Is_Active: announcementData.Is_Active,
+                Start_Date: announcementData.Start_Date || new Date().toISOString().split('T')[0],
+                End_Date: announcementData.End_Date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            };
+            
+            // Add ID for updates
+            if (isUpdate) {
+                // If updating, include Announcement_ID (backend create handler may ignore it but it's harmless)
+                payload.Announcement_ID = announcementData.Announcement_ID;
+            }
+            
+            console.log('Sending payload:', payload);
+            
+            const response = await fetch(API_CREATE_ANNOUNCEMENT_URL, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    Announcement_ID: announcementData.Announcement_ID,
-                    Title: announcementData.Title,
-                    Content: announcementData.Content,
-                    Is_Active: true,
-                    Start_Date: announcementData.Start_Date || new Date().toISOString().split('T')[0],
-                    End_Date: announcementData.End_Date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                    action: 'publish_announcement'
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
-            console.log('Publish announcement response:', data);
+            console.log('Save announcement response:', data);
             
             if (data.status === 'success') {
-                setAnnouncementData(prev => ({
-                    ...prev,
-                    Is_Active: true,
-                    ...data.data
-                }));
+                showMessage(
+                    isUpdate ? 'Announcement updated successfully!' : 'Announcement created successfully!', 
+                    'success'
+                );
+                
+                // Reload announcements to get fresh data
+                await loadAnnouncements();
+                
                 setIsEditingAnnouncement(false);
-                showMessage(data.message || 'Announcement published successfully', 'success');
             } else {
-                showMessage(data.message || 'Failed to publish announcement', 'error');
+                showMessage(data.message || 'Failed to save announcement', 'error');
             }
         } catch (error) {
-            console.error('Error publishing announcement:', error);
-            showMessage('Failed to publish announcement', 'error');
+            console.error('Error saving announcement:', error);
+            showMessage('Failed to save announcement', 'error');
         } finally {
             setAnnouncementLoading(false);
         }
-    }, [announcementData, showMessage]);
+    }, [announcementData, showMessage, loadAnnouncements]);
 
     const handleAnnouncementChange = useCallback((field, value) => {
         setAnnouncementData(prev => ({
@@ -675,13 +716,37 @@ export const useAdminDashboard = () => {
         }));
     }, []);
 
+    const cancelAnnouncementEdit = useCallback(() => {
+        setIsEditingAnnouncement(false);
+        // Reset to first announcement or empty
+        if (announcements.length > 0) {
+            const firstAnnouncement = announcements[0];
+            setAnnouncementData({
+                Announcement_ID: firstAnnouncement.Announcement_ID || firstAnnouncement.id,
+                Title: firstAnnouncement.Title || firstAnnouncement.title || '',
+                Content: firstAnnouncement.Content || firstAnnouncement.content || '',
+                Is_Active: firstAnnouncement.Is_Active || firstAnnouncement.is_active || false,
+                Start_Date: firstAnnouncement.Start_Date || firstAnnouncement.start_date || '',
+                End_Date: firstAnnouncement.End_Date || firstAnnouncement.end_date || ''
+            });
+        } else {
+            setAnnouncementData({
+                Announcement_ID: null,
+                Title: '',
+                Content: '',
+                Is_Active: false,
+                Start_Date: '',
+                End_Date: ''
+            });
+        }
+    }, [announcements]);
+
     // ==================== TRANSACTION FUNCTIONS ====================
 
-    const loadTransaction = useCallback(async () => {
+    const loadTransactions = useCallback(async () => {
         try {
-            console.log('Loading transaction hours...');
-            setTransactionLoading(true);
-            const response = await fetch(`${API_TRANSACTION_URL}?action=get_transaction_data`, {
+            console.log('Loading transactions...');
+            const response = await fetch(`${API_BASE_URL}?action=getTransactions`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -690,79 +755,136 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Transaction response:', data);
+            console.log('Transactions response:', data);
             
-            if (data.status === 'success') {
-                setTransactionData({
-                    Transaction_Sched_ID: data.data.Transaction_Sched_ID || data.data.id,
-                    Description: data.data.Description || data.data.content || 'Monday to Friday, 8:00 AM - 5:00 PM',
-                    Is_Active: data.data.Is_Active || data.data.is_active || false
-                });
+            if (data.status === 'success' && data.data) {
+                setTransactions(data.data);
+                // Load the first transaction for editing if available
+                if (data.data.length > 0) {
+                    const firstTransaction = data.data[0];
+                    setTransactionData({
+                        Transaction_Sched_ID: firstTransaction.Transaction_Sched_ID || firstTransaction.id,
+                        Description: firstTransaction.Description || firstTransaction.description || '',
+                        Is_Active: firstTransaction.Is_Active || firstTransaction.is_active || false
+                    });
+                }
             } else {
-                console.error('Error loading transaction:', data.message);
-                showMessage('Failed to load transaction hours: ' + data.message, 'error');
+                console.warn('No transactions found or error:', data.message);
+                setTransactions([]);
             }
         } catch (error) {
-            console.error('Error fetching transaction:', error);
-            showMessage('Failed to load transaction hours', 'error');
-        } finally {
-            setTransactionLoading(false);
+            console.error('Error loading transactions:', error);
+            setTransactions([]);
         }
-    }, [showMessage]);
+    }, []);
 
-    const handleTransactionEdit = useCallback(() => {
+    const handleTransactionEdit = useCallback((transaction = null) => {
+        if (transaction) {
+            // Load specific transaction for editing
+            setTransactionData({
+                Transaction_Sched_ID: transaction.Transaction_Sched_ID || transaction.id,
+                Description: transaction.Description || transaction.description || '',
+                Is_Active: transaction.Is_Active || transaction.is_active || false
+            });
+        } else {
+            // Start new transaction
+            setTransactionData({
+                Transaction_Sched_ID: null,
+                Description: '',
+                Is_Active: false
+            });
+        }
         setIsEditingTransaction(true);
-        showMessage('You can now edit the transaction hours', 'info');
-    }, [showMessage]);
+    }, []);
 
-    const handleTransactionPublish = useCallback(async () => {
+    const handleTransactionSave = useCallback(async () => {
         try {
-            console.log('Publishing transaction hours...');
+            console.log('Saving transaction hours...');
             setTransactionLoading(true);
             
-            const response = await fetch(API_UPDATE_TRANSACTION_URL, {
+            // Validate input
+            if (!transactionData.Description) {
+                showMessage('Please fill in the transaction hours description', 'error');
+                setTransactionLoading(false);
+                return;
+            }
+            
+            // Determine if we're creating or updating
+            const isUpdate = transactionData.Transaction_Sched_ID !== null;
+            
+            // Backend expects PascalCase keys: Description, Is_Active
+            const payload = {
+                Description: transactionData.Description,
+                Is_Active: transactionData.Is_Active
+            };
+            
+            // Add ID for updates
+            if (isUpdate) {
+                // If updating, include Transaction_Sched_ID (backend create handler may ignore it)
+                payload.Transaction_Sched_ID = transactionData.Transaction_Sched_ID;
+            }
+            
+            console.log('Sending payload:', payload);
+            
+            const response = await fetch(API_CREATE_TRANSACTION_URL, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    Transaction_Sched_ID: transactionData.Transaction_Sched_ID,
-                    Description: transactionData.Description,
-                    Is_Active: true,
-                    action: 'publish_transaction'
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
-            console.log('Publish transaction response:', data);
+            console.log('Save transaction response:', data);
             
             if (data.status === 'success') {
-                setTransactionData(prev => ({
-                    ...prev,
-                    Is_Active: true,
-                    ...data.data
-                }));
+                showMessage(
+                    isUpdate ? 'Transaction hours updated successfully!' : 'Transaction hours created successfully!', 
+                    'success'
+                );
+                
+                // Reload transactions to get fresh data
+                await loadTransactions();
+                
                 setIsEditingTransaction(false);
-                showMessage(data.message || 'Transaction hours published successfully', 'success');
             } else {
-                showMessage(data.message || 'Failed to publish transaction hours', 'error');
+                showMessage(data.message || 'Failed to save transaction hours', 'error');
             }
         } catch (error) {
-            console.error('Error publishing transaction:', error);
-            showMessage('Failed to publish transaction hours', 'error');
+            console.error('Error saving transaction:', error);
+            showMessage('Failed to save transaction hours', 'error');
         } finally {
             setTransactionLoading(false);
         }
-    }, [transactionData, showMessage]);
+    }, [transactionData, showMessage, loadTransactions]);
 
-    const handleTransactionChange = useCallback((value) => {
+    const handleTransactionChange = useCallback((field, value) => {
         setTransactionData(prev => ({
             ...prev,
-            Description: value
+            [field]: value
         }));
     }, []);
+
+    const cancelTransactionEdit = useCallback(() => {
+        setIsEditingTransaction(false);
+        // Reset to first transaction or empty
+        if (transactions.length > 0) {
+            const firstTransaction = transactions[0];
+            setTransactionData({
+                Transaction_Sched_ID: firstTransaction.Transaction_Sched_ID || firstTransaction.id,
+                Description: firstTransaction.Description || firstTransaction.description || '',
+                Is_Active: firstTransaction.Is_Active || firstTransaction.is_active || false
+            });
+        } else {
+            setTransactionData({
+                Transaction_Sched_ID: null,
+                Description: '',
+                Is_Active: false
+            });
+        }
+    }, [transactions]);
 
     // ==================== PAYMENT STATUS FUNCTION ====================
 
@@ -813,14 +935,9 @@ export const useAdminDashboard = () => {
 
     // ==================== DATE FILTER FUNCTIONS ====================
 
-    /**
-     * Filters document requests by date range using filtered_date.php
-     * @param {string} startDate - Start date in YYYY-MM-DD format
-     * @param {string} endDate - End date in YYYY-MM-DD format
-     */
     const filterRequestsByDateRange = useCallback(async (startDate, endDate) => {
         try {
-            console.log(`Filtering requests from ${startDate} to ${endDate} using filtered_date.php`);
+            console.log(`Filtering requests from ${startDate} to ${endDate}`);
             setIsFiltering(true);
             setError(null);
             
@@ -840,7 +957,6 @@ export const useAdminDashboard = () => {
             // Store the filter range
             setDateFilterRange({ startDate, endDate });
             
-            // Call the filtered_date.php endpoint with proper error handling
             const url = `${API_FILTERED_DATE_URL}?action=filterByDateRange&start_date=${startDate}&end_date=${endDate}`;
             console.log('Fetching from URL:', url);
             
@@ -850,34 +966,16 @@ export const useAdminDashboard = () => {
                 headers: {
                     'Accept': 'application/json',
                 },
-                mode: 'cors' // Explicitly set CORS mode
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-
-            // Check if response is OK
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server error response:', errorText);
-                throw new Error(`Server error: ${response.status} - ${errorText}`);
+                throw new Error(`Server error: ${response.status}`);
             }
 
-            // Try to parse JSON
-            let data;
-            try {
-                const responseText = await response.text();
-                console.log('Raw response text:', responseText);
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                throw new Error('Invalid JSON response from server');
-            }
-
-            console.log('Date filter response from filtered_date.php:', data);
+            const data = await response.json();
+            console.log('Date filter response:', data);
             
             if (data.status === 'success') {
-                // Safe data access with fallbacks
                 const analyticsData = data.data?.analytics || {};
                 const requestsData = data.data?.requests || [];
                 
@@ -894,40 +992,24 @@ export const useAdminDashboard = () => {
                 setDocumentRequests(requestsData);
                 
                 showMessage(
-                    `Filtered ${analyticsData.total_requests || requestsData.length} requests from ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`,
+                    `Filtered ${analyticsData.total_requests || requestsData.length} requests`,
                     'success'
                 );
             } else {
                 const errorMsg = data.message || 'Unknown error';
                 console.error('Filter error:', errorMsg);
-                showMessage('Failed to filter requests: ' + errorMsg, 'error');
+                showMessage('Failed to filter requests', 'error');
                 setFilteredData(null);
             }
         } catch (error) {
             console.error('Error filtering requests by date range:', error);
-            
-            // Provide more specific error messages
-            let errorMessage = 'Error filtering requests. Please try again.';
-            if (error.message.includes('CORS')) {
-                errorMessage = 'CORS error: Please check your PHP CORS headers configuration.';
-            } else if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Network error: Cannot connect to server. Check if PHP server is running.';
-            } else if (error.message.includes('Invalid JSON')) {
-                errorMessage = 'Server returned invalid response. Check PHP error logs.';
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            
-            showMessage(errorMessage, 'error');
+            showMessage('Error filtering requests. Please try again.', 'error');
             setFilteredData(null);
         } finally {
             setIsFiltering(false);
         }
     }, [showMessage]);
 
-    /**
-     * Resets the date filter and shows all requests
-     */
     const resetDateFilter = useCallback(async () => {
         try {
             console.log('Resetting date filter...');
@@ -937,7 +1019,6 @@ export const useAdminDashboard = () => {
             // Reset the filter range
             setDateFilterRange({ startDate: '', endDate: '' });
             
-            // Call the filtered_date.php endpoint to reset
             const response = await fetch(
                 `${API_FILTERED_DATE_URL}?action=resetDateFilter`,
                 {
@@ -946,7 +1027,6 @@ export const useAdminDashboard = () => {
                     headers: {
                         'Accept': 'application/json',
                     },
-                    mode: 'cors'
                 }
             );
 
@@ -955,13 +1035,12 @@ export const useAdminDashboard = () => {
             }
 
             const data = await response.json();
-            console.log('Reset filter response from filtered_date.php:', data);
+            console.log('Reset filter response:', data);
             
             if (data.status === 'success') {
                 // Reset to show all data
                 setFilteredData(null);
                 
-                // Safe data access with fallbacks
                 const analyticsData = data.data?.analytics || {};
                 const requestsData = data.data?.requests || [];
                 
@@ -979,7 +1058,7 @@ export const useAdminDashboard = () => {
                 
                 showMessage('Filter reset. Showing all requests.', 'success');
             } else {
-                showMessage('Failed to reset filter: ' + (data.message || 'Unknown error'), 'error');
+                showMessage('Failed to reset filter', 'error');
             }
         } catch (error) {
             console.error('Error resetting date filter:', error);
@@ -989,9 +1068,6 @@ export const useAdminDashboard = () => {
         }
     }, [showMessage]);
 
-    /**
-     * Applies the current date filter (useful when switching sections)
-     */
     const applyCurrentDateFilter = useCallback(() => {
         if (dateFilterRange.startDate && dateFilterRange.endDate) {
             filterRequestsByDateRange(dateFilterRange.startDate, dateFilterRange.endDate);
@@ -1062,13 +1138,11 @@ export const useAdminDashboard = () => {
                 
                 if (data.message === 'Not authenticated' || data.message === 'Email missing in session') {
                     setError('Session expired. Please login again.');
-                    showMessage('Session expired. Redirecting to login...', 'error');
                     setTimeout(() => {
                         window.location.href = '/login';
                     }, 2000);
                 } else {
                     setError(data.message || 'Failed to load admin data');
-                    showMessage('Failed to load admin data: ' + data.message, 'error');
                 }
                 
                 displayFallbackAdminData();
@@ -1078,7 +1152,7 @@ export const useAdminDashboard = () => {
             
             let errorMessage = 'Unable to connect to server';
             if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Unable to connect to server. Check if PHP server is running at ' + API_BASE_URL;
+                errorMessage = 'Unable to connect to server. Check if PHP server is running.';
             } else if (error.message.includes('NetworkError')) {
                 errorMessage = 'Network error. Check CORS settings or file path.';
             } else {
@@ -1086,12 +1160,11 @@ export const useAdminDashboard = () => {
             }
             
             setError(errorMessage);
-            showMessage(errorMessage, 'error');
             displayFallbackAdminData();
         } finally {
             setLoading(false);
         }
-    }, [displayAdminData, displayFallbackAdminData, showMessage]);
+    }, [displayAdminData, displayFallbackAdminData]);
 
     // ==================== DASHBOARD DATA FUNCTIONS ====================
 
@@ -1157,7 +1230,14 @@ export const useAdminDashboard = () => {
     const handleNavigation = useCallback((section) => {
         console.log('Navigating to:', section);
         setActiveSection(section);
-    }, []);
+        
+        // Load section-specific data
+        if (section === 'announcements') {
+            loadAnnouncements();
+        } else if (section === 'transaction-hours') {
+            loadTransactions();
+        }
+    }, [loadAnnouncements, loadTransactions]);
 
     const handleLogout = useCallback(async () => {
         if (window.confirm('Are you sure you want to logout?')) {
@@ -1166,7 +1246,6 @@ export const useAdminDashboard = () => {
                     method: 'POST',
                     credentials: 'include'
                 });
-                showMessage('Logging out...', 'success');
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
@@ -1175,14 +1254,13 @@ export const useAdminDashboard = () => {
                 }, 500);
             }
         }
-    }, [showMessage]);
+    }, []);
 
     const handleStatusChange = useCallback((requestId, newStatus) => {
         setDocumentRequests(prev => prev.map(request => 
             request.request_id === requestId ? { ...request, status: newStatus } : request
         ));
-        showMessage(`Request status updated to ${newStatus}`, 'success');
-    }, [showMessage]);
+    }, []);
 
     const handleViewRequest = useCallback(async (request) => {
         try {
@@ -1210,7 +1288,6 @@ export const useAdminDashboard = () => {
                 
                 setSelectedRequest(normalizedData);
                 setShowModal(true);
-                showMessage(`Viewing details for Request ID: ${request.request_id}`, 'success');
             } else {
                 showMessage('Failed to load request details', 'error');
             }
@@ -1230,8 +1307,6 @@ export const useAdminDashboard = () => {
     const handleSaveRequest = useCallback(async (request) => {
         try {
             console.log('Saving request:', request);
-            
-            showMessage('Saving request...', 'info');
             
             const response = await fetch(`${API_UPDATE_URL}?action=updateRequest`, {
                 method: 'POST',
@@ -1260,7 +1335,7 @@ export const useAdminDashboard = () => {
                 showMessage('Request saved successfully!', 'success');
                 loadDashboardData();
             } else {
-                showMessage('Failed to save request: ' + (result.message || 'Unknown error'), 'error');
+                showMessage('Failed to save request', 'error');
             }
         } catch (error) {
             console.error('Error saving request:', error);
@@ -1279,35 +1354,51 @@ export const useAdminDashboard = () => {
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
-    // Initialize on mount
+    // Initialize on mount - only run once
     useEffect(() => {
         updateDate();
         loadAdminData();
         fetchNotifications();
         fetchMails();
-        loadAnnouncement();
-        loadTransaction();
         
         if (activeSection === 'dashboard') {
             loadDashboardData();
         }
-    }, []);
+        
+        // Only load document requests if needed initially
+        if (activeSection === 'document-requests') {
+            loadDocumentRequests();
+        }
+        
+        // Load announcements and transactions if those sections are active
+        if (activeSection === 'announcements') {
+            loadAnnouncements();
+        } else if (activeSection === 'transaction-hours') {
+            loadTransactions();
+        }
+    }, []); // Empty dependency array - runs only once on mount
 
-    // Load section-specific data when section changes
+    // FIXED: Load section-specific data when section changes
     useEffect(() => {
+        console.log('Active section changed to:', activeSection);
+        
         if (activeSection === 'dashboard') {
             loadDashboardData();
         } else if (activeSection === 'document-requests') {
-            loadDocumentRequests();
+            // If there's an active filter, re-apply it
+            if (dateFilterRange.startDate && dateFilterRange.endDate) {
+                console.log('Re-applying date filter:', dateFilterRange);
+                filterRequestsByDateRange(dateFilterRange.startDate, dateFilterRange.endDate);
+            } else {
+                // No filter active, load all requests
+                loadDocumentRequests();
+            }
+        } else if (activeSection === 'announcements') {
+            loadAnnouncements();
+        } else if (activeSection === 'transaction-hours') {
+            loadTransactions();
         }
-    }, [activeSection, loadDashboardData, loadDocumentRequests]);
-
-    // Re-apply date filter when switching to document-requests section if filter is active
-    useEffect(() => {
-        if (activeSection === 'document-requests' && dateFilterRange.startDate && dateFilterRange.endDate) {
-            applyCurrentDateFilter();
-        }
-    }, [activeSection, dateFilterRange, applyCurrentDateFilter]);
+    }, [activeSection, dateFilterRange.startDate, dateFilterRange.endDate, loadDashboardData, loadDocumentRequests, filterRequestsByDateRange, loadAnnouncements, loadTransactions]);
 
     // Calculate actual unread mail count
     const actualUnreadMailCount = mails.filter(mail => !getReadMails().includes(mail.id)).length;
@@ -1346,18 +1437,24 @@ export const useAdminDashboard = () => {
         closeMailModal,
         // Announcement states and functions
         announcementData,
+        announcements,
         isEditingAnnouncement,
         announcementLoading,
         handleAnnouncementEdit,
-        handleAnnouncementPublish,
+        handleAnnouncementSave,
         handleAnnouncementChange,
+        cancelAnnouncementEdit,
+        loadAnnouncements,
         // Transaction states and functions
         transactionData,
+        transactions,
         isEditingTransaction,
         transactionLoading,
         handleTransactionEdit,
-        handleTransactionPublish,
+        handleTransactionSave,
         handleTransactionChange,
+        cancelTransactionEdit,
+        loadTransactions,
         // Date filter functions and states
         filterRequestsByDateRange,
         resetDateFilter,

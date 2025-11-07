@@ -42,15 +42,21 @@ const AdminDashboard = () => {
         notificationRequestData,
         closeNotificationModal,
         announcementData,
+        announcements,
         isEditingAnnouncement,
+        announcementLoading,
         handleAnnouncementEdit,
-        handleAnnouncementPublish,
+        handleAnnouncementSave,
         handleAnnouncementChange,
+        cancelAnnouncementEdit,
         transactionData,
+        transactions,
         isEditingTransaction,
+        transactionLoading,
         handleTransactionEdit,
-        handleTransactionPublish,
+        handleTransactionSave,
         handleTransactionChange,
+        cancelTransactionEdit,
         handleStatusChange,
         handleSaveRequest,
         filterRequestsByDateRange,
@@ -68,6 +74,10 @@ const AdminDashboard = () => {
 
     // Local state for rescheduled pickup dates
     const [rescheduledPickups, setRescheduledPickups] = useState({});
+
+    // Local state for form validation
+    const [announcementErrors, setAnnouncementErrors] = useState({});
+    const [transactionErrors, setTransactionErrors] = useState({});
 
     useEffect(() => {
         initializeChatbase();
@@ -123,12 +133,102 @@ const AdminDashboard = () => {
         setIsFiltered(false);
     };
 
+    // Handle Today button click
+    const handleTodayClick = (isStartDate) => {
+        const today = new Date().toISOString().split('T')[0];
+        if (isStartDate) {
+            setStartDate(today);
+        } else {
+            setEndDate(today);
+        }
+    };
+
     // Handle rescheduled pickup date change
     const handleRescheduledPickupChange = (requestId, newDate) => {
         setRescheduledPickups(prev => ({
             ...prev,
             [requestId]: newDate
         }));
+    };
+
+    // Enhanced announcement handlers
+    const handleAnnouncementEditClick = () => {
+        setAnnouncementErrors({});
+        handleAnnouncementEdit();
+    };
+
+    const handleAnnouncementSaveClick = async () => {
+        // Validate form - only show errors for empty fields when user tries to save
+        const errors = {};
+        
+        // Check if title is empty or only whitespace
+        if (!announcementData.Title || !announcementData.Title.trim()) {
+            errors.Title = 'Please enter a title for the announcement';
+        }
+        
+        // Check if content is empty or only whitespace
+        if (!announcementData.Content || !announcementData.Content.trim()) {
+            errors.Content = 'Please enter content for the announcement';
+        }
+
+        // If there are errors, show them and prevent saving
+        if (Object.keys(errors).length > 0) {
+            setAnnouncementErrors(errors);
+            return;
+        }
+
+        // Clear errors and save
+        setAnnouncementErrors({});
+        await handleAnnouncementSave();
+    };
+
+    const handleAnnouncementCancel = () => {
+        setAnnouncementErrors({});
+        cancelAnnouncementEdit();
+    };
+
+    // Enhanced transaction handlers
+    const handleTransactionEditClick = () => {
+        setTransactionErrors({});
+        handleTransactionEdit();
+    };
+
+    const handleTransactionSaveClick = async () => {
+        // Validate form - only show error for empty description when user tries to save
+        if (!transactionData.Description || !transactionData.Description.trim()) {
+            setTransactionErrors({ Description: 'Please enter transaction hours information' });
+            return;
+        }
+
+        setTransactionErrors({});
+        await handleTransactionSave();
+    };
+
+    const handleTransactionCancel = () => {
+        setTransactionErrors({});
+        cancelTransactionEdit();
+    };
+
+    // Clear individual field errors when user starts typing
+    const handleAnnouncementTitleChange = (value) => {
+        if (announcementErrors.Title) {
+            setAnnouncementErrors(prev => ({ ...prev, Title: '' }));
+        }
+        handleAnnouncementChange('Title', value);
+    };
+
+    const handleAnnouncementContentChange = (value) => {
+        if (announcementErrors.Content) {
+            setAnnouncementErrors(prev => ({ ...prev, Content: '' }));
+        }
+        handleAnnouncementChange('Content', value);
+    };
+
+    const handleTransactionDescriptionChange = (value) => {
+        if (transactionErrors.Description) {
+            setTransactionErrors({});
+        }
+        handleTransactionChange('Description', value);
     };
 
     // Use filtered data if available, otherwise use dashboard data
@@ -755,43 +855,68 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="bottom-cards">
-                            {/* Announcement Card */}
+                            {/* Announcement Card - FIXED VALIDATION */}
                             <div className="announcement-card">
-                                <h3>Announcement</h3>
+                                <div className="card-header">
+                                    <h3>Announcement</h3>
+                                    {announcementData.Announcement_ID && (
+                                        <div className="edit-status">
+                                            {isEditingAnnouncement ? 'Editing...' : 'Viewing'}
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="announcement-content">
                                     <div className="announcement-header">
                                         <input 
                                             type="text" 
-                                            className="announcement-title" 
+                                            className={`announcement-title ${announcementErrors.Title ? 'error' : ''}`}
                                             value={announcementData.Title}
-                                            onChange={(e) => handleAnnouncementChange('Title', e.target.value)}
+                                            onChange={(e) => handleAnnouncementTitleChange(e.target.value)}
                                             placeholder="Enter announcement title..." 
                                             disabled={!isEditingAnnouncement}
                                         />
+                                        {announcementErrors.Title && (
+                                            <div className="error-message">{announcementErrors.Title}</div>
+                                        )}
                                     </div>
                                     <div className="announcement-body">
                                         <textarea 
-                                            className="announcement-text" 
+                                            className={`announcement-text ${announcementErrors.Content ? 'error' : ''}`}
                                             placeholder="Enter announcement content..."
                                             value={announcementData.Content}
-                                            onChange={(e) => handleAnnouncementChange('Content', e.target.value)}
+                                            onChange={(e) => handleAnnouncementContentChange(e.target.value)}
                                             disabled={!isEditingAnnouncement}
                                         />
+                                        {announcementErrors.Content && (
+                                            <div className="error-message">{announcementErrors.Content}</div>
+                                        )}
                                     </div>
                                     <div className="announcement-actions">
-                                        <button 
-                                            className="btn-edit"
-                                            onClick={handleAnnouncementEdit}
-                                            disabled={isEditingAnnouncement}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button 
-                                            className="btn-publish"
-                                            onClick={handleAnnouncementPublish}
-                                        >
-                                            Publish
-                                        </button>
+                                        {!isEditingAnnouncement ? (
+                                            <button 
+                                                className="btn-edit"
+                                                onClick={handleAnnouncementEditClick}
+                                            >
+                                                {announcementData.Announcement_ID ? 'Edit' : 'Create New'}
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button 
+                                                    className="btn-save"
+                                                    onClick={handleAnnouncementSaveClick}
+                                                    disabled={announcementLoading}
+                                                >
+                                                    {announcementLoading ? 'Saving...' : 'Save'}
+                                                </button>
+                                                <button 
+                                                    className="btn-cancel"
+                                                    onClick={handleAnnouncementCancel}
+                                                    disabled={announcementLoading}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                     {announcementData.Is_Active && (
                                         <div className="published-badge">
@@ -801,31 +926,53 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Transaction Card */}
+                            {/* Transaction Card - FIXED VALIDATION */}
                             <div className="transaction-card">
-                                <h3>Transaction Days</h3>
+                                <div className="card-header">
+                                    <h3>Transaction Hours</h3>
+                                    {transactionData.Transaction_Sched_ID && (
+                                        <div className="edit-status">
+                                            {isEditingTransaction ? 'Editing...' : 'Viewing'}
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="transaction-content">
                                     <textarea 
-                                        className="transaction-text" 
-                                        placeholder="Enter transaction information..."
+                                        className={`transaction-text ${transactionErrors.Description ? 'error' : ''}`}
+                                        placeholder="Enter transaction hours information..."
                                         value={transactionData.Description}
-                                        onChange={(e) => handleTransactionChange(e.target.value)}
+                                        onChange={(e) => handleTransactionDescriptionChange(e.target.value)}
                                         disabled={!isEditingTransaction}
                                     />
+                                    {transactionErrors.Description && (
+                                        <div className="error-message">{transactionErrors.Description}</div>
+                                    )}
                                     <div className="transaction-actions">
-                                        <button 
-                                            className="btn-edit"
-                                            onClick={handleTransactionEdit}
-                                            disabled={isEditingTransaction}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button 
-                                            className="btn-publish"
-                                            onClick={handleTransactionPublish}
-                                        >
-                                            Publish
-                                        </button>
+                                        {!isEditingTransaction ? (
+                                            <button 
+                                                className="btn-edit"
+                                                onClick={handleTransactionEditClick}
+                                            >
+                                                {transactionData.Transaction_Sched_ID ? 'Edit' : 'Create New'}
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button 
+                                                    className="btn-save"
+                                                    onClick={handleTransactionSaveClick}
+                                                    disabled={transactionLoading}
+                                                >
+                                                    {transactionLoading ? 'Saving...' : 'Save'}
+                                                </button>
+                                                <button 
+                                                    className="btn-cancel"
+                                                    onClick={handleTransactionCancel}
+                                                    disabled={transactionLoading}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                     {transactionData.Is_Active && (
                                         <div className="published-badge">
@@ -912,7 +1059,6 @@ const AdminDashboard = () => {
                                                         value={rescheduledPickups[request.request_id] || request.rescheduled_pick_up || ''}
                                                         onChange={(e) => {
                                                             handleRescheduledPickupChange(request.request_id, e.target.value);
-                                                            // Update the request object
                                                             request.rescheduled_pick_up = e.target.value;
                                                         }}
                                                         min={new Date().toISOString().split('T')[0]}
@@ -1103,7 +1249,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Right Side - Date Filter */}
+                            {/* Right Side - Date Filter with Today Button */}
                             <div className="analytics-right">
                                 <div className="filter-header">
                                     <h3>Filter by Date Range</h3>
@@ -1122,6 +1268,13 @@ const AdminDashboard = () => {
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
                                         />
+                                        <button 
+                                            className="btn-today"
+                                            onClick={() => handleTodayClick(true)}
+                                            title="Set Start Date to Today"
+                                        >
+                                            <i className="fas fa-calendar-day"></i> Today
+                                        </button>
                                     </div>
 
                                     <div className="date-filter-group">
@@ -1134,6 +1287,13 @@ const AdminDashboard = () => {
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                         />
+                                        <button 
+                                            className="btn-today"
+                                            onClick={() => handleTodayClick(false)}
+                                            title="Set End Date to Today"
+                                        >
+                                            <i className="fas fa-calendar-day"></i> Today
+                                        </button>
                                     </div>
                                 </div>
 
