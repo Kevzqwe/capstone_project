@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// ✅ UPDATED TO USE HOSTINGER BACKEND
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
 const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
 const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
@@ -190,7 +189,7 @@ export const useStudentPortal = () => {
   }, [getReadNotifications]);
 
   const updateWelcomeMessages = useCallback((data) => {
-    const firstName = data.first_name || data.First_Name || 'Student';
+    const firstName = data.First_Name || data.first_name || 'Student';
     
     const welcomeName = document.getElementById('welcomeName');
     if (welcomeName) {
@@ -203,8 +202,8 @@ export const useStudentPortal = () => {
     }
     
     const accountName = document.getElementById('accountName');
-    if (accountName && (data.full_name || data.Full_Name)) {
-      accountName.textContent = data.full_name || data.Full_Name;
+    if (accountName && data.full_name) {
+      accountName.textContent = data.full_name;
     }
     
     const welcomeDate = document.getElementById('welcomeDate');
@@ -224,20 +223,20 @@ export const useStudentPortal = () => {
     console.log('Updating account page with:', data);
     
     const accountName = document.getElementById('accountName');
-    if (accountName && (data.full_name || data.Full_Name)) {
-      accountName.textContent = data.full_name || data.Full_Name;
+    if (accountName && data.full_name) {
+      accountName.textContent = data.full_name;
     }
     
     const studentNoElement = document.querySelector('.student-no');
-    if (studentNoElement && (data.student_id || data.Student_ID)) {
-      studentNoElement.textContent = `Student ID: ${data.student_id || data.Student_ID}`;
+    if (studentNoElement && (data.Student_ID || data.student_id)) {
+      studentNoElement.textContent = `Student ID: ${data.Student_ID || data.student_id}`;
     }
     
     const fieldMappings = {
-      'address': data.address || data.Address || '',
-      'contact': data.contact_no || data.Contact_No || '',
-      'email': data.email || data.Email || '',
-      'grade': `${data.grade_display || data.Grade_Level || ''} ${data.section || data.Section || ''}`.trim() || 'Not assigned'
+      'address': data.Address || data.address || '',
+      'contact': data.Contact_No || data.contact_no || '',
+      'email': data.Email || data.email || '',
+      'grade': `${data.grade_display || data.Grade_level || data.grade_level || ''} ${data.Section || data.section || ''}`.trim() || 'Not assigned'
     };
     
     Object.keys(fieldMappings).forEach(fieldId => {
@@ -255,8 +254,8 @@ export const useStudentPortal = () => {
     console.log('Updating all UI elements with:', data);
     
     const sidebarName = document.getElementById('studentName');
-    if (sidebarName && (data.full_name || data.Full_Name)) {
-      sidebarName.textContent = data.full_name || data.Full_Name;
+    if (sidebarName && data.full_name) {
+      sidebarName.textContent = data.full_name;
     }
     
     updateWelcomeMessages(data);
@@ -410,7 +409,7 @@ export const useStudentPortal = () => {
       return;
     }
 
-    if (!studentData?.email && !studentData?.Email) {
+    if (!studentData?.Email && !studentData?.email) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
@@ -418,8 +417,9 @@ export const useStudentPortal = () => {
     setIsSubmitting(true);
     
     try {
+      const userEmail = studentData.Email || studentData.email;
       console.log('Submitting feedback:', {
-        email: studentData.email || studentData.Email,
+        email: userEmail,
         feedback_type: 'General',
         message: feedback
       });
@@ -432,7 +432,7 @@ export const useStudentPortal = () => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          email: studentData.email || studentData.Email,
+          email: userEmail,
           feedback_type: 'General',
           message: feedback
         })
