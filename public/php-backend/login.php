@@ -1,16 +1,12 @@
 <?php
 /**
- * User Login API - Debug Version with Detailed Error Messages
+ * User Login API - Fixed with correct username
  */
 
 // Turn off output buffering
 if (ob_get_level()) ob_end_clean();
 
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// CORS headers first
+// CORS headers
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 if (strpos($origin, 'vercel.app') !== false) {
@@ -28,70 +24,57 @@ header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
-// Only allow POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
     exit();
 }
 
-// ✅ DIRECT DATABASE CONNECTION - No config.php needed for testing
+// ✅ CORRECT DATABASE CREDENTIALS
 $db_host = 'localhost';
 $db_name = 'u868164296_pcsch_database';
-$db_user = 'u868164296_localhost';
+$db_user = 'u850164226_localhost';  // ← Your actual username from Hostinger
 $db_pass = 'Admin_T03';
 
-// Log connection attempt
-error_log("=== DATABASE CONNECTION ATTEMPT ===");
-error_log("Host: $db_host");
-error_log("Database: $db_name");
-error_log("User: $db_user");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Test database connection
+// Connect to database
 try {
     $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
     
     if ($conn->connect_error) {
-        $error_msg = "Connection failed: " . $conn->connect_error;
-        $error_no = $conn->connect_errno;
-        error_log("❌ MySQL Connection Error: $error_msg (Error #$error_no)");
+        error_log("❌ Connection Error #" . $conn->connect_errno . ": " . $conn->connect_error);
         
         http_response_code(500);
         echo json_encode([
             'status' => 'error',
             'message' => 'Database connection failed',
             'debug' => [
-                'error' => $error_msg,
-                'error_no' => $error_no,
-                'host' => $db_host,
-                'database' => $db_name,
-                'user' => $db_user
+                'error' => $conn->connect_error,
+                'error_no' => $conn->connect_errno,
+                'tried_user' => $db_user,
+                'hint' => 'Check phpMyAdmin for exact username (max 16 chars)'
             ]
         ]);
         exit();
     }
     
     $conn->set_charset("utf8mb4");
-    error_log("✅ Database connected successfully!");
+    error_log("✅ Database connected!");
     
 } catch (Exception $e) {
-    error_log("❌ Exception during connection: " . $e->getMessage());
+    error_log("❌ Exception: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
         'message' => 'Database connection exception',
-        'debug' => [
-            'error' => $e->getMessage(),
-            'host' => $db_host,
-            'database' => $db_name,
-            'user' => $db_user
-        ]
+        'debug' => ['error' => $e->getMessage()]
     ]);
     exit();
 }
@@ -115,51 +98,38 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     $password = trim($input['password'] ?? '');
 }
 
-error_log("Login attempt for email: $email");
-
-// Validate input
+// Validate
 if (empty($email) || empty($password)) {
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Email and password are required'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Email and password required']);
     exit();
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Invalid email format'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid email format']);
     exit();
 }
 
-// Check if stored procedure exists
+// Check if procedure exists
 try {
-    $check_proc = $conn->query("SHOW PROCEDURE STATUS WHERE Db = '$db_name' AND Name = 'CheckUserLogin'");
+    $check = $conn->query("SHOW PROCEDURE STATUS WHERE Db = '$db_name' AND Name = 'CheckUserLogin'");
     
-    if ($check_proc->num_rows === 0) {
-        error_log("❌ Stored procedure 'CheckUserLogin' does not exist!");
+    if ($check->num_rows === 0) {
+        error_log("❌ Procedure CheckUserLogin not found!");
         http_response_code(500);
         echo json_encode([
             'status' => 'error',
-            'message' => 'Login procedure not found in database',
-            'debug' => [
-                'info' => 'The stored procedure CheckUserLogin does not exist. Please create it in phpMyAdmin.'
-            ]
+            'message' => 'Login procedure missing',
+            'debug' => ['info' => 'Create CheckUserLogin stored procedure in phpMyAdmin']
         ]);
         exit();
     }
-    
-    error_log("✅ Stored procedure exists");
-    
 } catch (Exception $e) {
-    error_log("❌ Error checking procedure: " . $e->getMessage());
+    error_log("Error checking procedure: " . $e->getMessage());
 }
 
-// Attempt login
+// Login attempt
 try {
     $stmt = $conn->prepare("CALL CheckUserLogin(?, ?)");
     
@@ -179,8 +149,6 @@ try {
         $message = $row['Message'] ?? '';
         $admin_id = $row['Admin_ID'] ?? null;
         $student_id = $row['Student_ID'] ?? null;
-
-        error_log("Login result: $message");
 
         // Admin login
         if ($message === "Welcome Admin!") {
@@ -259,9 +227,7 @@ try {
     echo json_encode([
         'status' => 'error',
         'message' => 'Login system error',
-        'debug' => [
-            'error' => $e->getMessage()
-        ]
+        'debug' => ['error' => $e->getMessage()]
     ]);
 }
 ?>
