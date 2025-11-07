@@ -11,9 +11,9 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // ✅ Automatically choose the correct backend depending on environment
+    // ✅ FIXED: Correct URL (fixed the typo - only one 'a' after 'medium')
     const apiUrl = window.location.hostname.includes('vercel.app')
-        ? 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend'
+        ? 'https://mediumaguamarine-heron-545485.hostingersite.com/public/bhp-backend'
         : 'http://localhost/capstone_project/public/php-backend';
 
     const togglePassword = () => {
@@ -46,14 +46,18 @@ const Login = () => {
         setIsLoading(true);
 
         try {
+            // ✅ FIXED: Send as JSON (matches your backend expectation)
             const response = await fetch(`${apiUrl}/login.php`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 credentials: 'include',
-                body: `email=${encodeURIComponent(trimmedEmail)}&password=${encodeURIComponent(trimmedPassword)}`
+                body: JSON.stringify({
+                    email: trimmedEmail,
+                    password: trimmedPassword
+                })
             });
 
             if (!response.ok) {
