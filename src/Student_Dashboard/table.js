@@ -1,6 +1,6 @@
 // public/js/table.js
 
-// API Configuration
+// API Configuration - FIXED: Use correct backend URL
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php';
 
 // Helper functions
@@ -79,9 +79,19 @@ export async function RequestHistoryTable() {
     });
 
     console.log('📥 Response status:', response.status);
+    console.log('📥 Response headers:', [...response.headers.entries()]);
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Response error:', errorText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error('❌ Non-JSON response:', text);
+      throw new Error('Server returned non-JSON response');
     }
 
     const result = await response.json();
@@ -117,7 +127,7 @@ export async function RequestHistoryTable() {
 
 // === Render Table Function ===
 function renderTable(container, requests) {
-  console.log('📋 Raw requests data:', requests);
+  console.log('📋 Rendering table with requests:', requests);
 
   container.innerHTML = `
     <div class="table-container">
@@ -458,26 +468,6 @@ function renderTable(container, requests) {
         font-size: 1.3rem !important;
         font-weight: 700;
         color: #27ae60 !important;
-      }
-
-      .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #ecf0f1;
-      }
-
-      .info-row:last-child {
-        border-bottom: none;
-      }
-
-      .info-label {
-        font-weight: 600;
-        color: #7f8c8d;
-      }
-
-      .info-value {
-        color: #2c3e50;
       }
 
       @media (max-width: 768px) {
