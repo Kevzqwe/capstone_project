@@ -1,20 +1,18 @@
 <?php
 /**
- * User Login API - Complete Fixed Version
- * CORS headers properly configured for all Vercel deployments
+ * User Login API - Debug Version with Detailed Error Messages
  */
 
-// Turn off output buffering to prevent header issues
+// Turn off output buffering
 if (ob_get_level()) ob_end_clean();
 
-// Prevent any PHP errors from appearing before headers
-error_reporting(0);
-ini_set('display_errors', 0);
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// ✅ FIXED: Dynamic CORS handling for ALL Vercel deployments
+// CORS headers first
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// Allow any Vercel deployment, localhost, or your Hostinger domain
 if (strpos($origin, 'vercel.app') !== false) {
     header("Access-Control-Allow-Origin: $origin");
 } else if (strpos($origin, 'localhost') !== false) {
@@ -22,7 +20,6 @@ if (strpos($origin, 'vercel.app') !== false) {
 } else if ($origin === 'https://mediumaquamarine-heron-545485.hostingersite.com') {
     header("Access-Control-Allow-Origin: $origin");
 } else {
-    // Default fallback
     header("Access-Control-Allow-Origin: https://capstone-project-smoky-one.vercel.app");
 }
 
@@ -31,92 +28,85 @@ header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Handle preflight OPTIONS request immediately
+// Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
-// Now load configuration and enable error reporting
-require_once __DIR__ . '/config.php';
-
-// Enable error reporting after headers are sent
-if (!Config::isProduction()) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-}
-
-// Only allow POST requests
+// Only allow POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
     exit();
 }
 
-// Start session after CORS headers
+// ✅ DIRECT DATABASE CONNECTION - No config.php needed for testing
+$db_host = 'localhost';
+$db_name = 'u868164296_pcsch_database';
+$db_user = 'u868164296_localhost';
+$db_pass = 'Admin_T03';
+
+// Log connection attempt
+error_log("=== DATABASE CONNECTION ATTEMPT ===");
+error_log("Host: $db_host");
+error_log("Database: $db_name");
+error_log("User: $db_user");
+
+// Test database connection
+try {
+    $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+    
+    if ($conn->connect_error) {
+        $error_msg = "Connection failed: " . $conn->connect_error;
+        $error_no = $conn->connect_errno;
+        error_log("❌ MySQL Connection Error: $error_msg (Error #$error_no)");
+        
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database connection failed',
+            'debug' => [
+                'error' => $error_msg,
+                'error_no' => $error_no,
+                'host' => $db_host,
+                'database' => $db_name,
+                'user' => $db_user
+            ]
+        ]);
+        exit();
+    }
+    
+    $conn->set_charset("utf8mb4");
+    error_log("✅ Database connected successfully!");
+    
+} catch (Exception $e) {
+    error_log("❌ Exception during connection: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Database connection exception',
+        'debug' => [
+            'error' => $e->getMessage(),
+            'host' => $db_host,
+            'database' => $db_name,
+            'user' => $db_user
+        ]
+    ]);
+    exit();
+}
+
+// Start session
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.cookie_secure', 1);
     ini_set('session.cookie_samesite', 'None');
-    ini_set('session.gc_maxlifetime', 3600);
     session_start();
 }
 
-// Get database connection
-try {
-    $dbConfig = Config::database();
-    
-    $conn = new mysqli(
-        $dbConfig['host'],
-        $dbConfig['user'],
-        $dbConfig['pass'],
-        $dbConfig['name']
-    );
-    
-    if ($conn->connect_error) {
-        throw new Exception('Database connection failed: ' . $conn->connect_error);
-    }
-    
-    $conn->set_charset("utf8mb4");
-    
-} catch (Exception $e) {
-    error_log("DB Connection Error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Database connection failed. Please try again later.'
-    ]);
-    exit();
-}
-
-// Rate limiting
-$ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$rate_limit_key = "login_attempts_$ip_address";
-
-if (!isset($_SESSION[$rate_limit_key])) {
-    $_SESSION[$rate_limit_key] = ['count' => 0, 'time' => time()];
-}
-
-$rate_limit = &$_SESSION[$rate_limit_key];
-
-// Reset rate limit after 15 minutes
-if (time() - $rate_limit['time'] > 900) {
-    $rate_limit = ['count' => 0, 'time' => time()];
-}
-
-if ($rate_limit['count'] >= 5) {
-    http_response_code(429);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Too many login attempts. Please try again in 15 minutes.'
-    ]);
-    exit();
-}
-
-// Get input data
+// Get input
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Support both JSON and form data
 if (json_last_error() !== JSON_ERROR_NONE) {
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -125,9 +115,10 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     $password = trim($input['password'] ?? '');
 }
 
+error_log("Login attempt for email: $email");
+
 // Validate input
 if (empty($email) || empty($password)) {
-    $rate_limit['count']++;
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
@@ -137,13 +128,35 @@ if (empty($email) || empty($password)) {
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $rate_limit['count']++;
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Please enter a valid email address'
+        'message' => 'Invalid email format'
     ]);
     exit();
+}
+
+// Check if stored procedure exists
+try {
+    $check_proc = $conn->query("SHOW PROCEDURE STATUS WHERE Db = '$db_name' AND Name = 'CheckUserLogin'");
+    
+    if ($check_proc->num_rows === 0) {
+        error_log("❌ Stored procedure 'CheckUserLogin' does not exist!");
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Login procedure not found in database',
+            'debug' => [
+                'info' => 'The stored procedure CheckUserLogin does not exist. Please create it in phpMyAdmin.'
+            ]
+        ]);
+        exit();
+    }
+    
+    error_log("✅ Stored procedure exists");
+    
+} catch (Exception $e) {
+    error_log("❌ Error checking procedure: " . $e->getMessage());
 }
 
 // Attempt login
@@ -151,13 +164,13 @@ try {
     $stmt = $conn->prepare("CALL CheckUserLogin(?, ?)");
     
     if (!$stmt) {
-        throw new Exception('Login procedure error: ' . $conn->error);
+        throw new Exception('Prepare failed: ' . $conn->error);
     }
 
     $stmt->bind_param("ss", $email, $password);
     
     if (!$stmt->execute()) {
-        throw new Exception('Login execution error: ' . $stmt->error);
+        throw new Exception('Execute failed: ' . $stmt->error);
     }
     
     $result = $stmt->get_result();
@@ -167,7 +180,9 @@ try {
         $admin_id = $row['Admin_ID'] ?? null;
         $student_id = $row['Student_ID'] ?? null;
 
-        // Admin login successful
+        error_log("Login result: $message");
+
+        // Admin login
         if ($message === "Welcome Admin!") {
             session_regenerate_id(true);
             
@@ -176,11 +191,7 @@ try {
             $_SESSION['email'] = $email;
             $_SESSION['admin_id'] = $admin_id;
             $_SESSION['user_id'] = $admin_id;
-            $_SESSION['login_time'] = time();
             
-            // Clear rate limiting on successful login
-            unset($_SESSION[$rate_limit_key]);
-
             $stmt->close();
             $conn->close();
             
@@ -194,7 +205,7 @@ try {
             exit();
         }
         
-        // Student login successful
+        // Student login
         if ($message === "Welcome Student!") {
             session_regenerate_id(true);
             
@@ -203,11 +214,7 @@ try {
             $_SESSION['email'] = $email;
             $_SESSION['student_id'] = $student_id;
             $_SESSION['user_id'] = $student_id;
-            $_SESSION['login_time'] = time();
             
-            // Clear rate limiting on successful login
-            unset($_SESSION[$rate_limit_key]);
-
             $stmt->close();
             $conn->close();
             
@@ -222,7 +229,6 @@ try {
         }
         
         // Invalid credentials
-        $rate_limit['count']++;
         $stmt->close();
         $conn->close();
         
@@ -233,8 +239,6 @@ try {
         ]);
         
     } else {
-        // No user found
-        $rate_limit['count']++;
         $stmt->close();
         $conn->close();
         
@@ -246,18 +250,18 @@ try {
     }
     
 } catch (Exception $e) {
-    error_log("Login System Error: " . $e->getMessage());
+    error_log("❌ Login error: " . $e->getMessage());
     
-    // Clean up resources
     if (isset($stmt)) $stmt->close();
     if (isset($conn)) $conn->close();
-    
-    $rate_limit['count']++;
     
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Login system error. Please try again.'
+        'message' => 'Login system error',
+        'debug' => [
+            'error' => $e->getMessage()
+        ]
     ]);
 }
 ?>
