@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 // ✅ CHANGE THESE TO YOUR HOSTINGER DOMAIN
 // Example: https://capstonepateroscatholic.online/php-backend/...
 // ======================
-const API_BASE_URL = 'https://capstonepateroscatholic.online/php-backend/student_data.php';
-const FEEDBACK_API_URL = 'https://capstonepateroscatholic.online/php-backend/feedback.php';
-const ANNOUNCEMENT_API_URL = 'https://capstonepateroscatholic.online/php-backend/announcement.php';
-const TRANSACTION_API_URL = 'https://capstonepateroscatholic.online/php-backend/transaction.php';
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
+const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
+const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
+const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/transaction.php';
+
 
 export const useStudentPortal = () => {
   const [studentData, setStudentData] = useState(null);
