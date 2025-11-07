@@ -13,7 +13,7 @@ const Login = () => {
 
     // ✅ FIXED: Correct URL (fixed the typo - only one 'a' after 'medium')
     const apiUrl = window.location.hostname.includes('vercel.app')
-        ? 'https://mediumaguamarine-heron-545485.hostingersite.com/public/bhp-backend'
+        ? 'https://mediumaquamarine-heron-545485.hostingersite.com/public/bhp-backend'
         : 'http://localhost/capstone_project/public/php-backend';
 
     const togglePassword = () => {
