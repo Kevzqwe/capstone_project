@@ -11,6 +11,11 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // ✅ Automatically choose the correct backend depending on environment
+    const apiUrl = window.location.hostname.includes('vercel.app')
+        ? 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend'
+        : 'http://localhost/capstone_project/public/php-backend';
+
     const togglePassword = () => {
         setShowPassword(!showPassword);
     };
@@ -21,7 +26,7 @@ const Login = () => {
 
     const handleLogin = async (event) => {
         event.preventDefault();
-        
+
         if (isLoading) return;
 
         const trimmedEmail = email.trim().toLowerCase();
@@ -41,11 +46,9 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const apiUrl = 'http://localhost/capstone_project/public/php-backend';
-            
             const response = await fetch(`${apiUrl}/login.php`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
                 },
@@ -61,9 +64,8 @@ const Login = () => {
 
             if (data.status === 'success') {
                 console.log('Login successful, role:', data.role);
-                
                 const userRole = data.role.toLowerCase();
-                
+
                 if (userRole === 'admin') {
                     navigate('/admin-dashboard');
                 } else if (userRole === 'student') {
@@ -76,10 +78,9 @@ const Login = () => {
                 showError(data.message || 'Login failed. Please try again.');
                 setIsLoading(false);
             }
-
         } catch (error) {
             console.error('Network error:', error);
-            showError("Unable to connect to server. Please check your connection and try again.");
+            showError('Unable to connect to server. Please check your connection and try again.');
             setIsLoading(false);
         }
     };
@@ -99,14 +100,14 @@ const Login = () => {
                     <form onSubmit={handleLogin}>
                         <div className="form-group">
                             <label htmlFor="email">Email</label>
-                            <input 
+                            <input
                                 id="email"
-                                type="email" 
+                                type="email"
                                 placeholder="Enter your email address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={isLoading}
-                                required 
+                                required
                                 autoComplete="email"
                             />
                         </div>
@@ -114,20 +115,20 @@ const Login = () => {
                         <div className="form-group">
                             <label htmlFor="password">Password</label>
                             <div className="password">
-                                <input 
+                                <input
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Enter your password" 
-                                    id="password" 
+                                    placeholder="Enter your password"
+                                    id="password"
                                     className="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
-                                    required 
+                                    required
                                     autoComplete="current-password"
                                     data-form-type="password"
                                 />
-                                <span 
-                                    className="pass-opeen" 
+                                <span
+                                    className="pass-opeen"
                                     onClick={togglePassword}
                                     role="button"
                                     tabIndex={0}
@@ -138,7 +139,7 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             type="submit"
                             className={`login-btn ${isLoading ? 'loading' : ''}`}
                             disabled={isLoading}
@@ -153,6 +154,6 @@ const Login = () => {
             </div>
         </div>
     );
-}
+};
 
 export default Login;
