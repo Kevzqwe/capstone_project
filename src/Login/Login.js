@@ -1,118 +1,158 @@
-<?php
-require_once __DIR__ . '/config.php';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Login.css';
+import PCSlogo from '../Components/Assets/PCSlogo.png';
+import { FaEye } from "react-icons/fa";
 
-// Error reporting
-if (!Config::isProduction()) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-}
+const Login = () => {
+    const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-session_start();
+    const togglePassword = () => {
+        setShowPassword(!showPassword);
+    };
 
-// === CORS CONFIG ===
-// Allow only these frontend origins
-$allowed_origins = [
-    'https://capstone-project-smoky-one.vercel.app',
-    Config::get('REACT_APP_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com'),
-];
+    const showError = (message) => {
+        alert(message);
+    };
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    const handleLogin = async (event) => {
+        event.preventDefault();
+        
+        if (isLoading) return;
 
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: $origin");
-} else {
-    header("Access-Control-Allow-Origin: https://capstone-project-smoky-one.vercel.app");
-}
+        const trimmedEmail = email.trim().toLowerCase();
+        const trimmedPassword = password.trim();
 
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Accept");
-header("Content-Type: application/json");
-
-// Handle preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// === DATABASE CONNECTION ===
-$db = Config::database();
-$conn = new mysqli($db['host'], $db['user'], $db['pass'], $db['name']);
-
-if ($conn->connect_error) {
-    echo json_encode(['status' => 'error', 'message' => 'Database connection failed.']);
-    exit();
-}
-
-// === LOGIN HANDLER ===
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    $email = trim($input['email'] ?? '');
-    $password = trim($input['password'] ?? '');
-
-    if (empty($email) || empty($password)) {
-        echo json_encode(['status' => 'error', 'message' => 'Email and password are required.']);
-        exit();
-    }
-
-    $stmt = $conn->prepare("CALL CheckUserLogin(?, ?)");
-    if (!$stmt) {
-        echo json_encode(['status' => 'error', 'message' => 'Query preparation failed.']);
-        exit();
-    }
-
-    $stmt->bind_param("ss", $email, $password);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result && $row = $result->fetch_assoc()) {
-        $message = $row['Message'] ?? '';
-        $admin_id = $row['Admin_ID'] ?? null;
-        $student_id = $row['Student_ID'] ?? null;
-
-        if ($message === "Welcome Admin!") {
-            session_regenerate_id(true);
-            $_SESSION = [
-                'logged_in' => true,
-                'role' => 'admin',
-                'email' => $email,
-                'user_id' => $admin_id,
-            ];
-            echo json_encode([
-                'status' => 'success',
-                'message' => $message,
-                'role' => 'Admin',
-                'redirect' => '/admin-dashboard'
-            ]);
-
-        } elseif ($message === "Welcome Student!") {
-            session_regenerate_id(true);
-            $_SESSION = [
-                'logged_in' => true,
-                'role' => 'student',
-                'email' => $email,
-                'user_id' => $student_id,
-            ];
-            echo json_encode([
-                'status' => 'success',
-                'message' => $message,
-                'role' => 'Student',
-                'redirect' => '/student-dashboard'
-            ]);
-
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid credentials.']);
+        if (!trimmedEmail || !trimmedPassword) {
+            showError('Please enter both email and password');
+            return;
         }
 
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid credentials.']);
-    }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmedEmail)) {
+            showError('Please enter a valid email address');
+            return;
+        }
 
-    $stmt->close();
+        setIsLoading(true);
+
+        try {
+            const apiUrl = 'http://localhost/capstone_project/public/php-backend';
+            
+            const response = await fetch(`${apiUrl}/login.php`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: `email=${encodeURIComponent(trimmedEmail)}&password=${encodeURIComponent(trimmedPassword)}`
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                console.log('Login successful, role:', data.role);
+                
+                const userRole = data.role.toLowerCase();
+                
+                if (userRole === 'admin') {
+                    navigate('/admin-dashboard');
+                } else if (userRole === 'student') {
+                    navigate('/student-dashboard');
+                } else {
+                    showError('Unknown user role');
+                    setIsLoading(false);
+                }
+            } else {
+                showError(data.message || 'Login failed. Please try again.');
+                setIsLoading(false);
+            }
+
+        } catch (error) {
+            console.error('Network error:', error);
+            showError("Unable to connect to server. Please check your connection and try again.");
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="container">
+            <div className="left-panel">
+                <img src={PCSlogo} alt="School Logo" className="school-logo" />
+                <h2>Online Document Request System</h2>
+                <p>Pateros Catholic School</p>
+            </div>
+
+            <div className="right-panel">
+                <div className="login-box">
+                    <h3>Login Your Account</h3>
+
+                    <form onSubmit={handleLogin}>
+                        <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <input 
+                                id="email"
+                                type="email" 
+                                placeholder="Enter your email address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isLoading}
+                                required 
+                                autoComplete="email"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="password">Password</label>
+                            <div className="password">
+                                <input 
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password" 
+                                    id="password" 
+                                    className="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isLoading}
+                                    required 
+                                    autoComplete="current-password"
+                                    data-form-type="password"
+                                />
+                                <span 
+                                    className="pass-opeen" 
+                                    onClick={togglePassword}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    <FaEye />
+                                </span>
+                            </div>
+                        </div>
+
+                        <button 
+                            type="submit"
+                            className={`login-btn ${isLoading ? 'loading' : ''}`}
+                            disabled={isLoading}
+                        >
+                            <span className="loader"></span>
+                            <span className="btn-text">
+                                {isLoading ? 'Logging in...' : 'Login'}
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
 }
 
-$conn->close();
-?>
+export default Login;
