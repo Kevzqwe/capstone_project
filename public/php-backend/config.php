@@ -10,8 +10,8 @@ class Config {
     private static $database = [
         'host' => 'localhost',
         'name' => 'u868164296_pcsch_database',
-        'user' => 'u868164296_localhost',
-        'pass' => 'Admin_703'
+        'user' => 'u850164226_localhost',  // ← Correct username
+        'pass' => 'Admin_T03'
     ];
     
     // Production mode
