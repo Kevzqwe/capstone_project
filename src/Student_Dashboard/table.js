@@ -1,5 +1,8 @@
 // public/js/table.js
 
+// API Configuration
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php';
+
 // Helper functions
 function formatDate(dateString) {
   if (!dateString) return 'N/A';
@@ -64,13 +67,18 @@ export async function RequestHistoryTable() {
   `;
 
   try {
-    const response = await fetch('http://localhost/capstone_project/public/php-backend/request_history.php?action=getRequestHistory', {
+    console.log('📡 Fetching from:', `${API_BASE_URL}?action=getRequestHistory`);
+    
+    const response = await fetch(`${API_BASE_URL}?action=getRequestHistory`, {
       method: 'GET',
       credentials: 'include',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     });
+
+    console.log('📥 Response status:', response.status);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
