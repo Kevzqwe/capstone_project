@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// ✅ UPDATED TO USE HOSTINGER BACKEND
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
 const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
 const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
@@ -25,7 +26,7 @@ export const useStudentPortal = () => {
   const showMessage = useCallback((message, type) => {
     const existing = document.querySelector('.status-message');
     if (existing) existing.remove();
-
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `status-message ${type}`;
     messageDiv.textContent = message;
@@ -41,6 +42,7 @@ export const useStudentPortal = () => {
       background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
+    
     document.body.appendChild(messageDiv);
     setTimeout(() => messageDiv.remove(), 5000);
   }, []);
@@ -61,7 +63,7 @@ export const useStudentPortal = () => {
       });
 
       console.log('Announcement response status:', response.status);
-      
+
       if (!response.ok) {
         console.error('Announcement request failed with status:', response.status);
         setAnnouncementLoading(false);
@@ -70,10 +72,13 @@ export const useStudentPortal = () => {
 
       const data = await response.json();
       console.log('Announcement response:', data);
-
+      
       if (data.status === 'success' && data.data) {
         // Match your backend field names: Content, Title
-        const announcementText = data.data.Content || data.data.content || 'Welcome to Pateros Catholic School Document Request System';
+        const announcementText = data.data.Content || 
+                                data.data.content || 
+                                'Welcome to Pateros Catholic School Document Request System';
+        
         console.log('✓ Setting announcement to:', announcementText);
         setAnnouncement(announcementText);
       } else if (data.status === 'error') {
@@ -103,7 +108,7 @@ export const useStudentPortal = () => {
       });
 
       console.log('Transaction response status:', response.status);
-      
+
       if (!response.ok) {
         console.error('Transaction request failed with status:', response.status);
         setTransactionLoading(false);
@@ -112,10 +117,13 @@ export const useStudentPortal = () => {
 
       const data = await response.json();
       console.log('Transaction response:', data);
-
+      
       if (data.status === 'success' && data.data) {
         // Match your backend field names: Description
-        const transactionText = data.data.Description || data.data.description || 'Monday to Friday, 8:00 AM - 5:00 PM';
+        const transactionText = data.data.Description || 
+                               data.data.description || 
+                               'Monday to Friday, 8:00 AM - 5:00 PM';
+        
         console.log('✓ Setting transaction days to:', transactionText);
         setTransactionDays(transactionText);
       } else if (data.status === 'error') {
@@ -132,7 +140,7 @@ export const useStudentPortal = () => {
   const updateNotificationBadge = useCallback((count) => {
     const notificationBtn = document.querySelector('.action-btn[title="Notifications"]');
     if (!notificationBtn) return;
-
+    
     let badge = notificationBtn.querySelector('.notification-badge');
     if (!badge) {
       badge = document.createElement('span');
@@ -155,7 +163,7 @@ export const useStudentPortal = () => {
       notificationBtn.style.position = 'relative';
       notificationBtn.appendChild(badge);
     }
-
+    
     badge.textContent = count > 9 ? '9+' : count;
     badge.style.display = count > 0 ? 'flex' : 'none';
   }, []);
@@ -182,51 +190,56 @@ export const useStudentPortal = () => {
   }, [getReadNotifications]);
 
   const updateWelcomeMessages = useCallback((data) => {
-    const firstName = data.first_name || 'Student';
+    const firstName = data.first_name || data.First_Name || 'Student';
     
     const welcomeName = document.getElementById('welcomeName');
     if (welcomeName) {
       welcomeName.textContent = firstName;
     }
-
+    
     const welcomeMessage = document.querySelector('.welcome-message h2');
     if (welcomeMessage) {
       welcomeMessage.innerHTML = `Welcome back, <span id="welcomeName">${firstName}</span>!`;
     }
-
+    
     const accountName = document.getElementById('accountName');
-    if (accountName && data.full_name) {
-      accountName.textContent = data.full_name;
+    if (accountName && (data.full_name || data.Full_Name)) {
+      accountName.textContent = data.full_name || data.Full_Name;
     }
-
+    
     const welcomeDate = document.getElementById('welcomeDate');
     if (welcomeDate) {
       const today = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
       welcomeDate.textContent = today.toLocaleDateString('en-US', options);
     }
   }, []);
 
   const updateAccountPage = useCallback((data) => {
     console.log('Updating account page with:', data);
-
+    
     const accountName = document.getElementById('accountName');
-    if (accountName && data.full_name) {
-      accountName.textContent = data.full_name;
+    if (accountName && (data.full_name || data.Full_Name)) {
+      accountName.textContent = data.full_name || data.Full_Name;
     }
-
+    
     const studentNoElement = document.querySelector('.student-no');
-    if (studentNoElement && data.student_id) {
-      studentNoElement.textContent = `Student ID: ${data.student_id}`;
+    if (studentNoElement && (data.student_id || data.Student_ID)) {
+      studentNoElement.textContent = `Student ID: ${data.student_id || data.Student_ID}`;
     }
-
+    
     const fieldMappings = {
-      'address': data.address || '',
-      'contact': data.contact_no || '',
-      'email': data.email || '',
-      'grade': `${data.grade_display || data.grade_level || ''} ${data.section || ''}`.trim() || 'Not assigned'
+      'address': data.address || data.Address || '',
+      'contact': data.contact_no || data.Contact_No || '',
+      'email': data.email || data.Email || '',
+      'grade': `${data.grade_display || data.Grade_Level || ''} ${data.section || data.Section || ''}`.trim() || 'Not assigned'
     };
-
+    
     Object.keys(fieldMappings).forEach(fieldId => {
       const element = document.getElementById(fieldId);
       if (element) {
@@ -240,14 +253,14 @@ export const useStudentPortal = () => {
 
   const updateAllUserInterfaces = useCallback((data) => {
     console.log('Updating all UI elements with:', data);
-
+    
     const sidebarName = document.getElementById('studentName');
-    if (sidebarName && data.full_name) {
-      sidebarName.textContent = data.full_name;
+    if (sidebarName && (data.full_name || data.Full_Name)) {
+      sidebarName.textContent = data.full_name || data.Full_Name;
     }
-
+    
     updateWelcomeMessages(data);
-
+    
     if (activePage === 'account') {
       updateAccountPage(data);
     }
@@ -258,10 +271,10 @@ export const useStudentPortal = () => {
       console.log('Already loading user data, skipping...');
       return;
     }
-
+    
     console.log('Loading user data...');
     setIsLoadingUserData(true);
-
+    
     fetch(`${API_BASE_URL}?action=getStudentData`, {
       method: 'GET',
       credentials: 'include',
@@ -281,7 +294,7 @@ export const useStudentPortal = () => {
           setStudentData(data.data);
           setIsAuthenticated(true);
           window.studentData = data.data;
-
+          
           // Load announcement and transaction after authentication is confirmed
           setTimeout(() => {
             loadAnnouncement();
@@ -307,7 +320,7 @@ export const useStudentPortal = () => {
     if (studentData) {
       updateWelcomeMessages(studentData);
     }
-
+    
     const announcementCard = document.querySelector('.info-card h3');
     if (announcementCard && announcementCard.textContent === 'Announcement') {
       const announcementContent = announcementCard.nextElementSibling;
@@ -315,7 +328,7 @@ export const useStudentPortal = () => {
         announcementContent.textContent = data.announcement;
       }
     }
-
+    
     const transactionCard = document.querySelectorAll('.info-card h3')[1];
     if (transactionCard && transactionCard.textContent === 'Transaction Days') {
       const transactionContent = transactionCard.nextElementSibling;
@@ -359,10 +372,10 @@ export const useStudentPortal = () => {
       .then(data => {
         if (data.status === 'success') {
           const readNotifications = getReadNotifications();
-          const filteredNotifications = data.notifications?.filter(notif =>
+          const filteredNotifications = data.notifications?.filter(notif => 
             !readNotifications.includes(notif.id)
           ) || [];
-
+          
           setNotifications(filteredNotifications);
           setUnreadCount(filteredNotifications.length);
           window.studentNotifications = filteredNotifications;
@@ -391,22 +404,22 @@ export const useStudentPortal = () => {
 
   const handleFeedbackSubmit = useCallback(async (e) => {
     e.preventDefault();
-
+    
     if (!feedback || !feedback.trim()) {
       showMessage('Please provide a feedback message', 'error');
       return;
     }
 
-    if (!studentData?.email) {
+    if (!studentData?.email && !studentData?.Email) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
 
     setIsSubmitting(true);
-
+    
     try {
       console.log('Submitting feedback:', {
-        email: studentData.email,
+        email: studentData.email || studentData.Email,
         feedback_type: 'General',
         message: feedback
       });
@@ -419,7 +432,7 @@ export const useStudentPortal = () => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          email: studentData.email,
+          email: studentData.email || studentData.Email,
           feedback_type: 'General',
           message: feedback
         })
@@ -427,7 +440,7 @@ export const useStudentPortal = () => {
 
       const result = await response.json();
       console.log('Feedback submission result:', result);
-
+      
       if (result.success) {
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
         setFeedback('');
@@ -446,11 +459,11 @@ export const useStudentPortal = () => {
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
       saveReadNotification(notificationId);
-
+      
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       setUnreadCount(prev => Math.max(0, prev - 1));
       updateNotificationBadge(Math.max(0, unreadCount - 1));
-
+      
       if (window.studentNotifications) {
         window.studentNotifications = window.studentNotifications.filter(
           notif => notif.id !== notificationId
@@ -468,7 +481,7 @@ export const useStudentPortal = () => {
       });
 
       const result = await response.json();
-
+      
       if (result.status === 'success') {
         console.log('Notification marked as read in database:', notificationId);
         return true;
@@ -514,19 +527,19 @@ export const useStudentPortal = () => {
   const showPage = useCallback((pageName) => {
     console.log('Showing page:', pageName);
     setActivePage(pageName);
-
+    
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => {
       page.classList.remove('active');
       page.style.display = 'none';
     });
-
+    
     const activePageEl = document.getElementById(pageName);
     if (activePageEl) {
       activePageEl.classList.add('active');
       activePageEl.style.display = 'block';
     }
-
+    
     updateActiveNav(pageName);
     updatePageTitle(pageName);
   }, [updateActiveNav, updatePageTitle]);
@@ -536,7 +549,8 @@ export const useStudentPortal = () => {
     navItems.forEach(item => {
       item.addEventListener('click', function(e) {
         e.preventDefault();
-        const pageName = this.getAttribute('data-page') || this.getAttribute('href')?.replace('#', '');
+        const pageName = this.getAttribute('data-page') || 
+                       this.getAttribute('href')?.replace('#', '');
         if (pageName) {
           showPage(pageName);
         }
@@ -547,7 +561,7 @@ export const useStudentPortal = () => {
   const setupMenuToggleHandler = useCallback(() => {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
-
+    
     if (menuToggle && sidebar) {
       menuToggle.addEventListener('click', function() {
         sidebar.classList.toggle('collapsed');
@@ -579,7 +593,6 @@ export const useStudentPortal = () => {
       console.log('Global openFeedbackModal called');
       setShowFeedbackModal(true);
     };
-
     window.closeFeedbackModal = () => {
       console.log('Global closeFeedbackModal called');
       setShowFeedbackModal(false);
@@ -596,6 +609,7 @@ export const useStudentPortal = () => {
     // Load user data first to establish authentication
     loadUserData();
     fetchNotifications();
+    
     loadInitialData();
     setupNavigationHandlers();
     setupMenuToggleHandler();
