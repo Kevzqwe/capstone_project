@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-// API Configuration - Matches your .env REACT_APP_API_URL
-const API_BASE_URL = 'http://localhost/capstone_project/public/php-backend';
+// API Configuration - Updated to Hostinger
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend';
 
 // Custom hook for document request system
 export const useDocumentRequest = () => {
@@ -41,7 +41,7 @@ export const useDocumentRequest = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': window.location.origin
+          'Accept': 'application/json'
         },
         credentials: 'include'
       });
@@ -411,8 +411,7 @@ export const useDocumentRequest = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': window.location.origin
+          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(data)
