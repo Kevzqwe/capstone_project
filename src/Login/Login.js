@@ -41,7 +41,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const apiUrl = 'http://localhost/capstone_project/public/php-backend';
+            const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.co/public/php-backend';
             
             const response = await fetch(`${apiUrl}/login.php`, {
                 method: 'POST',
