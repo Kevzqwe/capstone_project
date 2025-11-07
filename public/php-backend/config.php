@@ -1,45 +1,9 @@
 <?php
 /**
- * Environment Configuration Loader
+ * Environment Configuration Loader - Hostinger Optimized
  * Place this file in your PHP backend root directory
  */
 
-/**
- * -------------------------
- * CORS CONFIGURATION
- * -------------------------
- * Allow requests from your Vercel domain, Hostinger, and local dev
- */
-$allowed_origins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost',
-    'https://capstone-project-smoky-one.vercel.app',
-    'https://mediumaquamarine-heron-545485.hostingersite.com'
-];
-
-// Detect request origin
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: $origin");
-}
-
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-
-// Handle preflight OPTIONS requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-/**
- * -------------------------
- * MAIN CONFIG CLASS
- * -------------------------
- */
 class Config {
     private static $loaded = false;
     private static $envPath = null;
@@ -54,11 +18,13 @@ class Config {
         
         // Determine .env file path
         if ($filePath === null) {
+            // Try multiple possible locations (Hostinger paths included)
             $possiblePaths = [
                 __DIR__ . '/.env',
                 dirname(__DIR__) . '/.env',
                 dirname(dirname(__DIR__)) . '/.env',
-                $_SERVER['DOCUMENT_ROOT'] . '/.env'
+                $_SERVER['DOCUMENT_ROOT'] . '/.env',
+                '/home/u850164226/domains/mediumaquamarine-heron-545485.hostingersite.com/public_html/.env'
             ];
             
             $filePath = null;
@@ -72,6 +38,7 @@ class Config {
             
             if ($filePath === null) {
                 error_log("WARNING: .env file not found in any expected location. Checked: " . implode(", ", $possiblePaths));
+                // Don't throw - allow the app to work with environment variables only
                 self::$loaded = true;
                 return;
             }
@@ -93,15 +60,21 @@ class Config {
         foreach ($lines as $line) {
             $line = trim($line);
             
+            // Skip empty lines and comments
             if (empty($line) || strpos($line, '#') === 0) {
                 continue;
             }
             
+            // Parse KEY=VALUE
             if (strpos($line, '=') !== false) {
                 list($key, $value) = explode('=', $line, 2);
                 $key = trim($key);
-                $value = trim($value, '"\' ');
+                $value = trim($value);
                 
+                // Remove quotes if present
+                $value = trim($value, '"\'');
+                
+                // Set environment variable
                 if (!array_key_exists($key, $_ENV)) {
                     $_ENV[$key] = $value;
                     putenv("$key=$value");
@@ -115,30 +88,44 @@ class Config {
         self::$envPath = $filePath;
     }
     
+    /**
+     * Get environment variable with optional default
+     */
     public static function get($key, $default = null) {
         $value = $_ENV[$key] ?? getenv($key);
-        if ($value === false) {
+        
+        if ($value === false || $value === '') {
             if ($default === null) {
                 error_log("WARNING: Config key not found: $key");
             }
             return $default;
         }
+        
         return $value;
     }
     
+    /**
+     * Check if a config key exists
+     */
     public static function has($key) {
         return isset($_ENV[$key]) || getenv($key) !== false;
     }
     
+    /**
+     * Get database configuration
+     */
     public static function database() {
         return [
             'host' => self::get('DB_HOST', 'localhost'),
-            'user' => self::get('DB_USER', 'root'),
-            'pass' => self::get('DB_PASS', ''),
-            'name' => self::get('DB_NAME', 'pcs_db')
+            'user' => self::get('DB_USER', 'u850164226_localhost'),
+            'pass' => self::get('DB_PASS', 'Admin_703'),
+            'name' => self::get('DB_NAME', 'u850164226_pcsch_database')
         ];
     }
     
+    /**
+     * Get PayMongo configuration
+     */
     public static function paymongo() {
         return [
             'secret_key' => self::get('PAYMONGO_SECRET_KEY'),
@@ -146,6 +133,9 @@ class Config {
         ];
     }
     
+    /**
+     * Get IPROG SMS configuration
+     */
     public static function iprog() {
         return [
             'api_token' => self::get('IPROG_API_TOKEN'),
@@ -153,36 +143,72 @@ class Config {
         ];
     }
     
+    /**
+     * Get application configuration
+     */
     public static function app() {
         return [
-            'base_url' => self::get('BASE_URL', 'http://localhost:8000'),
-            'environment' => self::get('ENVIRONMENT', 'development'),
-            'react_app_url' => self::get('REACT_APP_URL', 'http://localhost:3000'),
-            'php_api_url' => self::get('PHP_API_URL', 'http://localhost/capstone_project/public/php-backend')
+            'base_url' => self::get('BASE_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com'),
+            'environment' => self::get('ENVIRONMENT', 'production'),
+            'react_app_url' => self::get('REACT_APP_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com'),
+            'php_api_url' => self::get('PHP_API_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend')
         ];
     }
     
+    /**
+     * Get React App URL (Frontend URL)
+     */
     public static function getReactUrl() {
-        return self::get('REACT_APP_URL', 'http://localhost:3000');
+        return self::get('REACT_APP_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com');
     }
     
+    /**
+     * Get PHP API URL (Backend URL for PayMongo redirects)
+     */
     public static function getPhpApiUrl() {
-        return self::get('PHP_API_URL', 'http://localhost/capstone_project/public/php-backend');
+        return self::get('PHP_API_URL', 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend');
     }
     
+    /**
+     * Check if in production environment
+     */
     public static function isProduction() {
         return self::get('ENVIRONMENT') === 'production';
     }
     
+    /**
+     * Get current .env file path
+     */
     public static function getEnvPath() {
         return self::$envPath ?? 'Not loaded';
     }
+    
+    /**
+     * Debug: Show all loaded configuration (for troubleshooting)
+     * WARNING: Only use in development! Remove in production!
+     */
+    public static function debug() {
+        if (!self::isProduction()) {
+            return [
+                'env_path' => self::getEnvPath(),
+                'database' => [
+                    'host' => self::get('DB_HOST'),
+                    'user' => self::get('DB_USER'),
+                    'name' => self::get('DB_NAME')
+                ],
+                'app' => self::app(),
+                'is_production' => self::isProduction()
+            ];
+        }
+        return ['error' => 'Debug disabled in production'];
+    }
 }
 
-// Auto-load environment variables
+// Auto-load environment variables on include
 try {
     Config::loadEnv();
 } catch (Exception $e) {
     error_log('Config Error: ' . $e->getMessage());
+    // Don't exit - allow app to continue with system environment variables
 }
 ?>
