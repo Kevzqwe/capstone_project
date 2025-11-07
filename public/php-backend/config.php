@@ -4,6 +4,42 @@
  * Place this file in your PHP backend root directory
  */
 
+/**
+ * -------------------------
+ * CORS CONFIGURATION
+ * -------------------------
+ * Allow requests from your Vercel domain, Hostinger, and local dev
+ */
+$allowed_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost',
+    'https://capstone-project-smoky-one.vercel.app',
+    'https://mediumaquamarine-heron-545485.hostingersite.com'
+];
+
+// Detect request origin
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+}
+
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+// Handle preflight OPTIONS requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+/**
+ * -------------------------
+ * MAIN CONFIG CLASS
+ * -------------------------
+ */
 class Config {
     private static $loaded = false;
     private static $envPath = null;
@@ -18,7 +54,6 @@ class Config {
         
         // Determine .env file path
         if ($filePath === null) {
-            // Try multiple possible locations
             $possiblePaths = [
                 __DIR__ . '/.env',
                 dirname(__DIR__) . '/.env',
@@ -37,7 +72,6 @@ class Config {
             
             if ($filePath === null) {
                 error_log("WARNING: .env file not found in any expected location. Checked: " . implode(", ", $possiblePaths));
-                // Don't throw - allow the app to work with environment variables only
                 self::$loaded = true;
                 return;
             }
@@ -59,21 +93,15 @@ class Config {
         foreach ($lines as $line) {
             $line = trim($line);
             
-            // Skip empty lines and comments
             if (empty($line) || strpos($line, '#') === 0) {
                 continue;
             }
             
-            // Parse KEY=VALUE
             if (strpos($line, '=') !== false) {
                 list($key, $value) = explode('=', $line, 2);
                 $key = trim($key);
-                $value = trim($value);
+                $value = trim($value, '"\' ');
                 
-                // Remove quotes if present
-                $value = trim($value, '"\'');
-                
-                // Set environment variable
                 if (!array_key_exists($key, $_ENV)) {
                     $_ENV[$key] = $value;
                     putenv("$key=$value");
@@ -87,32 +115,21 @@ class Config {
         self::$envPath = $filePath;
     }
     
-    /**
-     * Get environment variable with optional default
-     */
     public static function get($key, $default = null) {
         $value = $_ENV[$key] ?? getenv($key);
-        
         if ($value === false) {
             if ($default === null) {
                 error_log("WARNING: Config key not found: $key");
             }
             return $default;
         }
-        
         return $value;
     }
     
-    /**
-     * Check if a config key exists
-     */
     public static function has($key) {
         return isset($_ENV[$key]) || getenv($key) !== false;
     }
     
-    /**
-     * Get database configuration
-     */
     public static function database() {
         return [
             'host' => self::get('DB_HOST', 'localhost'),
@@ -122,9 +139,6 @@ class Config {
         ];
     }
     
-    /**
-     * Get PayMongo configuration
-     */
     public static function paymongo() {
         return [
             'secret_key' => self::get('PAYMONGO_SECRET_KEY'),
@@ -132,9 +146,6 @@ class Config {
         ];
     }
     
-    /**
-     * Get IPROG SMS configuration
-     */
     public static function iprog() {
         return [
             'api_token' => self::get('IPROG_API_TOKEN'),
@@ -142,9 +153,6 @@ class Config {
         ];
     }
     
-    /**
-     * Get application configuration
-     */
     public static function app() {
         return [
             'base_url' => self::get('BASE_URL', 'http://localhost:8000'),
@@ -154,40 +162,27 @@ class Config {
         ];
     }
     
-    /**
-     * Get React App URL (Frontend URL)
-     */
     public static function getReactUrl() {
         return self::get('REACT_APP_URL', 'http://localhost:3000');
     }
     
-    /**
-     * Get PHP API URL (Backend URL for PayMongo redirects)
-     */
     public static function getPhpApiUrl() {
         return self::get('PHP_API_URL', 'http://localhost/capstone_project/public/php-backend');
     }
     
-    /**
-     * Check if in production environment
-     */
     public static function isProduction() {
         return self::get('ENVIRONMENT') === 'production';
     }
     
-    /**
-     * Debug: Get current .env file path
-     */
     public static function getEnvPath() {
         return self::$envPath ?? 'Not loaded';
     }
 }
 
-// Auto-load environment variables on include
+// Auto-load environment variables
 try {
     Config::loadEnv();
 } catch (Exception $e) {
     error_log('Config Error: ' . $e->getMessage());
-    // Don't exit - allow app to continue with system environment variables
 }
 ?>
