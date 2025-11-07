@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend/student_data.php';
-const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend/feedback.php';
-const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend/announcement.php';
-const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/public/php-backend/transaction.php';
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
+const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
+const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
+const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/transaction.php';
 
 export const useStudentPortal = () => {
   const [studentData, setStudentData] = useState(null);
@@ -45,20 +45,23 @@ export const useStudentPortal = () => {
     setTimeout(() => messageDiv.remove(), 5000);
   }, []);
 
-  // ==================== ANNOUNCEMENT ====================
+  // Fetch announcement data - matching your backend structure
   const loadAnnouncement = useCallback(async () => {
     try {
       console.log('Loading announcement...');
       setAnnouncementLoading(true);
+      
       const response = await fetch(`${ANNOUNCEMENT_API_URL}?action=get_announcement_data`, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-        },
+        }
       });
+
       console.log('Announcement response status:', response.status);
+      
       if (!response.ok) {
         console.error('Announcement request failed with status:', response.status);
         setAnnouncementLoading(false);
@@ -67,12 +70,15 @@ export const useStudentPortal = () => {
 
       const data = await response.json();
       console.log('Announcement response:', data);
+
       if (data.status === 'success' && data.data) {
+        // Match your backend field names: Content, Title
         const announcementText = data.data.Content || data.data.content || 'Welcome to Pateros Catholic School Document Request System';
         console.log('✓ Setting announcement to:', announcementText);
         setAnnouncement(announcementText);
       } else if (data.status === 'error') {
         console.warn('Announcement error:', data.message);
+        // Keep default announcement
       }
     } catch (error) {
       console.error('Error fetching announcement:', error);
@@ -81,20 +87,23 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // ==================== TRANSACTION DAYS ====================
+  // Fetch transaction days data - matching your backend structure
   const loadTransaction = useCallback(async () => {
     try {
       console.log('Loading transaction hours...');
       setTransactionLoading(true);
+      
       const response = await fetch(`${TRANSACTION_API_URL}?action=get_transaction_data`, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-        },
+        }
       });
+
       console.log('Transaction response status:', response.status);
+      
       if (!response.ok) {
         console.error('Transaction request failed with status:', response.status);
         setTransactionLoading(false);
@@ -103,12 +112,15 @@ export const useStudentPortal = () => {
 
       const data = await response.json();
       console.log('Transaction response:', data);
+
       if (data.status === 'success' && data.data) {
+        // Match your backend field names: Description
         const transactionText = data.data.Description || data.data.description || 'Monday to Friday, 8:00 AM - 5:00 PM';
         console.log('✓ Setting transaction days to:', transactionText);
         setTransactionDays(transactionText);
       } else if (data.status === 'error') {
         console.warn('Transaction error:', data.message);
+        // Keep default transaction days
       }
     } catch (error) {
       console.error('Error fetching transaction:', error);
@@ -117,10 +129,10 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // ==================== NOTIFICATIONS ====================
   const updateNotificationBadge = useCallback((count) => {
     const notificationBtn = document.querySelector('.action-btn[title="Notifications"]');
     if (!notificationBtn) return;
+
     let badge = notificationBtn.querySelector('.notification-badge');
     if (!badge) {
       badge = document.createElement('span');
@@ -143,6 +155,7 @@ export const useStudentPortal = () => {
       notificationBtn.style.position = 'relative';
       notificationBtn.appendChild(badge);
     }
+
     badge.textContent = count > 9 ? '9+' : count;
     badge.style.display = count > 0 ? 'flex' : 'none';
   }, []);
@@ -168,19 +181,24 @@ export const useStudentPortal = () => {
     }
   }, [getReadNotifications]);
 
-  // ==================== UI UPDATES ====================
   const updateWelcomeMessages = useCallback((data) => {
     const firstName = data.first_name || 'Student';
+    
     const welcomeName = document.getElementById('welcomeName');
-    if (welcomeName) welcomeName.textContent = firstName;
+    if (welcomeName) {
+      welcomeName.textContent = firstName;
+    }
+
     const welcomeMessage = document.querySelector('.welcome-message h2');
     if (welcomeMessage) {
       welcomeMessage.innerHTML = `Welcome back, <span id="welcomeName">${firstName}</span>!`;
     }
+
     const accountName = document.getElementById('accountName');
     if (accountName && data.full_name) {
       accountName.textContent = data.full_name;
     }
+
     const welcomeDate = document.getElementById('welcomeDate');
     if (welcomeDate) {
       const today = new Date();
@@ -191,8 +209,11 @@ export const useStudentPortal = () => {
 
   const updateAccountPage = useCallback((data) => {
     console.log('Updating account page with:', data);
+
     const accountName = document.getElementById('accountName');
-    if (accountName && data.full_name) accountName.textContent = data.full_name;
+    if (accountName && data.full_name) {
+      accountName.textContent = data.full_name;
+    }
 
     const studentNoElement = document.querySelector('.student-no');
     if (studentNoElement && data.student_id) {
@@ -203,7 +224,7 @@ export const useStudentPortal = () => {
       'address': data.address || '',
       'contact': data.contact_no || '',
       'email': data.email || '',
-      'grade': `${data.grade_display || data.grade_level || ''} ${data.section || ''}`.trim() || 'Not assigned',
+      'grade': `${data.grade_display || data.grade_level || ''} ${data.section || ''}`.trim() || 'Not assigned'
     };
 
     Object.keys(fieldMappings).forEach(fieldId => {
@@ -219,15 +240,25 @@ export const useStudentPortal = () => {
 
   const updateAllUserInterfaces = useCallback((data) => {
     console.log('Updating all UI elements with:', data);
+
     const sidebarName = document.getElementById('studentName');
-    if (sidebarName && data.full_name) sidebarName.textContent = data.full_name;
+    if (sidebarName && data.full_name) {
+      sidebarName.textContent = data.full_name;
+    }
+
     updateWelcomeMessages(data);
-    if (activePage === 'account') updateAccountPage(data);
+
+    if (activePage === 'account') {
+      updateAccountPage(data);
+    }
   }, [updateWelcomeMessages, updateAccountPage, activePage]);
 
-  // ==================== USER DATA ====================
   const loadUserData = useCallback(() => {
-    if (isLoadingUserData) return;
+    if (isLoadingUserData) {
+      console.log('Already loading user data, skipping...');
+      return;
+    }
+
     console.log('Loading user data...');
     setIsLoadingUserData(true);
 
@@ -237,7 +268,7 @@ export const useStudentPortal = () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-      },
+      }
     })
       .then(response => {
         console.log('Response status:', response.status);
@@ -250,6 +281,8 @@ export const useStudentPortal = () => {
           setStudentData(data.data);
           setIsAuthenticated(true);
           window.studentData = data.data;
+
+          // Load announcement and transaction after authentication is confirmed
           setTimeout(() => {
             loadAnnouncement();
             loadTransaction();
@@ -265,12 +298,15 @@ export const useStudentPortal = () => {
         setIsAuthenticated(false);
         showMessage('Error loading student data', 'error');
       })
-      .finally(() => setIsLoadingUserData(false));
+      .finally(() => {
+        setIsLoadingUserData(false);
+      });
   }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction]);
 
-  // ==================== DASHBOARD ====================
   const updateDashboard = useCallback((data) => {
-    if (studentData) updateWelcomeMessages(studentData);
+    if (studentData) {
+      updateWelcomeMessages(studentData);
+    }
 
     const announcementCard = document.querySelector('.info-card h3');
     if (announcementCard && announcementCard.textContent === 'Announcement') {
@@ -296,7 +332,7 @@ export const useStudentPortal = () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-      },
+      }
     })
       .then(response => response.json())
       .then(data => {
@@ -305,10 +341,11 @@ export const useStudentPortal = () => {
           updateDashboard(data.data);
         }
       })
-      .catch(error => console.error('Error loading dashboard data:', error));
+      .catch(error => {
+        console.error('Error loading dashboard data:', error);
+      });
   }, [updateDashboard]);
 
-  // ==================== NOTIFICATIONS ====================
   const fetchNotifications = useCallback(() => {
     fetch(`${API_BASE_URL}?action=getNotifications`, {
       method: 'GET',
@@ -316,30 +353,33 @@ export const useStudentPortal = () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-      },
+      }
     })
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
           const readNotifications = getReadNotifications();
-          const filteredNotifications =
-            data.notifications?.filter(notif => !readNotifications.includes(notif.id)) || [];
+          const filteredNotifications = data.notifications?.filter(notif =>
+            !readNotifications.includes(notif.id)
+          ) || [];
+
           setNotifications(filteredNotifications);
           setUnreadCount(filteredNotifications.length);
           window.studentNotifications = filteredNotifications;
           updateNotificationBadge(filteredNotifications.length);
         }
       })
-      .catch(error => console.error('Error fetching notifications:', error));
+      .catch(error => {
+        console.error('Error fetching notifications:', error);
+      });
   }, [updateNotificationBadge, getReadNotifications]);
 
   const toggleNotificationDropdown = useCallback(() => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
-  // ==================== FEEDBACK ====================
   const openFeedbackModal = useCallback(() => {
-    console.log('Opening feedback modal');
+    console.log('Opening feedback modal - state will be set to true');
     setShowFeedbackModal(true);
   }, []);
 
@@ -351,18 +391,25 @@ export const useStudentPortal = () => {
 
   const handleFeedbackSubmit = useCallback(async (e) => {
     e.preventDefault();
+
     if (!feedback || !feedback.trim()) {
       showMessage('Please provide a feedback message', 'error');
       return;
     }
+
     if (!studentData?.email) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
 
     setIsSubmitting(true);
+
     try {
-      console.log('Submitting feedback:', { email: studentData.email, feedback_type: 'General', message: feedback });
+      console.log('Submitting feedback:', {
+        email: studentData.email,
+        feedback_type: 'General',
+        message: feedback
+      });
 
       const response = await fetch(`${FEEDBACK_API_URL}?action=submitFeedback`, {
         method: 'POST',
@@ -374,12 +421,13 @@ export const useStudentPortal = () => {
         body: JSON.stringify({
           email: studentData.email,
           feedback_type: 'General',
-          message: feedback,
-        }),
+          message: feedback
+        })
       });
 
       const result = await response.json();
       console.log('Feedback submission result:', result);
+
       if (result.success) {
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
         setFeedback('');
@@ -395,10 +443,10 @@ export const useStudentPortal = () => {
     }
   }, [feedback, studentData, showMessage, closeFeedbackModal]);
 
-  // ==================== NOTIFICATION READ HANDLER ====================
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
       saveReadNotification(notificationId);
+
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       setUnreadCount(prev => Math.max(0, prev - 1));
       updateNotificationBadge(Math.max(0, unreadCount - 1));
@@ -416,10 +464,11 @@ export const useStudentPortal = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ notification_id: notificationId }),
+        body: JSON.stringify({ notification_id: notificationId })
       });
 
       const result = await response.json();
+
       if (result.status === 'success') {
         console.log('Notification marked as read in database:', notificationId);
         return true;
@@ -434,11 +483,10 @@ export const useStudentPortal = () => {
   }, [unreadCount, updateNotificationBadge, saveReadNotification]);
 
   const handleNotificationClick = useCallback(async (notificationId) => {
-    console.log('Notification clicked:', notificationId);
+    console.log('Notification clicked, marking as read:', notificationId);
     await markNotificationAsRead(notificationId);
   }, [markNotificationAsRead]);
 
-  // ==================== NAVIGATION ====================
   const updatePageTitle = useCallback((pageName) => {
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) {
@@ -446,7 +494,7 @@ export const useStudentPortal = () => {
         'dashboard': 'Dashboard',
         'documents': 'Documents',
         'request-history': 'Request History',
-        'account': 'Account',
+        'account': 'Account'
       };
       pageTitle.textContent = titles[pageName] || pageName.charAt(0).toUpperCase() + pageName.slice(1);
     }
@@ -466,16 +514,19 @@ export const useStudentPortal = () => {
   const showPage = useCallback((pageName) => {
     console.log('Showing page:', pageName);
     setActivePage(pageName);
+
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => {
       page.classList.remove('active');
       page.style.display = 'none';
     });
+
     const activePageEl = document.getElementById(pageName);
     if (activePageEl) {
       activePageEl.classList.add('active');
       activePageEl.style.display = 'block';
     }
+
     updateActiveNav(pageName);
     updatePageTitle(pageName);
   }, [updateActiveNav, updatePageTitle]);
@@ -483,10 +534,12 @@ export const useStudentPortal = () => {
   const setupNavigationHandlers = useCallback(() => {
     const navItems = document.querySelectorAll('[data-page], nav a');
     navItems.forEach(item => {
-      item.addEventListener('click', function (e) {
+      item.addEventListener('click', function(e) {
         e.preventDefault();
         const pageName = this.getAttribute('data-page') || this.getAttribute('href')?.replace('#', '');
-        if (pageName) showPage(pageName);
+        if (pageName) {
+          showPage(pageName);
+        }
       });
     });
   }, [showPage]);
@@ -494,8 +547,9 @@ export const useStudentPortal = () => {
   const setupMenuToggleHandler = useCallback(() => {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
+
     if (menuToggle && sidebar) {
-      menuToggle.addEventListener('click', function () {
+      menuToggle.addEventListener('click', function() {
         sidebar.classList.toggle('collapsed');
       });
     }
@@ -504,7 +558,7 @@ export const useStudentPortal = () => {
   const setupLogoutHandler = useCallback(() => {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', function (e) {
+      logoutBtn.addEventListener('click', function(e) {
         e.preventDefault();
         if (window.confirm('Are you sure you want to logout?')) {
           window.location.href = 'index.html';
@@ -513,7 +567,6 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // ==================== INITIAL LOAD ====================
   const loadInitialData = useCallback(() => {
     const activePageEl = document.querySelector('.page.active');
     if (activePageEl && activePageEl.id === 'dashboard') {
@@ -521,20 +574,26 @@ export const useStudentPortal = () => {
     }
   }, [loadDashboardData]);
 
-  // ==================== USE EFFECTS ====================
   useEffect(() => {
-    window.openFeedbackModal = () => setShowFeedbackModal(true);
+    window.openFeedbackModal = () => {
+      console.log('Global openFeedbackModal called');
+      setShowFeedbackModal(true);
+    };
+
     window.closeFeedbackModal = () => {
+      console.log('Global closeFeedbackModal called');
       setShowFeedbackModal(false);
       setFeedback('');
     };
   }, []);
 
   useEffect(() => {
-    console.log('showFeedbackModal state:', showFeedbackModal);
+    console.log('showFeedbackModal state changed to:', showFeedbackModal);
   }, [showFeedbackModal]);
 
+  // Load initial data on mount
   useEffect(() => {
+    // Load user data first to establish authentication
     loadUserData();
     fetchNotifications();
     loadInitialData();
@@ -545,7 +604,9 @@ export const useStudentPortal = () => {
   }, []);
 
   useEffect(() => {
-    if (studentData) updateAllUserInterfaces(studentData);
+    if (studentData) {
+      updateAllUserInterfaces(studentData);
+    }
   }, [studentData, updateAllUserInterfaces]);
 
   useEffect(() => {
@@ -562,9 +623,9 @@ export const useStudentPortal = () => {
         setTimeout(window.RequestHistoryTable, 100);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage, isAuthenticated]);
 
-  // ==================== RETURN ====================
   return {
     studentData,
     activePage,
@@ -586,9 +647,8 @@ export const useStudentPortal = () => {
     toggleNotificationDropdown,
     handleFeedbackSubmit,
     handleNotificationClick,
-    markNotificationAsRead,
+    markNotificationAsRead
   };
 };
 
 export default useStudentPortal;
-
