@@ -12,7 +12,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const togglePassword = () => setShowPassword(!showPassword);
-
   const showError = (msg) => alert(msg);
 
   const handleLogin = async (e) => {
@@ -30,7 +29,6 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // ✅ Use your LIVE Hostinger backend URL (HTTPS)
       const apiUrl = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/login.php';
 
       const response = await fetch(apiUrl, {
@@ -39,27 +37,41 @@ const Login = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include',
+        credentials: 'include', // <-- keeps PHP session cookies
         body: JSON.stringify({
           email: trimmedEmail,
           password: trimmedPassword
         })
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid server response');
+      }
 
       if (!response.ok) {
         showError(data.message || `Error ${response.status}`);
-        setIsLoading(false);
         return;
       }
 
+      // ✅ Handle backend responses from login.php
       if (data.status === 'success') {
-        if (data.role === 'Admin') navigate('/admin-dashboard');
-        else if (data.role === 'Student') navigate('/student-dashboard');
-        else showError('Unknown user role');
-      } else {
+        if (data.role === 'Admin') {
+          alert('Welcome Admin!');
+          navigate('/admin-dashboard');
+        } else if (data.role === 'Student') {
+          alert('Welcome Student!');
+          navigate('/student-dashboard');
+        } else {
+          showError('Unknown user role.');
+        }
+      } else if (data.status === 'error') {
+        // handle backend error message
         showError(data.message || 'Login failed.');
+      } else {
+        showError('Unexpected server response.');
       }
 
     } catch (err) {
@@ -100,9 +112,9 @@ const Login = () => {
               <label htmlFor="password">Password</label>
               <div className="password">
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
