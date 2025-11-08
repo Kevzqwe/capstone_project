@@ -5,17 +5,36 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(to right, #ffffff 0%, #f4e4bc 100%);
     background-attachment: fixed;
     overflow-x: hidden;
     color: #2c3e50;
+    min-height: 100vh;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+#root {
+    min-height: 100vh;
+    height: 100%;
 }
 
 .container {
     display: flex;
     min-height: 100vh;
+    height: 100%;
+    width: 100%;
+    position: relative;
 }
 
 /* Sidebar */
@@ -31,6 +50,8 @@ body {
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
+    top: 0;
+    left: 0;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -232,6 +253,9 @@ body {
     margin-left: 320px;
     background: transparent;
     min-height: 100vh;
+    width: calc(100% - 320px);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
@@ -260,6 +284,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
 }
 
 .action-btn {
@@ -316,11 +341,13 @@ body {
 /* Content Pages */
 .page-content {
     padding: 35px;
+    flex: 1;
 }
 
 .page {
     display: none;
     animation: fadeIn 0.4s ease;
+    min-height: calc(100vh - 86px);
 }
 
 .page.active {
@@ -563,6 +590,11 @@ body {
     border-color: #e9ecef !important;
 }
 
+.feedback-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
 /* Loading Message */
 .loading-message {
     text-align: center;
@@ -660,7 +692,27 @@ body {
     transform: rotate(90deg);
 }
 
-.modal-content form {
+.close-dropdown {
+    background: transparent;
+    border: none;
+    color: #2c3e50;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.close-dropdown:hover {
+    color: #e74c3c;
+}
+
+.form-content {
     padding: 30px;
 }
 
@@ -795,7 +847,7 @@ body {
     cursor: pointer;
 }
 
-.payment-option span {
+.payment-option label {
     font-size: 15px;
     font-weight: 600;
     color: #2c3e50;
@@ -820,6 +872,12 @@ body {
 .submit-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Notification Dropdown */
@@ -855,26 +913,15 @@ body {
     padding: 20px 25px;
     border-bottom: 2px solid #e0e0e0;
     background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .notification-header h3 {
     font-size: 18px;
     font-weight: 700;
     color: #2c3e50;
-}
-
-.clear-all-btn {
-    background: transparent;
-    border: none;
-    color: #3498db;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.clear-all-btn:hover {
-    color: #2980b9;
-    text-decoration: underline;
 }
 
 .notification-list {
@@ -884,6 +931,7 @@ body {
 
 .notification-item {
     display: flex;
+    flex-direction: column;
     padding: 18px 25px;
     border-bottom: 1px solid #e0e0e0;
     cursor: pointer;
@@ -899,28 +947,16 @@ body {
     border-left: 4px solid #3498db;
 }
 
-.notification-icon {
-    font-size: 26px;
-    margin-right: 18px;
-}
-
-.notification-content h4 {
-    font-size: 15px;
-    margin-bottom: 6px;
+.notification-title {
+    font-weight: 500;
     color: #2c3e50;
-    font-weight: 600;
-}
-
-.notification-content p {
-    font-size: 13px;
-    color: #555555;
-    margin-bottom: 6px;
+    font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .notification-time {
-    font-size: 11px;
-    color: #888888;
-    font-weight: 500;
+    font-size: 12px;
+    color: #7f8c8d;
 }
 
 .no-notifications {
@@ -928,6 +964,23 @@ body {
     padding: 40px 20px;
     color: #888888;
     font-size: 14px;
+}
+
+/* Focus Visible for Accessibility */
+*:focus-visible {
+    outline: 3px solid #2A3663;
+    outline-offset: 2px;
+}
+
+/* Selection Style */
+::selection {
+    background: #2A3663;
+    color: white;
+}
+
+::-moz-selection {
+    background: #2A3663;
+    color: white;
 }
 
 /* ============================================
@@ -938,6 +991,7 @@ body {
 @media (max-width: 900px) {
     .sidebar {
         transform: translateX(-100%);
+        width: 280px;
     }
 
     .sidebar.mobile-open {
@@ -946,10 +1000,11 @@ body {
 
     .main-content {
         margin-left: 0;
+        width: 100%;
     }
 
     .menu-toggle {
-        display: flex;
+        display: flex !important;
     }
 
     .cards-grid {
@@ -973,6 +1028,12 @@ body {
         height: 40px;
         font-size: 18px;
     }
+
+    .notification-dropdown {
+        right: 10px;
+        left: 10px;
+        width: calc(100% - 20px);
+    }
 }
 
 /* Mobile devices (768px and below) */
@@ -985,18 +1046,16 @@ body {
         flex-direction: column;
     }
 
-    /* Sidebar adjustments */
     .sidebar {
-        width: 100%;
-        height: auto;
+        width: 85%;
+        max-width: 320px;
+        height: 100vh;
         position: fixed;
         top: 0;
         left: 0;
         transform: translateX(-100%);
         z-index: 2000;
         padding: 20px;
-        max-height: 100vh;
-        overflow-y: auto;
     }
 
     .sidebar.mobile-open {
@@ -1056,7 +1115,6 @@ body {
         font-size: 14px;
     }
 
-    /* Main content */
     .main-content {
         margin-left: 0;
         width: 100%;
@@ -1085,7 +1143,10 @@ body {
         padding: 20px 15px;
     }
 
-    /* Dashboard */
+    .page {
+        min-height: calc(100vh - 70px);
+    }
+
     .welcome-card {
         padding: 25px 20px;
         margin-bottom: 25px;
@@ -1123,31 +1184,29 @@ body {
         width: 100%;
     }
 
-    /* Documents grid */
     .documents-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
     }
 
     .document-card {
-        padding: 20px;
+        padding: 20px 15px;
     }
 
     .document-icon {
-        width: 100px;
-        height: 100px;
+        width: 90px;
+        height: 90px;
         margin-bottom: 15px;
     }
 
     .document-title {
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .document-subtitle {
         font-size: 12px;
     }
 
-    /* Account page */
     .account-header {
         flex-direction: column;
         text-align: center;
@@ -1188,7 +1247,6 @@ body {
         font-size: 14px;
     }
 
-    /* Modal adjustments */
     .modal-overlay {
         padding: 10px;
     }
@@ -1214,7 +1272,7 @@ body {
         font-size: 24px;
     }
 
-    .modal-content form {
+    .form-content {
         padding: 20px;
     }
 
@@ -1234,7 +1292,6 @@ body {
         margin-bottom: 15px;
     }
 
-    /* Document selection in modal */
     .documents-section {
         padding: 20px;
         margin-bottom: 20px;
@@ -1290,7 +1347,6 @@ body {
         font-size: 22px;
     }
 
-    /* Payment options */
     .payment-options {
         flex-direction: column;
         gap: 15px;
@@ -1307,7 +1363,7 @@ body {
         height: 18px;
     }
 
-    .payment-option span {
+    .payment-option label {
         font-size: 14px;
     }
 
@@ -1316,7 +1372,6 @@ body {
         font-size: 15px;
     }
 
-    /* Notification dropdown */
     .notification-dropdown {
         width: calc(100% - 30px);
         right: 15px;
@@ -1333,29 +1388,16 @@ body {
         font-size: 16px;
     }
 
-    .clear-all-btn {
-        font-size: 13px;
-    }
-
     .notification-item {
         padding: 15px 20px;
     }
 
-    .notification-icon {
-        font-size: 22px;
-        margin-right: 12px;
-    }
-
-    .notification-content h4 {
+    .notification-title {
         font-size: 14px;
     }
 
-    .notification-content p {
-        font-size: 12px;
-    }
-
     .notification-time {
-        font-size: 10px;
+        font-size: 11px;
     }
 }
 
@@ -1393,9 +1435,8 @@ body {
         font-size: 12px;
     }
 
-    /* Documents grid - 2 columns for very small screens */
     .documents-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 12px;
     }
 
@@ -1418,7 +1459,6 @@ body {
         font-size: 11px;
     }
 
-    /* Account */
     .account-header {
         padding: 20px 15px;
     }
@@ -1447,7 +1487,6 @@ body {
         font-size: 13px;
     }
 
-    /* Modal */
     .modal-overlay {
         padding: 5px;
     }
@@ -1466,7 +1505,7 @@ body {
         font-size: 22px;
     }
 
-    .modal-content form {
+    .form-content {
         padding: 15px;
     }
 
@@ -1514,7 +1553,7 @@ body {
         padding: 10px;
     }
 
-    .payment-option span {
+    .payment-option label {
         font-size: 13px;
     }
 
@@ -1543,11 +1582,6 @@ body {
         padding: 12px 15px;
     }
 
-    .notification-icon {
-        font-size: 20px;
-        margin-right: 10px;
-    }
-
     .header {
         padding: 10px 12px;
     }
@@ -1573,13 +1607,9 @@ body {
         font-size: 18px;
     }
 
-    .documents-grid {
-        grid-template-columns: 1fr;
-    }
-
     .document-icon {
-        width: 90px;
-        height: 90px;
+        width: 70px;
+        height: 70px;
     }
 
     .modal-header h2 {
@@ -1615,28 +1645,6 @@ body {
     }
 }
 
-/* Smooth Scroll */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Focus Visible for Accessibility */
-*:focus-visible {
-    outline: 3px solid #2A3663;
-    outline-offset: 2px;
-}
-
-/* Selection Style */
-::selection {
-    background: #2A3663;
-    color: white;
-}
-
-::-moz-selection {
-    background: #2A3663;
-    color: white;
-}
-
 /* Touch-friendly improvements for mobile */
 @media (hover: none) and (pointer: coarse) {
     .nav-link,
@@ -1656,7 +1664,6 @@ html {
         transform: scale(0.98);
     }
 
-    /* Increase touch target sizes */
     .nav-link {
         min-height: 48px;
     }
@@ -1682,10 +1689,6 @@ html {
     .container {
         overflow-x: hidden;
     }
-
-    * {
-        max-width: 100%;
-    }
 }
 
 /* Safe area insets for notched devices */
@@ -1705,5 +1708,17 @@ html {
         padding-left: max(20px, env(safe-area-inset-left));
         padding-right: max(20px, env(safe-area-inset-right));
         padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    @media (max-width: 768px) {
+        .header {
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+        }
+
+        .page-content {
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+        }
     }
 }
