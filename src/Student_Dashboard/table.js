@@ -64,42 +64,22 @@ export async function RequestHistoryTable() {
   `;
 
   try {
-    // Use Hostinger backend with credentials for session support
+    // Use Hostinger backend
     const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory', {
       method: 'GET',
-      mode: 'cors',
-      credentials: 'include', // IMPORTANT: Include cookies for session
+      credentials: 'include',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     });
 
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response headers:', [...response.headers.entries()]);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Response not OK:', errorText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const result = await response.json();
     console.log('📊 Full API response:', result);
-
-    // Check for authentication error
-    if (result.status === 'error' && (result.message.includes('authenticated') || result.message.includes('log in'))) {
-      console.warn('⚠️ Authentication required');
-      container.innerHTML = `
-        <div class="error-state">
-          <i class="fas fa-lock"></i>
-          <h3>Authentication Required</h3>
-          <p>Please log in to view your request history.</p>
-          <a href="/login.html" class="login-btn">Go to Login</a>
-        </div>
-      `;
-      return;
-    }
 
     if (result.status === 'success' && result.data && result.data.length > 0) {
       console.log(`✅ Rendering ${result.data.length} requests`);
@@ -121,7 +101,6 @@ export async function RequestHistoryTable() {
         <i class="fas fa-exclamation-triangle"></i>
         <h3>Error loading request history</h3>
         <p>${error.message}</p>
-        <p class="error-detail">Please make sure you're logged in and try again.</p>
         <button class="retry-btn" onclick="window.RequestHistoryTable()">Retry</button>
       </div>
     `;
@@ -235,13 +214,7 @@ function renderTable(container, requests) {
         color: #e74c3c;
       }
 
-      .error-detail {
-        font-size: 0.9rem;
-        color: #7f8c8d;
-        margin-top: 10px;
-      }
-
-      .retry-btn, .login-btn {
+      .retry-btn {
         background: #3498db;
         color: white;
         border: none;
@@ -250,11 +223,9 @@ function renderTable(container, requests) {
         cursor: pointer;
         margin-top: 15px;
         transition: background 0.3s;
-        text-decoration: none;
-        display: inline-block;
       }
 
-      .retry-btn:hover, .login-btn:hover {
+      .retry-btn:hover {
         background: #2980b9;
       }
 
@@ -481,6 +452,26 @@ function renderTable(container, requests) {
         font-size: 1.3rem !important;
         font-weight: 700;
         color: #27ae60 !important;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #ecf0f1;
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        font-weight: 600;
+        color: #7f8c8d;
+      }
+
+      .info-value {
+        color: #2c3e50;
       }
 
       @media (max-width: 768px) {
