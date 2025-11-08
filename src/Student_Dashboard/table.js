@@ -1,3 +1,4 @@
+/* eslint-disable */
 // public/js/table.js
 
 // Helper functions
@@ -64,9 +65,12 @@ export async function RequestHistoryTable() {
   `;
 
   try {
-    // Use Hostinger backend
+    console.log('📡 Fetching from Hostinger backend...');
+    
+    // Use Hostinger backend with proper CORS settings
     const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory', {
       method: 'GET',
+      mode: 'cors',
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
@@ -74,12 +78,35 @@ export async function RequestHistoryTable() {
       },
     });
 
+    console.log('📡 Response status:', response.status);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Response error:', errorText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const result = await response.json();
     console.log('📊 Full API response:', result);
+
+    // Check for authentication errors
+    if (result.status === 'error') {
+      if (result.message && (result.message.includes('authenticated') || result.message.includes('log in'))) {
+        container.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-lock"></i>
+            <h3>Authentication Required</h3>
+            <p>Your session has expired. Please log in again.</p>
+            <a href="https://mediumaquamarine-heron-545485.hostingersite.com/index.html" class="login-btn">
+              <i class="fas fa-sign-in-alt"></i> Go to Login
+            </a>
+          </div>
+        `;
+        isLoading = false;
+        return;
+      }
+      throw new Error(result.message || 'Failed to load request history');
+    }
 
     if (result.status === 'success' && result.data && result.data.length > 0) {
       console.log(`✅ Rendering ${result.data.length} requests`);
@@ -101,7 +128,10 @@ export async function RequestHistoryTable() {
         <i class="fas fa-exclamation-triangle"></i>
         <h3>Error loading request history</h3>
         <p>${error.message}</p>
-        <button class="retry-btn" onclick="window.RequestHistoryTable()">Retry</button>
+        <p class="error-detail">Please make sure you're logged in and try again.</p>
+        <button class="retry-btn" onclick="window.RequestHistoryTable()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
       </div>
     `;
   } finally {
@@ -111,7 +141,7 @@ export async function RequestHistoryTable() {
 
 // === Render Table Function ===
 function renderTable(container, requests) {
-  console.log('📋 Raw requests data:', requests);
+  console.log('📋 Rendering table with', requests.length, 'requests');
 
   container.innerHTML = `
     <div class="table-container">
@@ -214,19 +244,33 @@ function renderTable(container, requests) {
         color: #e74c3c;
       }
 
-      .retry-btn {
+      .error-detail {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 10px;
+      }
+
+      .retry-btn, .login-btn {
         background: #3498db;
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
+        padding: 12px 24px;
+        border-radius: 6px;
         cursor: pointer;
         margin-top: 15px;
-        transition: background 0.3s;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
       }
 
-      .retry-btn:hover {
+      .retry-btn:hover, .login-btn:hover {
         background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
       }
 
       .table-container {
@@ -452,26 +496,6 @@ function renderTable(container, requests) {
         font-size: 1.3rem !important;
         font-weight: 700;
         color: #27ae60 !important;
-      }
-
-      .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #ecf0f1;
-      }
-
-      .info-row:last-child {
-        border-bottom: none;
-      }
-
-      .info-label {
-        font-weight: 600;
-        color: #7f8c8d;
-      }
-
-      .info-value {
-        color: #2c3e50;
       }
 
       @media (max-width: 768px) {
