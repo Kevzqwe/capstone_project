@@ -141,6 +141,25 @@ export async function RequestHistoryTable() {
 function renderTable(container, requests) {
   console.log('📋 Rendering table with', requests.length, 'requests');
 
+  // Group by Request_ID to show one row per request
+  const groupedRequests = {};
+  requests.forEach(req => {
+    if (!groupedRequests[req.Request_ID]) {
+      groupedRequests[req.Request_ID] = {
+        ...req,
+        documents: []
+      };
+    }
+    groupedRequests[req.Request_ID].documents.push({
+      Document_Type: req.Document_Type,
+      Quantity: req.Quantity,
+      Unit_Price: req.Unit_Price,
+      Subtotal: req.Subtotal
+    });
+  });
+
+  const uniqueRequests = Object.values(groupedRequests);
+
   container.innerHTML = `
     <div class="table-container">
       <div class="table-wrapper">
@@ -159,7 +178,7 @@ function renderTable(container, requests) {
             </tr>
           </thead>
           <tbody>
-            ${requests.map(req => `
+            ${uniqueRequests.map(req => `
               <tr class="table-row">
                 <td class="request-id">#${req.Request_ID}</td>
                 <td class="student-name">${req.Student_Name || 'N/A'}</td>
@@ -496,6 +515,36 @@ function renderTable(container, requests) {
         color: #27ae60 !important;
       }
 
+      .documents-list {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+      }
+
+      .document-item {
+        padding: 10px;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        border-left: 3px solid #3498db;
+      }
+
+      .document-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .document-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+      }
+
+      .document-details {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+      }
+
       @media (max-width: 768px) {
         .modern-table th, .modern-table td {
           padding: 12px 8px;
@@ -564,6 +613,20 @@ function initializeModalFunctions() {
         </div>
 
         <div class="detail-section">
+          <h3>Requested Documents</h3>
+          <div class="documents-list">
+            ${req.documents.map(doc => `
+              <div class="document-item">
+                <div class="document-name">${doc.Document_Type}</div>
+                <div class="document-details">
+                  Quantity: ${doc.Quantity} × ₱${parseFloat(doc.Unit_Price).toFixed(2)} = ₱${parseFloat(doc.Subtotal).toFixed(2)}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="detail-section">
           <h3>Request Details</h3>
           <div class="detail-grid">
             <div class="detail-item">
@@ -580,6 +643,12 @@ function initializeModalFunctions() {
               <span>${formatDate(req.Rescheduled_Pick_Up)}</span>
             </div>
             ` : ''}
+            ${req.Date_Processed ? `
+            <div class="detail-item">
+              <label>Date Processed:</label>
+              <span>${formatDate(req.Date_Processed)}</span>
+            </div>
+            ` : ''}
             <div class="detail-item">
               <label>Status:</label>
               <span class="status-badge ${getStatusClass(req.Status)}">${req.Status || 'Pending'}</span>
@@ -594,6 +663,12 @@ function initializeModalFunctions() {
               <label>Total Amount:</label>
               <span class="total-amount">₱${parseFloat(req.Total_Amount || 0).toFixed(2)}</span>
             </div>
+            ${req.Notes ? `
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <label>Notes:</label>
+              <span>${req.Notes}</span>
+            </div>
+            ` : ''}
           </div>
         </div>
       </div>
