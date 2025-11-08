@@ -38,9 +38,6 @@ function formatPaymentMethod(method) {
 // Prevent multiple simultaneous calls
 let isLoading = false;
 
-// FIXED: Always use production URL
-const API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory';
-
 // Main function
 export async function RequestHistoryTable() {
   console.log('🔄 RequestHistoryTable function called');
@@ -67,10 +64,8 @@ export async function RequestHistoryTable() {
   `;
 
   try {
-    console.log('📡 Fetching from:', API_URL);
-    console.log('🌐 Current location:', window.location.href);
-    
-    const response = await fetch(API_URL, {
+    // Use Hostinger backend
+    const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory', {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -79,79 +74,33 @@ export async function RequestHistoryTable() {
       },
     });
 
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response OK:', response.ok);
-
-    // Check for auth errors
-    if (response.status === 401) {
-      throw new Error('Not authenticated. Please login at Hostinger first.');
-    }
-
-    if (response.status === 403) {
-      throw new Error('Access denied. Students only.');
-    }
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Server error:', errorText);
-      throw new Error(`Server error: ${response.status} ${response.statusText}`);
-    }
-
-    // Validate JSON
-    const contentType = response.headers.get('content-type');
-    console.log('📋 Content-Type:', contentType);
-    
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('❌ Non-JSON response:', text.substring(0, 500));
-      throw new Error('Server did not return JSON');
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const result = await response.json();
-    console.log('📊 API Response:', result);
+    console.log('📊 Full API response:', result);
 
-    if (result.status === 'success') {
-      if (result.data && result.data.length > 0) {
-        console.log(`✅ Rendering ${result.data.length} requests`);
-        renderTable(container, result.data);
-      } else {
-        console.log('ℹ️ No requests found');
-        container.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <h3>No document requests found</h3>
-            <p>${result.message || 'You haven\'t made any document requests yet.'}</p>
-          </div>
-        `;
-      }
+    if (result.status === 'success' && result.data && result.data.length > 0) {
+      console.log(`✅ Rendering ${result.data.length} requests`);
+      renderTable(container, result.data);
     } else {
-      throw new Error(result.message || 'Unknown error');
+      console.log('ℹ️ No data found');
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <h3>No document requests found</h3>
+          <p>${result.message || 'You haven\'t made any document requests yet.'}</p>
+        </div>
+      `;
     }
-
   } catch (error) {
-    console.error('💥 Error:', error);
-    
-    const isAuthError = error.message.includes('authenticated') || error.message.includes('login');
-    
+    console.error('💥 Error loading request history:', error);
     container.innerHTML = `
       <div class="error-state">
         <i class="fas fa-exclamation-triangle"></i>
         <h3>Error loading request history</h3>
-        <p style="color: #e74c3c; font-weight: 500; margin: 15px 0;">${error.message}</p>
-        ${isAuthError ? `
-          <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <p style="color: #856404; font-size: 0.95rem; margin: 0;">
-              <strong>⚠️ Cross-Domain Session Issue:</strong><br>
-              Your frontend (Vercel) and backend (Hostinger) are on different domains.<br>
-              You need to login from Hostinger first to establish a session.
-            </p>
-            <a href="https://mediumaquamarine-heron-545485.hostingersite.com" 
-               target="_blank"
-               style="display: inline-block; margin-top: 12px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
-              Login at Hostinger →
-            </a>
-          </div>
-        ` : ''}
+        <p>${error.message}</p>
         <button class="retry-btn" onclick="window.RequestHistoryTable()">Retry</button>
       </div>
     `;
@@ -162,7 +111,7 @@ export async function RequestHistoryTable() {
 
 // === Render Table Function ===
 function renderTable(container, requests) {
-  console.log('📋 Rendering', requests.length, 'requests');
+  console.log('📋 Raw requests data:', requests);
 
   container.innerHTML = `
     <div class="table-container">
