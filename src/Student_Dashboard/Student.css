@@ -1514,4 +1514,4 @@ body {
             padding-top: max(85px, calc(env(safe-area-inset-top) + 85px)) !important;
         }
     }
-}important
+}
