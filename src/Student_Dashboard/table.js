@@ -67,13 +67,11 @@ export async function RequestHistoryTable() {
   try {
     console.log('📡 Fetching from Hostinger backend...');
     
-    // Use Hostinger backend with proper CORS settings
+    // Use Hostinger backend URL
     const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory', {
       method: 'GET',
-      mode: 'cors',
       credentials: 'include',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     });
