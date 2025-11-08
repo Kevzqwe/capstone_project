@@ -1,3 +1,5 @@
+// Student.jsx - COMPLETE FIXED VERSION
+
 import React, { useEffect, useState } from "react";
 import "./Student.css";
 import PCSlogo from "../Components/Assets/PCSlogo.png";
@@ -36,15 +38,21 @@ export default function StudentDashboard() {
 
   // Initialize dashboard page as active on mount
   useEffect(() => {
+    console.log('Initializing dashboard...');
+    
+    // Show dashboard page
     const dashboardPage = document.getElementById('dashboard');
     if (dashboardPage) {
       dashboardPage.classList.add('active');
       dashboardPage.style.display = 'block';
+      console.log('Dashboard page shown');
     }
     
+    // Set first nav link as active
     const firstNavLink = document.querySelector('.nav-link[data-page="dashboard"]');
     if (firstNavLink) {
       firstNavLink.classList.add('active');
+      console.log('Dashboard nav link activated');
     }
   }, []);
 
@@ -55,6 +63,7 @@ export default function StudentDashboard() {
     const handleNavClick = (e) => {
       e.preventDefault();
       const pageName = e.currentTarget.getAttribute('data-page');
+      console.log('Navigating to:', pageName);
       
       // Hide all pages
       document.querySelectorAll('.page').forEach(page => {
@@ -67,6 +76,7 @@ export default function StudentDashboard() {
       if (selectedPage) {
         selectedPage.classList.add('active');
         selectedPage.style.display = 'block';
+        console.log('Page shown:', pageName);
       }
       
       // Update active nav link
@@ -108,9 +118,11 @@ export default function StudentDashboard() {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     
-    const handleMenuToggle = () => {
+    const handleMenuToggle = (e) => {
+      e.stopPropagation();
       if (sidebar) {
         sidebar.classList.toggle('mobile-open');
+        console.log('Sidebar toggled');
       }
     };
     
@@ -225,7 +237,7 @@ export default function StudentDashboard() {
 
       <main className="main-content">
         <header className="header">
-          <div className="header-left">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button className="action-btn menu-toggle" id="menuToggle">
               <i className="fas fa-bars"></i>
             </button>
