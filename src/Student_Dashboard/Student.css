@@ -362,6 +362,7 @@ body {
     padding: 35px;
     flex: 1;
     min-height: calc(100vh - 86px);
+    background: transparent;
 }
 
 .page {
@@ -1029,6 +1030,13 @@ body {
     /* Show hamburger menu button */
     .menu-toggle {
         display: flex !important;
+        order: -1;
+        margin-right: auto;
+    }
+
+    /* Move notification button to the right */
+    .header-actions {
+        margin-left: auto;
     }
 
     .cards-grid {
@@ -1050,6 +1058,7 @@ body {
 
     .header-title {
         font-size: 20px;
+        margin: 0 auto;
     }
 
     .action-btn {
@@ -1066,6 +1075,7 @@ body {
 
     .page-content {
         padding-top: 80px !important;
+        background: transparent;
     }
 }
 
@@ -1182,11 +1192,29 @@ body {
         top: 0 !important;
         left: 0 !important;
         z-index: 100 !important;
-        background: white !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .header-title {
         font-size: 20px;
+        flex: 1;
+        text-align: center;
+    }
+
+    /* Menu toggle button on the left */
+    .menu-toggle {
+        display: flex !important;
+        order: -1;
+        margin-right: 12px;
+    }
+
+    /* Notification button on the right */
+    .header-actions {
+        order: 1;
+        margin-left: 0;
     }
 
     .action-btn {
@@ -1686,7 +1714,7 @@ body {
 
     .header {
         padding: 12px 15px;
-        background: white !important;
+        background: rgba(255, 255, 255, 0.98) !important;
     }
 
     .header-title {
