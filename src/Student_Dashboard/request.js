@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // API Configuration - Updated to Hostinger
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend';
@@ -8,37 +8,8 @@ export const useDocumentRequest = () => {
   const [studentData, setStudentData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize on mount
-  useEffect(() => {
-    console.log('🚀 useDocumentRequest hook mounted');
-    
-    // CRITICAL: Hide modal immediately on mount before anything else
-    const modal = document.getElementById('documentModal');
-    if (modal) {
-      modal.style.display = 'none';
-      console.log('✓ Modal hidden on mount');
-    }
-
-    initDocumentRequestSystem();
-    loadStudentData();
-
-    // Cleanup function to remove event listeners
-    return () => {
-      cleanupEventListeners();
-    };
-  }, []);
-
-  // Clean up all event listeners
-  const cleanupEventListeners = () => {
-    const form = document.getElementById('documentRequestForm');
-    if (form) {
-      const newForm = form.cloneNode(true);
-      form.parentNode.replaceChild(newForm, form);
-    }
-  };
-
   // Load student data from database
-  const loadStudentData = async () => {
+  const loadStudentData = useCallback(async () => {
     console.log('📡 Loading student data...');
     
     try {
@@ -147,9 +118,9 @@ export const useDocumentRequest = () => {
       console.error('❌ Error loading student data:', error);
       alert('Error connecting to server. Please check your connection and try again.');
     }
-  };
+  }, []);
 
-  const updatePageDisplays = (data) => {
+  const updatePageDisplays = useCallback((data) => {
     if (!data) {
       console.warn('⚠️ No data provided to updatePageDisplays');
       return;
@@ -212,9 +183,9 @@ export const useDocumentRequest = () => {
     }
 
     console.log('✅ Page displays updated');
-  };
+  }, []);
 
-  const populateModalForm = () => {
+  const populateModalForm = useCallback(() => {
     if (!window.studentData) {
       console.error('❌ No student data available to populate modal form');
       alert('Student data not loaded. Please refresh the page.');
@@ -280,29 +251,18 @@ export const useDocumentRequest = () => {
     console.log('═══════════════════════════════════');
     console.log(`✅ Modal populated: ${successCount} fields successful, ${failCount} failed`);
     console.log('═══════════════════════════════════');
-  };
+  }, []);
 
-  const initDocumentRequestSystem = () => {
-    console.log('⚙️ Initializing document request system...');
-    setTodayDate();
-    setupModal();
-    setupDocumentHandlers();
-    setupFormHandler();
-    setupNavigation();
-    setupMobileMenu();
-    console.log('✅ Document request system initialized');
-  };
-
-  const setTodayDate = () => {
+  const setTodayDate = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const dateField = document.getElementById('date');
     if (dateField) {
       dateField.value = today;
       console.log('✓ Set today\'s date:', today);
     }
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     console.log('🔄 Resetting form...');
     
     const form = document.getElementById('documentRequestForm');
@@ -323,127 +283,18 @@ export const useDocumentRequest = () => {
     }
     
     console.log('✓ Form reset complete');
-  };
+  }, [setTodayDate, populateModalForm]);
 
-  const setupModal = () => {
-    const modal = document.getElementById('documentModal');
-    const openBtn = document.getElementById('openModalBtn');
-    const closeBtn = document.getElementById('closeModalBtn');
-    
-    if (!modal) {
-      console.error('❌ Modal element not found');
-      return;
-    }
-    if (!openBtn) {
-      console.error('❌ Open button not found');
-      return;
-    }
-    if (!closeBtn) {
-      console.error('❌ Close button not found');
-      return;
-    }
-
-    console.log('🎭 Setting up modal...');
-
-    // CRITICAL: Ensure modal is hidden initially
-    modal.style.display = 'none';
-
-    // Remove existing listeners first by cloning
-    const newOpenBtn = openBtn.cloneNode(true);
-    openBtn.parentNode.replaceChild(newOpenBtn, openBtn);
-
-    const newCloseBtn = closeBtn.cloneNode(true);
-    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-
-    // Add open modal event
-    newOpenBtn.addEventListener('click', () => {
-      console.log('🔓 Opening modal...');
-      modal.style.display = 'flex';
-      
-      // ✅ FIX: Populate form when modal opens with a slight delay
-      setTimeout(() => {
-        if (window.studentData) {
-          console.log('Student data available, populating form...');
-          populateModalForm();
-        } else {
-          console.error('❌ Student data not loaded yet - cannot populate form');
-          alert('Loading student data... Please try again in a moment.');
-        }
-      }, 100);
-    });
-    
-    // Add close modal events
-    newCloseBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { 
-      if (e.target === modal) {
-        console.log('Clicked outside modal, closing...');
-        closeModal();
-      }
-    });
-    
-    document.addEventListener('keydown', e => { 
-      if (e.key === 'Escape' && modal.style.display === 'flex') {
-        console.log('ESC pressed, closing modal...');
-        closeModal();
-      }
-    });
-    
-    console.log('✓ Modal setup complete');
-  };
-
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     console.log('🔒 Closing modal...');
     const modal = document.getElementById('documentModal');
     if (!modal) return;
     modal.style.display = 'none';
     resetForm();
     console.log('✓ Modal closed');
-  };
+  }, [resetForm]);
 
-  const setupDocumentHandlers = () => {
-    console.log('📄 Setting up document handlers...');
-    
-    // Method 1: Event delegation on modal (most reliable)
-    const modal = document.getElementById('documentModal');
-    if (modal) {
-      // Remove old listener if exists
-      modal.removeEventListener('change', handleCheckboxChange);
-      // Add new listener
-      modal.addEventListener('change', handleCheckboxChange);
-      console.log('✓ Event delegation listener added to modal');
-    }
-
-    // Method 2: Direct listeners on each checkbox (backup)
-    const checkboxes = document.querySelectorAll('.document-checkbox');
-    console.log(`Found ${checkboxes.length} checkboxes`);
-    
-    checkboxes.forEach((cb, index) => {
-      // Clone to remove old listeners
-      const newCb = cb.cloneNode(true);
-      cb.parentNode.replaceChild(newCb, cb);
-      
-      // Add new listener
-      newCb.addEventListener('change', (e) => {
-        console.log(`Checkbox ${index + 1} (${e.target.id}) changed:`, e.target.checked);
-        updateTotal();
-      });
-    });
-    
-    console.log('✓ Document handlers setup complete');
-    
-    // Initial total calculation
-    updateTotal();
-  };
-
-  // Separated handler function for event delegation
-  const handleCheckboxChange = (e) => {
-    if (e.target.classList.contains('document-checkbox')) {
-      console.log('Checkbox changed via delegation:', e.target.id, 'Checked:', e.target.checked);
-      updateTotal();
-    }
-  };
-
-  const updateTotal = () => {
+  const updateTotal = useCallback(() => {
     let total = 0;
     const checkboxes = document.querySelectorAll('.document-checkbox:checked');
     
@@ -465,48 +316,16 @@ export const useDocumentRequest = () => {
     } else {
       console.error('❌ Total amount element not found!');
     }
-  };
+  }, []);
 
-  const setupFormHandler = () => {
-    console.log('📋 Setting up form handler...');
-    
-    const form = document.getElementById('documentRequestForm');
-    if (!form) {
-      console.error('❌ Form not found');
-      return;
+  const handleCheckboxChange = useCallback((e) => {
+    if (e.target.classList.contains('document-checkbox')) {
+      console.log('Checkbox changed via delegation:', e.target.id, 'Checked:', e.target.checked);
+      updateTotal();
     }
+  }, [updateTotal]);
 
-    // Remove any existing listeners first by cloning the form
-    const newForm = form.cloneNode(true);
-    form.parentNode.replaceChild(newForm, form);
-
-    // Add the single event listener to the new form
-    newForm.addEventListener('submit', handleFormSubmit);
-    
-    console.log('✓ Form handler setup complete');
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    
-    console.log('📤 Form submission triggered');
-    
-    // DOUBLE SUBMISSION PREVENTION
-    if (isSubmitting) {
-      console.log('⚠️ Already submitting, ignoring duplicate request');
-      return;
-    }
-
-    if (!validateForm()) {
-      console.log('❌ Form validation failed');
-      return;
-    }
-
-    const formData = collectFormData();
-    await submitForm(formData);
-  };
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     console.log('🔍 Validating form...');
     
     // Check if at least one document is selected
@@ -537,9 +356,9 @@ export const useDocumentRequest = () => {
 
     console.log('✅ Form validation passed');
     return true;
-  };
+  }, []);
 
-  const collectFormData = () => {
+  const collectFormData = useCallback(() => {
     console.log('📦 Collecting form data...');
     
     const student = {};
@@ -597,9 +416,9 @@ export const useDocumentRequest = () => {
 
     console.log('📦 Complete form data:', formData);
     return formData;
-  };
+  }, []);
 
-  const submitForm = async (data) => {
+  const submitForm = useCallback(async (data) => {
     const btn = document.querySelector('.submit-btn');
     if (!btn) {
       console.error('❌ Submit button not found');
@@ -713,20 +532,117 @@ export const useDocumentRequest = () => {
       btn.disabled = false;
       console.log('🔓 Submit button re-enabled');
     }
-  };
+  }, [closeModal]);
 
-  const setupNavigation = () => {
+  const handleFormSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    
+    console.log('📤 Form submission triggered');
+    
+    // DOUBLE SUBMISSION PREVENTION
+    if (isSubmitting) {
+      console.log('⚠️ Already submitting, ignoring duplicate request');
+      return;
+    }
+
+    if (!validateForm()) {
+      console.log('❌ Form validation failed');
+      return;
+    }
+
+    const formData = collectFormData();
+    await submitForm(formData);
+  }, [isSubmitting, validateForm, collectFormData, submitForm]);
+
+  const setupModal = useCallback(() => {
+    const modal = document.getElementById('documentModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    if (!modal || !openBtn || !closeBtn) {
+      console.error('❌ Modal elements not found');
+      return;
+    }
+
+    console.log('🎭 Setting up modal...');
+
+    // CRITICAL: Ensure modal is hidden initially
+    modal.style.display = 'none';
+
+    // Add open modal event
+    openBtn.onclick = () => {
+      console.log('🔓 Opening modal...');
+      modal.style.display = 'flex';
+      
+      setTimeout(() => {
+        if (window.studentData) {
+          console.log('Student data available, populating form...');
+          populateModalForm();
+        } else {
+          console.error('❌ Student data not loaded yet - cannot populate form');
+          alert('Loading student data... Please try again in a moment.');
+        }
+      }, 100);
+    };
+    
+    // Add close modal events
+    closeBtn.onclick = closeModal;
+    
+    modal.onclick = (e) => { 
+      if (e.target === modal) {
+        console.log('Clicked outside modal, closing...');
+        closeModal();
+      }
+    };
+    
+    document.onkeydown = (e) => { 
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        console.log('ESC pressed, closing modal...');
+        closeModal();
+      }
+    };
+    
+    console.log('✓ Modal setup complete');
+  }, [populateModalForm, closeModal]);
+
+  const setupDocumentHandlers = useCallback(() => {
+    console.log('📄 Setting up document handlers...');
+    
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+      modal.addEventListener('change', handleCheckboxChange);
+      console.log('✓ Event delegation listener added to modal');
+    }
+
+    const checkboxes = document.querySelectorAll('.document-checkbox');
+    console.log(`Found ${checkboxes.length} checkboxes`);
+    
+    console.log('✓ Document handlers setup complete');
+    
+    // Initial total calculation
+    updateTotal();
+  }, [handleCheckboxChange, updateTotal]);
+
+  const setupFormHandler = useCallback(() => {
+    console.log('📋 Setting up form handler...');
+    
+    const form = document.getElementById('documentRequestForm');
+    if (!form) {
+      console.error('❌ Form not found');
+      return;
+    }
+
+    // Use onsubmit instead of addEventListener to prevent duplication
+    form.onsubmit = handleFormSubmit;
+    
+    console.log('✓ Form handler setup complete');
+  }, [handleFormSubmit]);
+
+  const setupNavigation = useCallback(() => {
     console.log('🧭 Setting up navigation...');
     
-    // Clone all nav links to remove old listeners
     document.querySelectorAll('.nav-link').forEach(link => {
-      const newLink = link.cloneNode(true);
-      link.parentNode.replaceChild(newLink, link);
-    });
-
-    // Add new listeners
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', e => {
+      link.onclick = (e) => {
         e.preventDefault();
         const targetPage = link.dataset.page;
         console.log('Navigation to:', targetPage);
@@ -734,13 +650,13 @@ export const useDocumentRequest = () => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const target = document.getElementById(targetPage);
         target?.classList.add('active');
-      });
+      };
     });
     
     console.log('✓ Navigation setup complete');
-  };
+  }, []);
 
-  const setupMobileMenu = () => {
+  const setupMobileMenu = useCallback(() => {
     console.log('📱 Setting up mobile menu...');
     
     const menu = document.getElementById('menuToggle');
@@ -751,17 +667,39 @@ export const useDocumentRequest = () => {
       return;
     }
 
-    // Clone to remove old listeners
-    const newMenu = menu.cloneNode(true);
-    menu.parentNode.replaceChild(newMenu, menu);
-
-    newMenu.addEventListener('click', () => {
+    menu.onclick = () => {
       sidebar.classList.toggle('mobile-open');
       console.log('Mobile menu toggled');
-    });
+    };
     
     console.log('✓ Mobile menu setup complete');
-  };
+  }, []);
+
+  const initDocumentRequestSystem = useCallback(() => {
+    console.log('⚙️ Initializing document request system...');
+    setTodayDate();
+    setupModal();
+    setupDocumentHandlers();
+    setupFormHandler();
+    setupNavigation();
+    setupMobileMenu();
+    console.log('✅ Document request system initialized');
+  }, [setTodayDate, setupModal, setupDocumentHandlers, setupFormHandler, setupNavigation, setupMobileMenu]);
+
+  // Initialize on mount
+  useEffect(() => {
+    console.log('🚀 useDocumentRequest hook mounted');
+    
+    // CRITICAL: Hide modal immediately on mount before anything else
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+      modal.style.display = 'none';
+      console.log('✓ Modal hidden on mount');
+    }
+
+    initDocumentRequestSystem();
+    loadStudentData();
+  }, [initDocumentRequestSystem, loadStudentData]);
 
   return {
     studentData,
