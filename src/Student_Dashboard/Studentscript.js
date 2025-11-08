@@ -46,7 +46,7 @@ export const useStudentPortal = () => {
     setTimeout(() => messageDiv.remove(), 5000);
   }, []);
 
-  // Fetch announcement data - matching your backend structure
+  // Fetch announcement data
   const loadAnnouncement = useCallback(async () => {
     try {
       console.log('Loading announcement...');
@@ -73,7 +73,6 @@ export const useStudentPortal = () => {
       console.log('Announcement response:', data);
       
       if (data.status === 'success' && data.data) {
-        // Match your backend field names: Content, Title
         const announcementText = data.data.Content || 
                                 data.data.content || 
                                 'Welcome to Pateros Catholic School Document Request System';
@@ -82,7 +81,6 @@ export const useStudentPortal = () => {
         setAnnouncement(announcementText);
       } else if (data.status === 'error') {
         console.warn('Announcement error:', data.message);
-        // Keep default announcement
       }
     } catch (error) {
       console.error('Error fetching announcement:', error);
@@ -91,7 +89,7 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // Fetch transaction days data - matching your backend structure
+  // Fetch transaction days data
   const loadTransaction = useCallback(async () => {
     try {
       console.log('Loading transaction hours...');
@@ -118,7 +116,6 @@ export const useStudentPortal = () => {
       console.log('Transaction response:', data);
       
       if (data.status === 'success' && data.data) {
-        // Match your backend field names: Description
         const transactionText = data.data.Description || 
                                data.data.description || 
                                'Monday to Friday, 8:00 AM - 5:00 PM';
@@ -127,7 +124,6 @@ export const useStudentPortal = () => {
         setTransactionDays(transactionText);
       } else if (data.status === 'error') {
         console.warn('Transaction error:', data.message);
-        // Keep default transaction days
       }
     } catch (error) {
       console.error('Error fetching transaction:', error);
@@ -189,21 +185,33 @@ export const useStudentPortal = () => {
   }, [getReadNotifications]);
 
   const updateWelcomeMessages = useCallback((data) => {
-    const firstName = data.First_Name || data.first_name || 'Student';
+    console.log('Updating welcome messages with data:', data);
+    
+    // Extract first name from full name or use First_Name field
+    const firstName = data.First_Name || 
+                     data.first_name || 
+                     (data.Full_Name || data.full_name || '').split(' ')[0] || 
+                     'Student';
+    
+    console.log('Using first name:', firstName);
     
     const welcomeName = document.getElementById('welcomeName');
     if (welcomeName) {
       welcomeName.textContent = firstName;
+      console.log('✓ Updated welcomeName element');
     }
     
     const welcomeMessage = document.querySelector('.welcome-message h2');
     if (welcomeMessage) {
       welcomeMessage.innerHTML = `Welcome back, <span id="welcomeName">${firstName}</span>!`;
+      console.log('✓ Updated welcome message');
     }
     
     const accountName = document.getElementById('accountName');
-    if (accountName && data.full_name) {
-      accountName.textContent = data.full_name;
+    const fullName = data.Full_Name || data.full_name || `${data.First_Name || ''} ${data.Last_Name || ''}`.trim();
+    if (accountName && fullName) {
+      accountName.textContent = fullName;
+      console.log('✓ Updated account name:', fullName);
     }
     
     const welcomeDate = document.getElementById('welcomeDate');
@@ -216,29 +224,61 @@ export const useStudentPortal = () => {
         day: 'numeric' 
       };
       welcomeDate.textContent = today.toLocaleDateString('en-US', options);
+      console.log('✓ Updated welcome date');
     }
   }, []);
 
   const updateAccountPage = useCallback((data) => {
-    console.log('Updating account page with:', data);
+    console.log('=== Updating account page with data ===');
+    console.log('Raw data received:', data);
     
+    // Update account name
     const accountName = document.getElementById('accountName');
-    if (accountName && data.full_name) {
-      accountName.textContent = data.full_name;
+    const fullName = data.Full_Name || 
+                     data.full_name || 
+                     `${data.First_Name || ''} ${data.Last_Name || ''}`.trim() ||
+                     'N/A';
+    
+    if (accountName) {
+      accountName.textContent = fullName;
+      console.log('✓ Account name updated to:', fullName);
     }
     
+    // Update student number
     const studentNoElement = document.querySelector('.student-no');
-    if (studentNoElement && (data.Student_ID || data.student_id)) {
-      studentNoElement.textContent = `Student ID: ${data.Student_ID || data.student_id}`;
+    const studentId = data.Student_ID || data.student_id || 'undefined';
+    
+    if (studentNoElement) {
+      studentNoElement.textContent = `Student No: ${studentId}`;
+      console.log('✓ Student number updated to:', studentId);
     }
     
+    // Field mappings with multiple possible keys
     const fieldMappings = {
       'address': data.Address || data.address || '',
       'contact': data.Contact_No || data.contact_no || '',
       'email': data.Email || data.email || '',
-      'grade': `${data.grade_display || data.Grade_level || data.grade_level || ''} ${data.Section || data.section || ''}`.trim() || 'Not assigned'
+      'grade': (() => {
+        const gradeLevel = data.Grade_Level || data.grade_level || '';
+        const section = data.Section || data.section || '';
+        const gradeDisplay = data.Grade_Display || data.grade_display || gradeLevel;
+        
+        if (gradeDisplay && section) {
+          return `${gradeDisplay} - ${section}`;
+        } else if (gradeDisplay) {
+          return gradeDisplay;
+        } else if (gradeLevel && section) {
+          return `Grade ${gradeLevel} - ${section}`;
+        } else if (gradeLevel) {
+          return `Grade ${gradeLevel}`;
+        }
+        return 'Not assigned';
+      })()
     };
     
+    console.log('Field mappings:', fieldMappings);
+    
+    // Update each field
     Object.keys(fieldMappings).forEach(fieldId => {
       const element = document.getElementById(fieldId);
       if (element) {
@@ -246,23 +286,40 @@ export const useStudentPortal = () => {
         element.readOnly = true;
         element.style.cursor = 'not-allowed';
         element.style.backgroundColor = '#f8f9fa';
+        console.log(`✓ Updated field ${fieldId}:`, fieldMappings[fieldId]);
+      } else {
+        console.warn(`✗ Field element not found: ${fieldId}`);
       }
     });
+    
+    console.log('=== Account page update complete ===');
   }, []);
 
   const updateAllUserInterfaces = useCallback((data) => {
-    console.log('Updating all UI elements with:', data);
+    console.log('=== Updating all UI elements ===');
+    console.log('Data received:', data);
     
+    // Update sidebar name
     const sidebarName = document.getElementById('studentName');
-    if (sidebarName && data.full_name) {
-      sidebarName.textContent = data.full_name;
+    const fullName = data.Full_Name || 
+                     data.full_name || 
+                     `${data.First_Name || ''} ${data.Last_Name || ''}`.trim();
+    
+    if (sidebarName && fullName) {
+      sidebarName.textContent = fullName;
+      console.log('✓ Sidebar name updated to:', fullName);
     }
     
+    // Update welcome messages
     updateWelcomeMessages(data);
     
+    // If on account page, update it
     if (activePage === 'account') {
+      console.log('Currently on account page, updating account info...');
       updateAccountPage(data);
     }
+    
+    console.log('=== UI update complete ===');
   }, [updateWelcomeMessages, updateAccountPage, activePage]);
 
   const loadUserData = useCallback(() => {
@@ -271,7 +328,7 @@ export const useStudentPortal = () => {
       return;
     }
     
-    console.log('Loading user data...');
+    console.log('=== Loading user data ===');
     setIsLoadingUserData(true);
     
     fetch(`${API_BASE_URL}?action=getStudentData`, {
@@ -288,17 +345,28 @@ export const useStudentPortal = () => {
         return response.json();
       })
       .then(data => {
-        console.log('User data response:', data);
-        if (data.status === 'success') {
+        console.log('=== User data response ===');
+        console.log('Full response:', data);
+        
+        if (data.status === 'success' && data.data) {
+          console.log('Student data received:', data.data);
+          
+          // Store the data
           setStudentData(data.data);
           setIsAuthenticated(true);
           window.studentData = data.data;
           
-          // Load announcement and transaction after authentication is confirmed
+          // Immediately update UI
+          console.log('Updating UI with new data...');
+          updateAllUserInterfaces(data.data);
+          
+          // Load announcement and transaction
           setTimeout(() => {
             loadAnnouncement();
             loadTransaction();
           }, 300);
+          
+          console.log('✓ User data loaded successfully');
         } else {
           console.error('Failed to load student data:', data.message);
           setIsAuthenticated(false);
@@ -312,8 +380,9 @@ export const useStudentPortal = () => {
       })
       .finally(() => {
         setIsLoadingUserData(false);
+        console.log('=== User data loading complete ===');
       });
-  }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction]);
+  }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction, updateAllUserInterfaces]);
 
   const updateDashboard = useCallback((data) => {
     if (studentData) {
@@ -409,7 +478,8 @@ export const useStudentPortal = () => {
       return;
     }
 
-    if (!studentData?.Email && !studentData?.email) {
+    const email = studentData?.Email || studentData?.email;
+    if (!email) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
@@ -417,9 +487,8 @@ export const useStudentPortal = () => {
     setIsSubmitting(true);
     
     try {
-      const userEmail = studentData.Email || studentData.email;
       console.log('Submitting feedback:', {
-        email: userEmail,
+        email: email,
         feedback_type: 'General',
         message: feedback
       });
@@ -432,7 +501,7 @@ export const useStudentPortal = () => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          email: userEmail,
+          email: email,
           feedback_type: 'General',
           message: feedback
         })
@@ -575,7 +644,7 @@ export const useStudentPortal = () => {
       logoutBtn.addEventListener('click', function(e) {
         e.preventDefault();
         if (window.confirm('Are you sure you want to logout?')) {
-          window.location.href = 'index.html';
+          window.location.href = 'https://mediumaquamarine-heron-545485.hostingersite.com/index.html';
         }
       });
     }
@@ -588,6 +657,7 @@ export const useStudentPortal = () => {
     }
   }, [loadDashboardData]);
 
+  // Set up global functions
   useEffect(() => {
     window.openFeedbackModal = () => {
       console.log('Global openFeedbackModal called');
@@ -606,10 +676,9 @@ export const useStudentPortal = () => {
 
   // Load initial data on mount
   useEffect(() => {
-    // Load user data first to establish authentication
+    console.log('=== Component mounted, loading initial data ===');
     loadUserData();
     fetchNotifications();
-    
     loadInitialData();
     setupNavigationHandlers();
     setupMenuToggleHandler();
@@ -617,28 +686,43 @@ export const useStudentPortal = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update UI when student data changes
   useEffect(() => {
     if (studentData) {
+      console.log('=== Student data changed, updating UI ===');
+      console.log('Current student data:', studentData);
       updateAllUserInterfaces(studentData);
     }
   }, [studentData, updateAllUserInterfaces]);
 
+  // Handle page changes
   useEffect(() => {
+    console.log('=== Active page changed to:', activePage, '===');
+    
     if (activePage === 'dashboard') {
       loadDashboardData();
       if (isAuthenticated) {
         loadAnnouncement();
         loadTransaction();
       }
-    } else if (activePage === 'account' && studentData) {
-      updateAccountPage(studentData);
+    } else if (activePage === 'account') {
+      console.log('Navigated to account page');
+      if (studentData) {
+        console.log('Student data available, updating account page...');
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          updateAccountPage(studentData);
+        }, 100);
+      } else {
+        console.warn('No student data available for account page');
+      }
     } else if (activePage === 'request-history') {
       if (typeof window.RequestHistoryTable === 'function') {
         setTimeout(window.RequestHistoryTable, 100);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage, isAuthenticated]);
+  }, [activePage, isAuthenticated, studentData]);
 
   return {
     studentData,
