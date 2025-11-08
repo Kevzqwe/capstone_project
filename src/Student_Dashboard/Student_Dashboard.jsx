@@ -32,8 +32,113 @@ export default function StudentDashboard() {
 
   useDocumentRequest();
 
-  // Force re-render when announcement or transaction changes
   const [renderKey, setRenderKey] = useState(0);
+
+  // Initialize dashboard page as active on mount
+  useEffect(() => {
+    const dashboardPage = document.getElementById('dashboard');
+    if (dashboardPage) {
+      dashboardPage.classList.add('active');
+      dashboardPage.style.display = 'block';
+    }
+    
+    const firstNavLink = document.querySelector('.nav-link[data-page="dashboard"]');
+    if (firstNavLink) {
+      firstNavLink.classList.add('active');
+    }
+  }, []);
+
+  // Handle navigation clicks
+  useEffect(() => {
+    const navLinks = document.querySelectorAll('.nav-link[data-page]');
+    
+    const handleNavClick = (e) => {
+      e.preventDefault();
+      const pageName = e.currentTarget.getAttribute('data-page');
+      
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none';
+      });
+      
+      // Show selected page
+      const selectedPage = document.getElementById(pageName);
+      if (selectedPage) {
+        selectedPage.classList.add('active');
+        selectedPage.style.display = 'block';
+      }
+      
+      // Update active nav link
+      navLinks.forEach(link => link.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      // Update page title
+      const titles = {
+        'dashboard': 'Dashboard',
+        'documents': 'Documents',
+        'request-history': 'Request History',
+        'account': 'Account'
+      };
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) {
+        pageTitle.textContent = titles[pageName] || 'Dashboard';
+      }
+      
+      // Close sidebar on mobile
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && window.innerWidth <= 900) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    navLinks.forEach(link => {
+      link.addEventListener('click', handleNavClick);
+    });
+    
+    return () => {
+      navLinks.forEach(link => {
+        link.removeEventListener('click', handleNavClick);
+      });
+    };
+  }, []);
+
+  // Handle menu toggle for mobile
+  useEffect(() => {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    const handleMenuToggle = () => {
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+      }
+    };
+    
+    if (menuToggle) {
+      menuToggle.addEventListener('click', handleMenuToggle);
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    const handleClickOutside = (e) => {
+      if (window.innerWidth <= 900 && 
+          sidebar && 
+          sidebar.classList.contains('mobile-open') &&
+          !sidebar.contains(e.target) && 
+          e.target !== menuToggle &&
+          !menuToggle.contains(e.target)) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    
+    return () => {
+      if (menuToggle) {
+        menuToggle.removeEventListener('click', handleMenuToggle);
+      }
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -60,7 +165,6 @@ export default function StudentDashboard() {
   useEffect(() => {
     console.log('=== ANNOUNCEMENT DATA ===', announcement);
     console.log('=== TRANSACTION DAYS DATA ===', transactionDays);
-    // Force re-render when data changes
     setRenderKey(prev => prev + 1);
   }, [announcement, transactionDays]);
 
@@ -126,7 +230,7 @@ export default function StudentDashboard() {
               <i className="fas fa-bars"></i>
             </button>
             <h1 className="header-title" id="pageTitle">
-              Pateros Catholic School Document Request
+              Dashboard
             </h1>
           </div>
 
@@ -191,7 +295,7 @@ export default function StudentDashboard() {
           </div>
         </header>
 
-        <div className="page active" id="dashboard">
+        <div className="page" id="dashboard">
           <div className="page-content">
             <div className="welcome-card">
               <div className="welcome-date" id="welcomeDate"></div>
@@ -300,13 +404,6 @@ export default function StudentDashboard() {
                   defaultValue="" 
                   readOnly 
                   className="readonly-input"
-                  style={{
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #e9ecef',
-                    color: '#6c757d',
-                    cursor: 'not-allowed',
-                    opacity: 0.8
-                  }}
                 />
               </div>
 
@@ -318,13 +415,6 @@ export default function StudentDashboard() {
                   defaultValue="" 
                   readOnly 
                   className="readonly-input"
-                  style={{
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #e9ecef',
-                    color: '#6c757d',
-                    cursor: 'not-allowed',
-                    opacity: 0.8
-                  }}
                 />
               </div>
 
@@ -336,13 +426,6 @@ export default function StudentDashboard() {
                   defaultValue="" 
                   readOnly 
                   className="readonly-input"
-                  style={{
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #e9ecef',
-                    color: '#6c757d',
-                    cursor: 'not-allowed',
-                    opacity: 0.8
-                  }}
                 />
               </div>
 
@@ -354,13 +437,6 @@ export default function StudentDashboard() {
                   defaultValue="" 
                   readOnly 
                   className="readonly-input"
-                  style={{
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #e9ecef',
-                    color: '#6c757d',
-                    cursor: 'not-allowed',
-                    opacity: 0.8
-                  }}
                 />
               </div>
             </div>
