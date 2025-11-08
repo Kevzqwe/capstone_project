@@ -157,7 +157,6 @@ function renderTable(container, requests) {
         status: r.Status || r.status,
         payment_method: r.Payment_Method || r.payment_method,
         documents: [],
-        // Calculate total from documents
         total_amount: 0
       };
     }
@@ -193,11 +192,22 @@ function renderTable(container, requests) {
             </tr>
           </thead>
           <tbody>
-            ${uniqueRequests.map(req => `
+            ${uniqueRequests.map(req => {
+              // Create a summary of documents
+              const docSummary = req.documents.length === 1 
+                ? req.documents[0].document_type 
+                : `${req.documents.length} documents`;
+              
+              return `
               <tr class="table-row">
                 <td class="request-id">#${req.request_id}</td>
-                <td class="documents-count">
-                  ${req.documents.length} document${req.documents.length > 1 ? 's' : ''}
+                <td class="documents-summary">
+                  <div class="doc-main">${docSummary}</div>
+                  ${req.documents.length > 1 ? `
+                    <div class="doc-list">
+                      ${req.documents.map(d => d.document_type).join(', ')}
+                    </div>
+                  ` : ''}
                 </td>
                 <td class="date">${formatDate(req.date_requested)}</td>
                 <td class="status">
@@ -217,7 +227,8 @@ function renderTable(container, requests) {
                   </button>
                 </td>
               </tr>
-            `).join('')}
+              `;
+            }).join('')}
           </tbody>
         </table>
       </div>
@@ -342,9 +353,20 @@ function renderTable(container, requests) {
         color: #2c3e50;
       }
 
-      .documents-count {
+      .documents-summary {
+        max-width: 300px;
+      }
+
+      .doc-main {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 4px;
+      }
+
+      .doc-list {
+        font-size: 0.8rem;
         color: #7f8c8d;
-        font-size: 0.9rem;
+        line-height: 1.4;
       }
 
       .status-badge {
@@ -582,6 +604,14 @@ function renderTable(container, requests) {
         .document-price {
           text-align: left;
           width: 100%;
+        }
+
+        .documents-summary {
+          max-width: 150px;
+        }
+
+        .doc-list {
+          font-size: 0.75rem;
         }
       }
     </style>
