@@ -39,9 +39,12 @@ function formatPaymentMethod(method) {
 function normalizeKeys(obj) {
   const normalized = {};
   for (const key in obj) {
-    // Convert to lowercase for consistent access
+    // Keep original key and add lowercase version
+    normalized[key] = obj[key];
     const lowerKey = key.toLowerCase();
-    normalized[lowerKey] = obj[key];
+    if (lowerKey !== key) {
+      normalized[lowerKey] = obj[key];
+    }
   }
   return normalized;
 }
@@ -75,7 +78,7 @@ export async function RequestHistoryTable() {
   `;
 
   try {
-    const response = await fetch('http://localhost/capstone_project/public/php-backend/request_history.php?action=getRequestHistory', {
+    const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/request_history.php?action=getRequestHistory', {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -99,7 +102,7 @@ export async function RequestHistoryTable() {
           <i class="fas fa-lock"></i>
           <h3>Authentication Required</h3>
           <p>${result.message || 'Please log in to view your request history.'}</p>
-          <a href="index.html" class="login-btn">
+          <a href="https://mediumaquamarine-heron-545485.hostingersite.com/index.html" class="login-btn">
             <i class="fas fa-sign-in-alt"></i> Go to Login
           </a>
         </div>
@@ -108,7 +111,7 @@ export async function RequestHistoryTable() {
     }
 
     if (result.status === 'success' && result.data && result.data.length > 0) {
-      console.log(`✅ Rendering ${result.data.length} requests`);
+      console.log(`✅ Rendering ${result.data.length} document entries`);
       // Normalize all data keys
       const normalizedData = result.data.map(normalizeKeys);
       renderTable(container, normalizedData);
@@ -143,22 +146,32 @@ export async function RequestHistoryTable() {
 function renderTable(container, requests) {
   console.log('📋 Raw requests data:', requests);
 
-  // Group requests by request_id to handle multiple documents per request
+  // Group requests by Request_ID to handle multiple documents per request
   const grouped = {};
   requests.forEach((r) => {
-    const id = r.request_id;
+    const id = r.Request_ID || r.request_id;
     if (!grouped[id]) {
-      grouped[id] = { ...r, documents: [] };
+      grouped[id] = { 
+        request_id: id,
+        date_requested: r.Date_Requested || r.date_requested,
+        status: r.Status || r.status,
+        payment_method: r.Payment_Method || r.payment_method,
+        documents: [],
+        // Calculate total from documents
+        total_amount: 0
+      };
     }
-    // Add document details if available
-    if (r.document_type) {
-      grouped[id].documents.push({
-        document_type: r.document_type,
-        quantity: r.quantity,
-        unit_price: r.unit_price,
-        subtotal: r.subtotal,
-      });
-    }
+    
+    // Add document details
+    const subtotal = parseFloat(r.Subtotal || r.subtotal || 0);
+    grouped[id].total_amount += subtotal;
+    
+    grouped[id].documents.push({
+      document_type: r.Document_Type || r.document_type,
+      quantity: r.Quantity || r.quantity,
+      unit_price: r.Unit_Price || r.unit_price,
+      subtotal: subtotal
+    });
   });
 
   const uniqueRequests = Object.values(grouped);
@@ -171,10 +184,8 @@ function renderTable(container, requests) {
           <thead>
             <tr>
               <th>Request ID</th>
-              <th>Student Name</th>
-              <th>Grade & Section</th>
+              <th>Documents</th>
               <th>Date Requested</th>
-              <th>Scheduled Pick Up</th>
               <th>Status</th>
               <th>Total Amount</th>
               <th>Payment Method</th>
@@ -185,14 +196,14 @@ function renderTable(container, requests) {
             ${uniqueRequests.map(req => `
               <tr class="table-row">
                 <td class="request-id">#${req.request_id}</td>
-                <td class="student-name">${req.student_name || 'N/A'}</td>
-                <td class="grade-section">${req.grade_level || ''} - ${req.section || ''}</td>
+                <td class="documents-count">
+                  ${req.documents.length} document${req.documents.length > 1 ? 's' : ''}
+                </td>
                 <td class="date">${formatDate(req.date_requested)}</td>
-                <td class="date">${formatDate(req.rescheduled_pick_up || req.scheduled_pick_up)}</td>
                 <td class="status">
                   <span class="status-badge ${getStatusClass(req.status)}">${req.status || 'Pending'}</span>
                 </td>
-                <td class="amount">₱${parseFloat(req.total_amount || 0).toFixed(2)}</td>
+                <td class="amount">₱${req.total_amount.toFixed(2)}</td>
                 <td class="payment">
                   <span class="payment-method ${getPaymentClass(req.payment_method)}">
                     ${formatPaymentMethod(req.payment_method)}
@@ -202,7 +213,7 @@ function renderTable(container, requests) {
                   <button class="view-btn" onclick="openRequestModal(${req.request_id})" 
                     data-request='${JSON.stringify(req).replace(/'/g, "&#39;")}'>
                     <i class="fas fa-eye"></i>
-                    View
+                    View Details
                   </button>
                 </td>
               </tr>
@@ -331,14 +342,9 @@ function renderTable(container, requests) {
         color: #2c3e50;
       }
 
-      .student-name {
-        font-weight: 500;
-        color: #34495e;
-      }
-
-      .grade-section {
+      .documents-count {
         color: #7f8c8d;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
       }
 
       .status-badge {
@@ -384,7 +390,7 @@ function renderTable(container, requests) {
         border-radius: 6px;
         cursor: pointer;
         font-size: 0.8rem;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
         transition: all 0.2s;
@@ -517,20 +523,34 @@ function renderTable(container, requests) {
 
       .document-item {
         background: #f8f9fa;
-        padding: 12px;
+        padding: 15px;
         border-radius: 8px;
         border-left: 4px solid #3498db;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .document-name {
         font-weight: 600;
         color: #2c3e50;
-        margin-bottom: 4px;
+        font-size: 1rem;
       }
 
       .document-details {
         color: #7f8c8d;
         font-size: 0.9rem;
+        margin-top: 4px;
+      }
+
+      .document-price {
+        text-align: right;
+      }
+
+      .document-subtotal {
+        font-weight: 600;
+        color: #27ae60;
+        font-size: 1.1rem;
       }
 
       @media (max-width: 768px) {
@@ -539,8 +559,9 @@ function renderTable(container, requests) {
           font-size: 0.8rem;
         }
 
-        .view-btn span {
-          display: none;
+        .view-btn {
+          padding: 6px 12px;
+          font-size: 0.75rem;
         }
 
         .detail-grid {
@@ -550,6 +571,17 @@ function renderTable(container, requests) {
         .modal-content {
           width: 95%;
           margin: 10% auto;
+        }
+
+        .document-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .document-price {
+          text-align: left;
+          width: 100%;
         }
       }
     </style>
@@ -572,6 +604,7 @@ function initializeModalFunctions() {
     }
     
     const req = JSON.parse(viewBtn.getAttribute('data-request'));
+    console.log('Opening modal for request:', req);
     
     // Build documents section HTML
     let documentsHTML = '';
@@ -582,9 +615,14 @@ function initializeModalFunctions() {
           <div class="documents-list">
             ${req.documents.map(d => `
               <div class="document-item">
-                <div class="document-name">${d.document_type || 'N/A'}</div>
-                <div class="document-details">
-                  Quantity: ${d.quantity || 0} × ₱${parseFloat(d.unit_price || 0).toFixed(2)} = ₱${parseFloat(d.subtotal || 0).toFixed(2)}
+                <div>
+                  <div class="document-name">${d.document_type || 'N/A'}</div>
+                  <div class="document-details">
+                    Quantity: ${d.quantity || 0} × ₱${parseFloat(d.unit_price || 0).toFixed(2)}
+                  </div>
+                </div>
+                <div class="document-price">
+                  <div class="document-subtotal">₱${parseFloat(d.subtotal || 0).toFixed(2)}</div>
                 </div>
               </div>
             `).join('')}
@@ -603,47 +641,9 @@ function initializeModalFunctions() {
               <span>#${req.request_id}</span>
             </div>
             <div class="detail-item">
-              <label>Student Name:</label>
-              <span>${req.student_name || 'N/A'}</span>
-            </div>
-            <div class="detail-item">
-              <label>Grade Level:</label>
-              <span>${req.grade_level || 'N/A'}</span>
-            </div>
-            <div class="detail-item">
-              <label>Section:</label>
-              <span>${req.section || 'N/A'}</span>
-            </div>
-            <div class="detail-item">
-              <label>Contact Number:</label>
-              <span>${req.contact_no || 'N/A'}</span>
-            </div>
-            <div class="detail-item">
-              <label>Email:</label>
-              <span>${req.email || 'N/A'}</span>
-            </div>
-          </div>
-        </div>
-
-        ${documentsHTML}
-
-        <div class="detail-section">
-          <h3>Request Details</h3>
-          <div class="detail-grid">
-            <div class="detail-item">
               <label>Date Requested:</label>
               <span>${formatDate(req.date_requested)}</span>
             </div>
-            <div class="detail-item">
-              <label>Scheduled Pick Up:</label>
-              <span>${formatDate(req.scheduled_pick_up)}</span>
-            </div>
-            ${req.rescheduled_pick_up ? `
-            <div class="detail-item">
-              <label>Rescheduled Pick Up:</label>
-              <span>${formatDate(req.rescheduled_pick_up)}</span>
-            </div>
-            ` : ''}
             <div class="detail-item">
               <label>Status:</label>
               <span class="status-badge ${getStatusClass(req.status)}">${req.status || 'Pending'}</span>
@@ -656,16 +656,12 @@ function initializeModalFunctions() {
             </div>
             <div class="detail-item">
               <label>Total Amount:</label>
-              <span class="total-amount">₱${parseFloat(req.total_amount || 0).toFixed(2)}</span>
+              <span class="total-amount">₱${req.total_amount.toFixed(2)}</span>
             </div>
-            ${req.notes ? `
-            <div class="detail-item" style="grid-column: 1 / -1;">
-              <label>Notes:</label>
-              <span>${req.notes}</span>
-            </div>
-            ` : ''}
           </div>
         </div>
+
+        ${documentsHTML}
       </div>
     `;
     
