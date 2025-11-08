@@ -930,7 +930,11 @@ body {
     font-size: 14px;
 }
 
-/* Responsive */
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablet and below (900px) */
 @media (max-width: 900px) {
     .sidebar {
         transform: translateX(-100%);
@@ -955,76 +959,659 @@ body {
     .form-row {
         grid-template-columns: 1fr;
     }
+
+    .header {
+        padding: 15px 20px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .action-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
 }
 
+/* Mobile devices (768px and below) */
 @media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .container {
+        flex-direction: column;
+    }
+
+    /* Sidebar adjustments */
     .sidebar {
         width: 100%;
         height: auto;
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translateX(-100%);
+        z-index: 2000;
+        padding: 20px;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .school-header {
         padding: 15px;
+        margin-bottom: 20px;
     }
-    
+
+    .school-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .school-name {
+        font-size: 16px;
+    }
+
     .student-profile {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        text-align: left;
+        padding: 15px;
+        margin-bottom: 20px;
     }
-    
+
     .student-avatar {
         width: 70px;
         height: 70px;
-        margin: 0;
+        margin-bottom: 10px;
     }
-    
+
+    .student-name {
+        font-size: 14px;
+    }
+
+    .student-badge {
+        font-size: 11px;
+        padding: 5px 12px;
+    }
+
     .nav-menu {
         margin-top: 15px;
     }
-    
-    .nav-menu ul {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        overflow-x: auto;
-    }
-    
+
     .nav-link {
-        white-space: nowrap;
-        min-width: fit-content;
-        flex-shrink: 0;
+        padding: 12px 15px;
+        font-size: 14px;
     }
-    
-    .main-content {
-        padding: 0;
+
+    .nav-link i {
+        font-size: 16px;
     }
-    
+
     .logout-btn {
-        margin-top: 15px;
+        margin-top: 20px;
+        padding: 12px 20px;
+        font-size: 14px;
     }
-}
 
-@media (max-width: 480px) {
+    /* Main content */
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .header {
+        padding: 12px 15px;
+    }
+
+    .header-title {
+        font-size: 18px;
+    }
+
+    .action-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .action-btn img {
+        width: 20px;
+        height: 20px;
+    }
+
     .page-content {
-        padding: 20px;
+        padding: 20px 15px;
     }
 
+    /* Dashboard */
     .welcome-card {
-        padding: 25px;
+        padding: 25px 20px;
+        margin-bottom: 25px;
+    }
+
+    .welcome-date {
+        font-size: 12px;
     }
 
     .welcome-message h2 {
         font-size: 24px;
     }
 
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .info-card {
+        padding: 20px;
+    }
+
+    .info-card h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .info-card p {
+        font-size: 13px;
+    }
+
+    .request-btn {
+        padding: 12px 25px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    /* Documents grid */
     .documents-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .document-card {
+        padding: 20px;
+    }
+
+    .document-icon {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 15px;
+    }
+
+    .document-title {
+        font-size: 15px;
+    }
+
+    .document-subtitle {
+        font-size: 12px;
+    }
+
+    /* Account page */
+    .account-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 20px;
         gap: 15px;
     }
 
+    .account-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .account-info h2 {
+        font-size: 20px;
+    }
+
+    .student-no {
+        font-size: 13px;
+    }
+
+    .account-form {
+        padding: 25px 20px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    /* Modal adjustments */
+    .modal-overlay {
+        padding: 10px;
+    }
+
+    .modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-header h2 {
+        font-size: 18px;
+    }
+
+    .close-modal {
+        width: 35px;
+        height: 35px;
+        font-size: 24px;
+    }
+
+    .modal-content form {
+        padding: 20px;
+    }
+
+    .form-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-section h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    /* Document selection in modal */
+    .documents-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .documents-section h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .document-item {
+        padding: 15px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .document-item:hover {
+        transform: none;
+    }
+
+    .document-info {
+        width: 100%;
+        gap: 10px;
+    }
+
+    .document-info input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .document-info label {
+        font-size: 14px;
+        flex: 1;
+    }
+
+    .document-price {
+        width: 100%;
+        text-align: left;
+        font-size: 15px;
+        margin-left: 30px;
+    }
+
+    .total-section {
+        padding: 15px 20px;
+        font-size: 16px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .total-section span:last-child {
+        font-size: 22px;
+    }
+
+    /* Payment options */
+    .payment-options {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .payment-option {
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .payment-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .payment-option span {
+        font-size: 14px;
+    }
+
+    .submit-btn {
+        padding: 14px 30px;
+        font-size: 15px;
+    }
+
+    /* Notification dropdown */
     .notification-dropdown {
         width: calc(100% - 30px);
         right: 15px;
+        left: 15px;
+        top: 70px;
+        max-height: 400px;
+    }
+
+    .notification-header {
+        padding: 15px 20px;
+    }
+
+    .notification-header h3 {
+        font-size: 16px;
+    }
+
+    .clear-all-btn {
+        font-size: 13px;
+    }
+
+    .notification-item {
+        padding: 15px 20px;
+    }
+
+    .notification-icon {
+        font-size: 22px;
+        margin-right: 12px;
+    }
+
+    .notification-content h4 {
+        font-size: 14px;
+    }
+
+    .notification-content p {
+        font-size: 12px;
+    }
+
+    .notification-time {
+        font-size: 10px;
+    }
+}
+
+/* Small mobile devices (480px and below) */
+@media (max-width: 480px) {
+    .page-content {
+        padding: 15px 10px;
+    }
+
+    .welcome-card {
+        padding: 20px 15px;
+    }
+
+    .welcome-message h2 {
+        font-size: 20px;
+    }
+
+    .welcome-date {
+        font-size: 11px;
+    }
+
+    .cards-grid {
+        gap: 15px;
+    }
+
+    .info-card {
+        padding: 18px 15px;
+    }
+
+    .info-card h3 {
+        font-size: 15px;
+    }
+
+    .info-card p {
+        font-size: 12px;
+    }
+
+    /* Documents grid - 2 columns for very small screens */
+    .documents-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .document-card {
+        padding: 15px 10px;
+    }
+
+    .document-icon {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 10px;
+    }
+
+    .document-title {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+    .document-subtitle {
+        font-size: 11px;
+    }
+
+    /* Account */
+    .account-header {
+        padding: 20px 15px;
+    }
+
+    .account-avatar {
+        width: 70px;
+        height: 70px;
+    }
+
+    .account-info h2 {
+        font-size: 18px;
+    }
+
+    .account-form {
+        padding: 20px 15px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 9px 11px;
+        font-size: 13px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        padding: 5px;
+    }
+
+    .modal-header {
+        padding: 15px;
+    }
+
+    .modal-header h2 {
+        font-size: 16px;
+    }
+
+    .close-modal {
+        width: 32px;
+        height: 32px;
+        font-size: 22px;
+    }
+
+    .modal-content form {
+        padding: 15px;
+    }
+
+    .form-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .form-section h3 {
+        font-size: 15px;
+        margin-bottom: 12px;
+    }
+
+    .documents-section {
+        padding: 15px;
+    }
+
+    .documents-section h3 {
+        font-size: 15px;
+    }
+
+    .document-item {
+        padding: 12px 10px;
+    }
+
+    .document-info label {
+        font-size: 13px;
+    }
+
+    .document-price {
+        font-size: 14px;
+        margin-left: 28px;
+    }
+
+    .total-section {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    .total-section span:last-child {
+        font-size: 20px;
+    }
+
+    .payment-option {
+        padding: 10px;
+    }
+
+    .payment-option span {
+        font-size: 13px;
+    }
+
+    .submit-btn {
+        padding: 12px 25px;
+        font-size: 14px;
+    }
+
+    .notification-dropdown {
+        width: calc(100% - 20px);
+        right: 10px;
+        left: 10px;
+        top: 65px;
+        max-height: 350px;
+    }
+
+    .notification-header {
+        padding: 12px 15px;
+    }
+
+    .notification-header h3 {
+        font-size: 15px;
+    }
+
+    .notification-item {
+        padding: 12px 15px;
+    }
+
+    .notification-icon {
+        font-size: 20px;
+        margin-right: 10px;
+    }
+
+    .header {
+        padding: 10px 12px;
+    }
+
+    .header-title {
+        font-size: 16px;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+}
+
+/* Extra small devices (360px and below) */
+@media (max-width: 360px) {
+    .welcome-message h2 {
+        font-size: 18px;
+    }
+
+    .documents-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .document-icon {
+        width: 90px;
+        height: 90px;
+    }
+
+    .modal-header h2 {
+        font-size: 15px;
+    }
+
+    .total-section {
+        font-size: 13px;
+    }
+
+    .total-section span:last-child {
+        font-size: 18px;
+    }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-width: 900px) and (orientation: landscape) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .welcome-card {
+        padding: 20px;
+    }
+
+    .welcome-message h2 {
+        font-size: 22px;
+    }
+
+    .modal-content {
+        max-height: 90vh;
     }
 }
 
@@ -1050,3 +1637,73 @@ html {
     color: white;
 }
 
+/* Touch-friendly improvements for mobile */
+@media (hover: none) and (pointer: coarse) {
+    .nav-link,
+    .action-btn,
+    .logout-btn,
+    .document-card,
+    .request-btn,
+    .submit-btn,
+    .close-modal,
+    .notification-item {
+        -webkit-tap-highlight-color: rgba(42, 54, 99, 0.1);
+    }
+
+    .nav-link:active,
+    .action-btn:active,
+    .logout-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* Increase touch target sizes */
+    .nav-link {
+        min-height: 48px;
+    }
+
+    .action-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .document-info input[type="checkbox"],
+    .payment-option input[type="radio"] {
+        min-width: 24px;
+        min-height: 24px;
+    }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    .container {
+        overflow-x: hidden;
+    }
+
+    * {
+        max-width: 100%;
+    }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+    .sidebar {
+        padding-left: max(25px, env(safe-area-inset-left));
+        padding-right: max(25px, env(safe-area-inset-right));
+    }
+
+    .header {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+
+    .page-content {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
