@@ -1,5 +1,3 @@
-// Student.jsx - COMPLETE FIXED VERSION
-
 import React, { useEffect, useState } from "react";
 import "./Student.css";
 import PCSlogo from "../Components/Assets/PCSlogo.png";
@@ -40,7 +38,6 @@ export default function StudentDashboard() {
   useEffect(() => {
     console.log('Initializing dashboard...');
     
-    // Show dashboard page
     const dashboardPage = document.getElementById('dashboard');
     if (dashboardPage) {
       dashboardPage.classList.add('active');
@@ -48,7 +45,6 @@ export default function StudentDashboard() {
       console.log('Dashboard page shown');
     }
     
-    // Set first nav link as active
     const firstNavLink = document.querySelector('.nav-link[data-page="dashboard"]');
     if (firstNavLink) {
       firstNavLink.classList.add('active');
@@ -65,13 +61,11 @@ export default function StudentDashboard() {
       const pageName = e.currentTarget.getAttribute('data-page');
       console.log('Navigating to:', pageName);
       
-      // Hide all pages
       document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
         page.style.display = 'none';
       });
       
-      // Show selected page
       const selectedPage = document.getElementById(pageName);
       if (selectedPage) {
         selectedPage.classList.add('active');
@@ -79,11 +73,9 @@ export default function StudentDashboard() {
         console.log('Page shown:', pageName);
       }
       
-      // Update active nav link
       navLinks.forEach(link => link.classList.remove('active'));
       e.currentTarget.classList.add('active');
       
-      // Update page title
       const titles = {
         'dashboard': 'Dashboard',
         'documents': 'Documents',
@@ -95,7 +87,6 @@ export default function StudentDashboard() {
         pageTitle.textContent = titles[pageName] || 'Dashboard';
       }
       
-      // Close sidebar on mobile
       const sidebar = document.getElementById('sidebar');
       if (sidebar && window.innerWidth <= 900) {
         sidebar.classList.remove('mobile-open');
@@ -130,7 +121,6 @@ export default function StudentDashboard() {
       menuToggle.addEventListener('click', handleMenuToggle);
     }
     
-    // Close sidebar when clicking outside on mobile
     const handleClickOutside = (e) => {
       if (window.innerWidth <= 900 && 
           sidebar && 
@@ -275,27 +265,11 @@ export default function StudentDashboard() {
                         key={notification.id}
                         onClick={() => handleNotificationClick(notification.id)}
                         className="notification-item"
-                        style={{
-                          padding: '12px 15px',
-                          borderBottom: '1px solid #eee',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
-                        <div className="notification-title" style={{ 
-                          fontWeight: '500', 
-                          color: '#2c3e50',
-                          fontSize: '14px',
-                          marginBottom: '4px'
-                        }}>
+                        <div className="notification-title">
                           {notification.title}
                         </div>
-                        <div className="notification-time" style={{
-                          fontSize: '12px',
-                          color: '#7f8c8d'
-                        }}>
+                        <div className="notification-time">
                           {notification.created_at}
                         </div>
                       </div>
@@ -331,7 +305,6 @@ export default function StudentDashboard() {
             <button 
               className="request-btn feedback-btn" 
               onClick={handleFeedbackClick}
-              style={{ position: 'relative', zIndex: 1 }}
             >
               <i className="fas fa-paper-plane"></i> Send Feedback
             </button>
@@ -621,22 +594,12 @@ export default function StudentDashboard() {
                     value={studentData?.email || ''}
                     readOnly
                     placeholder="Enter your email"
-                    style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
                   />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="feedbackType">Feedback Type</label>
-                  <select
-                    id="feedbackType"
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px', 
-                      borderRadius: '5px',
-                      border: '1px solid #ddd',
-                      fontSize: '14px'
-                    }}
-                  >
+                  <select id="feedbackType">
                     <option value="">Select type</option>
                     <option value="bug">Bug Report</option>
                     <option value="feature">Feature Request</option>
@@ -654,7 +617,6 @@ export default function StudentDashboard() {
                     placeholder="Please share your feedback..."
                     required
                     className="feedback-textarea"
-                    style={{ minHeight: '120px' }}
                   />
                 </div>
                 
