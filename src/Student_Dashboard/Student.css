@@ -1084,22 +1084,25 @@ body {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
     }
 
     .menu-toggle {
         display: flex !important;
-        order: -1;
-        margin-right: 12px;
+        order: 0;
+        flex-shrink: 0;
     }
 
     .header-title {
         font-size: 20px;
         flex: 1;
         text-align: center;
+        order: 1;
     }
 
     .header-actions {
-        order: 1;
+        order: 2;
+        flex-shrink: 0;
     }
 
     .action-btn {
@@ -1514,4 +1517,4 @@ body {
             padding-top: max(85px, calc(env(safe-area-inset-top) + 85px)) !important;
         }
     }
-}
+}important
