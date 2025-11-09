@@ -343,7 +343,7 @@ function renderTable(container, requests) {
       .modern-table th {
         background: #34495e;
         color: white;
-        padding: 12px 8px;
+        padding: 10px 6px;
         text-align: left;
         font-weight: 600;
         font-size: 0.75rem;
@@ -353,7 +353,7 @@ function renderTable(container, requests) {
       }
 
       .modern-table td {
-        padding: 10px 8px;
+        padding: 8px 6px;
         border-bottom: 1px solid #ecf0f1;
         vertical-align: middle;
         font-size: 0.8rem;
@@ -663,13 +663,13 @@ function renderTable(container, requests) {
         }
 
         .modern-table th {
-          padding: 8px 4px;
+          padding: 7px 3px;
           font-size: 0.6rem;
           letter-spacing: 0.1px;
         }
 
         .modern-table td {
-          padding: 8px 4px;
+          padding: 7px 3px;
           font-size: 0.65rem;
         }
 
