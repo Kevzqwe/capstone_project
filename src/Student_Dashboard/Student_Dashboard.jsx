@@ -227,14 +227,13 @@ export default function StudentDashboard() {
 
       <main className="main-content">
         <header className="header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button className="action-btn menu-toggle" id="menuToggle">
-              <i className="fas fa-bars"></i>
-            </button>
-            <h1 className="header-title" id="pageTitle">
-              Dashboard
-            </h1>
-          </div>
+          <button className="action-btn menu-toggle" id="menuToggle">
+            <i className="fas fa-bars"></i>
+          </button>
+          
+          <h1 className="header-title" id="pageTitle">
+            Dashboard
+          </h1>
 
           <div className="header-actions">
             <button 
@@ -249,37 +248,37 @@ export default function StudentDashboard() {
                 </span>
               )}
             </button>
-
-            {showNotificationDropdown && (
-              <div className="notification-dropdown">
-                <div className="notification-header">
-                  <h3>Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
-                  <button onClick={toggleNotificationDropdown} className="close-dropdown">×</button>
-                </div>
-                <div className="notification-list">
-                  {notifications.length === 0 ? (
-                    <div className="no-notifications">No notifications</div>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        onClick={() => handleNotificationClick(notification.id)}
-                        className="notification-item"
-                      >
-                        <div className="notification-title">
-                          {notification.title}
-                        </div>
-                        <div className="notification-time">
-                          {notification.created_at}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </header>
+
+        {showNotificationDropdown && (
+          <div className="notification-dropdown">
+            <div className="notification-header">
+              <h3>Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
+              <button onClick={toggleNotificationDropdown} className="close-dropdown">×</button>
+            </div>
+            <div className="notification-list">
+              {notifications.length === 0 ? (
+                <div className="no-notifications">No notifications</div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification.id)}
+                    className="notification-item"
+                  >
+                    <div className="notification-title">
+                      {notification.title}
+                    </div>
+                    <div className="notification-time">
+                      {notification.created_at}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="page" id="dashboard">
           <div className="page-content">
