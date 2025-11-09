@@ -616,101 +616,82 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations - FULL WIDTH */
+      /* Mobile Optimizations - WITH HORIZONTAL SCROLL */
       @media (max-width: 768px) {
-        /* Remove ALL spacing to use full phone width */
-        #requestHistoryTableContainer {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100vw !important;
-          max-width: 100vw !important;
-          position: relative;
-          left: 50%;
-          right: 50%;
-          margin-left: -50vw !important;
-          margin-right: -50vw !important;
-        }
-
         .table-container {
-          margin: 0 !important;
-          padding: 0 !important;
-          border-radius: 0 !important;
-          box-shadow: none !important;
-          width: 100vw !important;
-          max-width: 100vw !important;
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
         }
 
         .table-wrapper {
-          padding: 0 !important;
-          margin: 0 !important;
-          width: 100%;
-          overflow-x: visible;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          /* Enable horizontal scrolling */
         }
 
         .modern-table {
-          font-size: 0.7rem;
-          width: 100%;
-          margin: 0;
-          border-radius: 0;
+          min-width: 700px;
+          /* Set minimum width to force horizontal scroll */
+          font-size: 0.75rem;
         }
 
         .modern-table th {
-          padding: 10px 5px;
+          padding: 10px 8px;
           font-size: 0.65rem;
-          letter-spacing: 0.1px;
+          letter-spacing: 0.2px;
         }
 
         .modern-table td {
-          padding: 10px 5px;
-          font-size: 0.7rem;
+          padding: 10px 8px;
+          font-size: 0.75rem;
         }
 
-        /* Maximized column widths for mobile - uses full screen */
-        .col-id { width: 8%; min-width: 35px; }
-        .col-docs { width: 40%; }
-        .col-date { width: 20%; }
-        .col-status { width: 17%; }
-        .col-amount { display: none; } /* Hidden on mobile */
-        .col-payment { display: none; } /* Hidden on mobile */
-        .col-actions { width: 15%; text-align: center; }
-
-        /* Hide Amount and Payment columns on mobile */
-        .amount,
-        .payment {
-          display: none;
-        }
+        /* All columns remain visible with fixed widths */
+        .col-id { min-width: 60px; }
+        .col-docs { min-width: 150px; }
+        .col-date { min-width: 100px; }
+        .col-status { min-width: 90px; }
+        .col-amount { min-width: 90px; }
+        .col-payment { min-width: 90px; }
+        .col-actions { min-width: 80px; text-align: center; }
 
         .request-id {
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           font-weight: 700;
         }
 
-        .documents-summary {
-          max-width: none;
-        }
-
         .doc-main {
-          font-size: 0.72rem;
+          font-size: 0.75rem;
           white-space: normal;
           line-height: 1.3;
           word-break: break-word;
         }
 
         .date {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
           line-height: 1.2;
         }
 
         .status-badge {
-          padding: 4px 6px;
+          padding: 4px 7px;
           font-size: 0.62rem;
           letter-spacing: 0.2px;
+        }
+
+        .amount {
+          font-size: 0.75rem;
+        }
+
+        .payment-method {
+          padding: 4px 7px;
+          font-size: 0.65rem;
         }
 
         .view-btn {
           padding: 6px 10px;
           font-size: 0.7rem;
-          gap: 3px;
+          gap: 4px;
         }
 
         .view-btn i {
@@ -768,33 +749,41 @@ function renderTable(container, requests) {
         }
       }
 
-      /* Extra Small Devices - MAXIMIZED */
+      /* Extra Small Devices */
       @media (max-width: 480px) {
-        .table-container {
-          margin: 0;
-          border-radius: 0;
+        .modern-table {
+          min-width: 650px;
+          /* Slightly smaller minimum width for very small devices */
         }
 
         .modern-table th {
-          padding: 9px 4px;
+          padding: 9px 6px;
           font-size: 0.63rem;
         }
 
         .modern-table td {
-          padding: 9px 4px;
-          font-size: 0.7rem;
+          padding: 9px 6px;
+          font-size: 0.72rem;
         }
 
+        .col-id { min-width: 55px; }
+        .col-docs { min-width: 140px; }
+        .col-date { min-width: 95px; }
+        .col-status { min-width: 85px; }
+        .col-amount { min-width: 85px; }
+        .col-payment { min-width: 85px; }
+        .col-actions { min-width: 75px; }
+
         .request-id {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
         }
 
         .doc-main {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
         }
 
         .date {
-          font-size: 0.66rem;
+          font-size: 0.68rem;
         }
 
         .status-badge {
@@ -802,9 +791,18 @@ function renderTable(container, requests) {
           font-size: 0.6rem;
         }
 
+        .amount {
+          font-size: 0.72rem;
+        }
+
+        .payment-method {
+          padding: 4px 6px;
+          font-size: 0.63rem;
+        }
+
         .view-btn {
           padding: 5px 9px;
-          font-size: 0.7rem;
+          font-size: 0.68rem;
         }
 
         .view-btn i {
