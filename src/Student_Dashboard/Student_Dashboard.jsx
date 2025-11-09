@@ -229,7 +229,7 @@ export default function StudentDashboard() {
       <main className="main-content">
         <header className="header">
           <button className="action-btn menu-toggle" id="menuToggle">
-            <i className="fas fa-bars"></i>
+            <img src={burger} alt="Menu" className="burger-icon" />
           </button>
           
           <h1 className="header-title" id="pageTitle">
