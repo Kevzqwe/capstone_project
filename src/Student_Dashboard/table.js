@@ -616,17 +616,42 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations - MAXIMIZED SPACE */
+      /* Mobile Optimizations - FULL WIDTH */
       @media (max-width: 768px) {
+        /* Remove ALL spacing to use full phone width */
+        #requestHistoryTableContainer {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+          position: relative;
+          left: 50%;
+          right: 50%;
+          margin-left: -50vw !important;
+          margin-right: -50vw !important;
+        }
+
         .table-container {
-          margin: 0;
-          border-radius: 0;
-          box-shadow: none;
+          margin: 0 !important;
+          padding: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+        }
+
+        .table-wrapper {
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100%;
+          overflow-x: visible;
         }
 
         .modern-table {
           font-size: 0.7rem;
-          /* REMOVED min-width to let table fit screen */
+          width: 100%;
+          margin: 0;
+          border-radius: 0;
         }
 
         .modern-table th {
