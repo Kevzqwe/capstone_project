@@ -182,13 +182,13 @@ function renderTable(container, requests) {
         <table class="modern-table">
           <thead>
             <tr>
-              <th class="col-id">ID</th>
-              <th class="col-docs">DOCUMENTS</th>
-              <th class="col-date">DATE</th>
-              <th class="col-status">STATUS</th>
-              <th class="col-amount">AMOUNT</th>
-              <th class="col-payment">PAYMENT</th>
-              <th class="col-actions">ACTIONS</th>
+              <th>Request ID</th>
+              <th>Documents</th>
+              <th>Date Requested</th>
+              <th>Status</th>
+              <th>Total Amount</th>
+              <th>Payment Method</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -196,13 +196,18 @@ function renderTable(container, requests) {
               // Create a summary of documents
               const docSummary = req.documents.length === 1 
                 ? req.documents[0].document_type 
-                : `${req.documents.length} docs`;
+                : `${req.documents.length} documents`;
               
               return `
               <tr class="table-row">
                 <td class="request-id">#${req.request_id}</td>
                 <td class="documents-summary">
                   <div class="doc-main">${docSummary}</div>
+                  ${req.documents.length > 1 ? `
+                    <div class="doc-list">
+                      ${req.documents.map(d => d.document_type).join(', ')}
+                    </div>
+                  ` : ''}
                 </td>
                 <td class="date">${formatDate(req.date_requested)}</td>
                 <td class="status">
@@ -218,7 +223,7 @@ function renderTable(container, requests) {
                   <button class="view-btn" onclick="openRequestModal(${req.request_id})" 
                     data-request='${JSON.stringify(req).replace(/'/g, "&#39;")}'>
                     <i class="fas fa-eye"></i>
-                    <span class="btn-text">View</span>
+                    View Details
                   </button>
                 </td>
               </tr>
@@ -245,10 +250,6 @@ function renderTable(container, requests) {
     </div>
 
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
       .loading-container {
         text-align: center;
         padding: 40px;
@@ -305,48 +306,16 @@ function renderTable(container, requests) {
         background: #2980b9;
       }
 
-      /* FULL WIDTH TABLE CONTAINER */
       .table-container {
         background: white;
-        border-radius: 0;
-        box-shadow: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
         overflow: hidden;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw !important;
-        margin-right: -50vw !important;
+        margin: 20px 0;
       }
 
       .table-wrapper {
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        scrollbar-width: thin;
-        scrollbar-color: #bdc3c7 #ecf0f1;
-      }
-
-      .table-wrapper::-webkit-scrollbar {
-        height: 8px;
-      }
-
-      .table-wrapper::-webkit-scrollbar-track {
-        background: #ecf0f1;
-      }
-
-      .table-wrapper::-webkit-scrollbar-thumb {
-        background: #bdc3c7;
-        border-radius: 4px;
-      }
-
-      .table-wrapper::-webkit-scrollbar-thumb:hover {
-        background: #95a5a6;
       }
 
       .modern-table {
@@ -354,28 +323,24 @@ function renderTable(container, requests) {
         border-collapse: collapse;
         background: white;
         font-size: 0.9rem;
-        margin: 0;
-        padding: 0;
-        table-layout: fixed;
       }
 
       .modern-table th {
         background: #34495e;
         color: white;
-        padding: 10px 6px;
+        padding: 16px 12px;
         text-align: left;
         font-weight: 600;
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.5px;
         white-space: nowrap;
       }
 
       .modern-table td {
-        padding: 8px 6px;
+        padding: 16px 12px;
         border-bottom: 1px solid #ecf0f1;
         vertical-align: middle;
-        font-size: 0.8rem;
       }
 
       .table-row:hover {
@@ -383,48 +348,35 @@ function renderTable(container, requests) {
         transition: background 0.2s;
       }
 
-      /* Column Width Control - Desktop - FIT TO SCREEN */
-      .col-id { width: 7%; }
-      .col-docs { width: 25%; }
-      .col-date { width: 12%; }
-      .col-status { width: 11%; }
-      .col-amount { width: 11%; }
-      .col-payment { width: 11%; }
-      .col-actions { width: 13%; text-align: center; }
-
       .request-id {
         font-weight: 600;
         color: #2c3e50;
-        white-space: nowrap;
-        font-size: 0.8rem;
       }
 
       .documents-summary {
-        width: 100%;
+        max-width: 300px;
       }
 
       .doc-main {
         font-weight: 500;
         color: #2c3e50;
-        line-height: 1.3;
-        font-size: 0.8rem;
+        margin-bottom: 4px;
       }
 
-      .date {
-        white-space: nowrap;
-        font-size: 0.75rem;
-        color: #555;
+      .doc-list {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        line-height: 1.4;
       }
 
       .status-badge {
-        padding: 5px 10px;
-        border-radius: 12px;
-        font-size: 0.65rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.5px;
         display: inline-block;
-        white-space: nowrap;
       }
 
       .status-ready { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -436,17 +388,15 @@ function renderTable(container, requests) {
       .amount {
         font-weight: 600;
         color: #27ae60;
-        font-size: 0.8rem;
-        white-space: nowrap;
+        font-size: 1rem;
       }
 
       .payment-method {
         padding: 4px 8px;
         border-radius: 4px;
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         font-weight: 500;
         display: inline-block;
-        white-space: nowrap;
       }
 
       .payment-cash { background: #e8f5e8; color: #27ae60; border: 1px solid #d4edda; }
@@ -458,14 +408,13 @@ function renderTable(container, requests) {
         background: #3498db;
         color: white;
         border: none;
-        padding: 6px 12px;
+        padding: 8px 16px;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 5px;
+        gap: 6px;
         transition: all 0.2s;
         font-weight: 500;
         white-space: nowrap;
@@ -475,14 +424,6 @@ function renderTable(container, requests) {
         background: #2980b9;
         transform: translateY(-1px);
         box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-      }
-
-      .view-btn i {
-        font-size: 0.75rem;
-      }
-
-      .btn-text {
-        display: inline;
       }
 
       /* Modal Styles */
@@ -496,8 +437,6 @@ function renderTable(container, requests) {
         height: 100%;
         background: rgba(0,0,0,0.5);
         backdrop-filter: blur(5px);
-        align-items: center;
-        justify-content: center;
       }
 
       .modal-content {
@@ -505,12 +444,9 @@ function renderTable(container, requests) {
         margin: 5% auto;
         width: 90%;
         max-width: 700px;
-        max-height: 90vh;
         border-radius: 12px;
         box-shadow: 0 10px 50px rgba(0,0,0,0.3);
         animation: modalSlideIn 0.3s ease-out;
-        display: flex;
-        flex-direction: column;
       }
 
       @keyframes modalSlideIn {
@@ -519,20 +455,19 @@ function renderTable(container, requests) {
       }
 
       .modal-header {
-        padding: 20px;
+        padding: 24px;
         border-bottom: 1px solid #ecf0f1;
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: #f8f9fa;
         border-radius: 12px 12px 0 0;
-        flex-shrink: 0;
       }
 
       .modal-header h2 {
         margin: 0;
         color: #2c3e50;
-        font-size: 1.3rem;
+        font-size: 1.5rem;
       }
 
       .close-btn {
@@ -544,11 +479,6 @@ function renderTable(container, requests) {
         padding: 5px;
         border-radius: 4px;
         transition: all 0.2s;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
 
       .close-btn:hover {
@@ -557,9 +487,9 @@ function renderTable(container, requests) {
       }
 
       .modal-body {
-        padding: 20px;
+        padding: 24px;
+        max-height: 60vh;
         overflow-y: auto;
-        flex: 1;
       }
 
       .request-details {
@@ -570,15 +500,15 @@ function renderTable(container, requests) {
 
       .detail-section h3 {
         color: #2c3e50;
-        font-size: 1rem;
-        margin: 0 0 15px 0;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
         padding-bottom: 10px;
         border-bottom: 2px solid #ecf0f1;
       }
 
       .detail-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
       }
 
@@ -591,18 +521,18 @@ function renderTable(container, requests) {
       .detail-item label {
         font-weight: 600;
         color: #7f8c8d;
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
 
       .detail-item span {
         color: #2c3e50;
-        font-size: 0.9rem;
+        font-size: 1rem;
       }
 
       .total-amount {
-        font-size: 1.2rem !important;
+        font-size: 1.3rem !important;
         font-weight: 700;
         color: #27ae60 !important;
       }
@@ -621,164 +551,54 @@ function renderTable(container, requests) {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
       }
 
       .document-name {
         font-weight: 600;
         color: #2c3e50;
-        font-size: 0.95rem;
+        font-size: 1rem;
       }
 
       .document-details {
         color: #7f8c8d;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         margin-top: 4px;
       }
 
       .document-price {
         text-align: right;
-        flex-shrink: 0;
       }
 
       .document-subtotal {
         font-weight: 600;
         color: #27ae60;
-        font-size: 1rem;
+        font-size: 1.1rem;
       }
 
-      /* Mobile Optimizations - ABSOLUTE FULL WIDTH */
       @media (max-width: 768px) {
-        /* Force full viewport width */
-        .table-container {
-          margin: 0 !important;
-          padding: 0 !important;
-          border-radius: 0 !important;
-          box-shadow: none !important;
-          width: 100vw !important;
-          max-width: 100vw !important;
-          position: relative;
-          left: 50%;
-          right: 50%;
-          margin-left: -50vw !important;
-          margin-right: -50vw !important;
-        }
-
-        .table-wrapper {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          width: 100%;
-          margin: 0;
-          padding: 0;
-        }
-
-        /* Make table fit mobile with proper spacing */
-        .modern-table {
-          width: 100%;
-          font-size: 0.7rem;
-          margin: 0;
-          padding: 0;
-          table-layout: fixed;
-        }
-
-        .modern-table th {
-          padding: 7px 3px;
-          font-size: 0.6rem;
-          letter-spacing: 0.1px;
-        }
-
-        .modern-table td {
-          padding: 7px 3px;
-          font-size: 0.65rem;
-        }
-
-        /* Mobile column widths - FIT TO SCREEN */
-        .col-id { width: 9%; }
-        .col-docs { width: 0%; display: none; }
-        .col-date { width: 22%; }
-        .col-status { width: 18%; }
-        .col-amount { width: 17%; }
-        .col-payment { width: 17%; }
-        .col-actions { width: 17%; text-align: center; }
-
-        .request-id {
-          font-size: 0.65rem;
-          font-weight: 700;
-        }
-
-        .documents-summary {
-          display: none;
-        }
-
-        .doc-main {
-          display: none;
-        }
-
-        .date {
-          font-size: 0.62rem;
-          line-height: 1.2;
-        }
-
-        .status-badge {
-          padding: 3px 5px;
-          font-size: 0.55rem;
-          letter-spacing: 0px;
-        }
-
-        .amount {
-          font-size: 0.65rem;
-        }
-
-        .payment-method {
-          padding: 3px 5px;
-          font-size: 0.55rem;
+        .modern-table th, .modern-table td {
+          padding: 12px 8px;
+          font-size: 0.8rem;
         }
 
         .view-btn {
-          padding: 5px 8px;
-          font-size: 0.6rem;
-          gap: 3px;
-        }
-
-        .view-btn i {
-          font-size: 0.65rem;
-        }
-
-        .btn-text {
-          display: inline;
-        }
-
-        .modal-content {
-          width: 95%;
-          margin: 5% auto;
-          max-height: 85vh;
-        }
-
-        .modal-header {
-          padding: 15px;
-        }
-
-        .modal-header h2 {
-          font-size: 1.1rem;
-        }
-
-        .modal-body {
-          padding: 15px;
+          padding: 6px 12px;
+          font-size: 0.75rem;
         }
 
         .detail-grid {
           grid-template-columns: 1fr;
-          gap: 12px;
         }
 
-        .detail-section h3 {
-          font-size: 0.95rem;
+        .modal-content {
+          width: 95%;
+          margin: 10% auto;
         }
 
         .document-item {
           flex-direction: column;
           align-items: flex-start;
-          padding: 12px;
+          gap: 8px;
         }
 
         .document-price {
@@ -786,85 +606,12 @@ function renderTable(container, requests) {
           width: 100%;
         }
 
-        .document-name {
-          font-size: 0.9rem;
+        .documents-summary {
+          max-width: 150px;
         }
 
-        .document-details {
+        .doc-list {
           font-size: 0.75rem;
-        }
-      }
-
-      /* Extra Small Devices */
-      @media (max-width: 480px) {
-        .modern-table th {
-          padding: 6px 2px;
-          font-size: 0.58rem;
-        }
-
-        .modern-table td {
-          padding: 6px 2px;
-          font-size: 0.62rem;
-        }
-
-        .col-id { width: 10%; }
-        .col-date { width: 22%; }
-        .col-status { width: 17%; }
-        .col-amount { width: 17%; }
-        .col-payment { width: 17%; }
-        .col-actions { width: 17%; }
-
-        .request-id {
-          font-size: 0.62rem;
-        }
-
-        .date {
-          font-size: 0.6rem;
-        }
-
-        .status-badge {
-          padding: 2px 4px;
-          font-size: 0.52rem;
-        }
-
-        .amount {
-          font-size: 0.62rem;
-        }
-
-        .payment-method {
-          padding: 2px 4px;
-          font-size: 0.52rem;
-        }
-
-        .view-btn {
-          padding: 4px 6px;
-          font-size: 0.58rem;
-        }
-
-        .view-btn i {
-          font-size: 0.6rem;
-        }
-
-        .modal-header h2 {
-          font-size: 1rem;
-        }
-
-        .close-btn {
-          font-size: 1.3rem;
-          width: 28px;
-          height: 28px;
-        }
-
-        .detail-item label {
-          font-size: 0.7rem;
-        }
-
-        .detail-item span {
-          font-size: 0.8rem;
-        }
-
-        .total-amount {
-          font-size: 1rem !important;
         }
       }
     </style>
