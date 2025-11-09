@@ -41,7 +41,7 @@ body {
 .sidebar {
     width: 320px;
     background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%);
-    padding: 25px;
+    padding: 20px 15px;
     position: fixed;
     height: 100vh;
     overflow-y: auto;
