@@ -1082,23 +1082,99 @@ body {
         background: transparent;
     }
 
-    /* Sidebar - HALF SCREEN with same desktop gradient */
+    /* Sidebar - PROPERLY SIZED with full content visible */
     .sidebar {
-        width: 50vw !important;
-        max-width: 50vw !important;
+        width: 260px !important;
+        max-width: 260px !important;
         height: 100vh !important;
         transform: translateX(-100%) !important;
         background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%) !important;
-        padding: 25px !important;
+        padding: 20px 15px !important;
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         z-index: 2001 !important;
         overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .sidebar.mobile-open {
         transform: translateX(0) !important;
+    }
+
+    /* Sidebar internal elements */
+    .school-header {
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+        gap: 12px !important;
+    }
+
+    .school-logo {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    .school-name {
+        font-size: 14px !important;
+        max-width: 150px !important;
+    }
+
+    .student-profile {
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .student-avatar {
+        width: 70px !important;
+        height: 70px !important;
+        margin-bottom: 12px !important;
+        border: 3px solid #ffffff !important;
+    }
+
+    .student-name {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word !important;
+    }
+
+    .student-badge {
+        padding: 5px 12px !important;
+        font-size: 11px !important;
+    }
+
+    .nav-menu {
+        flex: 1 !important;
+        margin-top: 15px !important;
+        overflow-y: visible !important;
+    }
+
+    .nav-menu ul {
+        gap: 5px !important;
+    }
+
+    .nav-link {
+        padding: 12px 15px !important;
+        font-size: 14px !important;
+        gap: 10px !important;
+    }
+
+    .nav-link i {
+        font-size: 16px !important;
+        width: 18px !important;
+    }
+
+    .logout-btn {
+        margin-top: 20px !important;
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .logout-btn i {
+        font-size: 14px !important;
     }
 
     /* Header - Mobile Layout */
@@ -1327,36 +1403,65 @@ body {
         font-size: 14px;
     }
 
-    /* Account page - smaller header */
+    /* Account page - MATCH DESKTOP LAYOUT */
     .account-header {
-        flex-direction: row;
-        text-align: left;
-        padding: 25px 20px;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        gap: 20px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        text-align: left !important;
+        padding: 25px 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 20px !important;
+        margin-bottom: 25px !important;
     }
 
     .account-avatar {
-        width: 60px;
-        height: 60px;
-        flex-shrink: 0;
+        width: 70px !important;
+        height: 70px !important;
+        flex-shrink: 0 !important;
+        border: 4px solid white !important;
+    }
+
+    .account-info {
+        flex: 1 !important;
+        text-align: left !important;
     }
 
     .account-info h2 {
-        font-size: 18px;
+        font-size: 18px !important;
+        margin-bottom: 8px !important;
+        color: white !important;
     }
 
     .student-no {
-        font-size: 13px;
+        font-size: 13px !important;
+        color: white !important;
+        opacity: 0.9 !important;
     }
 
     .account-form {
-        padding: 25px 20px;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
+        padding: 25px 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .form-group {
+        margin-bottom: 18px !important;
+    }
+
+    .form-group label {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 14px !important;
+        font-size: 14px !important;
     }
 
     /* Modal */
@@ -1421,6 +1526,61 @@ body {
 
 /* Small mobile devices (480px and below) */
 @media (max-width: 480px) {
+    .sidebar {
+        width: 240px !important;
+        max-width: 240px !important;
+        padding: 18px 12px !important;
+    }
+
+    .school-header {
+        padding: 12px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .school-logo {
+        width: 45px !important;
+        height: 45px !important;
+    }
+
+    .school-name {
+        font-size: 13px !important;
+    }
+
+    .student-profile {
+        padding: 12px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .student-avatar {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .student-name {
+        font-size: 13px !important;
+    }
+
+    .student-badge {
+        font-size: 10px !important;
+        padding: 4px 10px !important;
+    }
+
+    .nav-link {
+        padding: 11px 12px !important;
+        font-size: 13px !important;
+    }
+
+    .nav-link i {
+        font-size: 15px !important;
+        width: 16px !important;
+    }
+
+    .logout-btn {
+        padding: 11px 18px !important;
+        font-size: 13px !important;
+        margin-top: 18px !important;
+    }
+
     .header {
         min-height: 60px;
         height: 60px;
@@ -1540,25 +1700,41 @@ body {
 
     /* Account header - smaller */
     .account-header {
-        padding: 20px 15px;
-        gap: 15px;
+        padding: 20px 15px !important;
+        gap: 15px !important;
     }
 
     .account-avatar {
-        width: 55px;
-        height: 55px;
+        width: 60px !important;
+        height: 60px !important;
+        border: 3px solid white !important;
     }
 
     .account-info h2 {
-        font-size: 16px;
+        font-size: 16px !important;
     }
 
     .student-no {
-        font-size: 12px;
+        font-size: 12px !important;
     }
 
     .account-form {
-        padding: 20px 15px;
+        padding: 20px 15px !important;
+    }
+
+    .form-group {
+        margin-bottom: 16px !important;
+    }
+
+    .form-group label {
+        font-size: 13px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 11px 12px !important;
+        font-size: 13px !important;
     }
 
     .modal-overlay {
@@ -1609,6 +1785,40 @@ body {
 
 /* Extra small devices (360px and below) */
 @media (max-width: 360px) {
+    .sidebar {
+        width: 220px !important;
+        max-width: 220px !important;
+        padding: 16px 10px !important;
+    }
+
+    .school-logo {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .school-name {
+        font-size: 12px !important;
+    }
+
+    .student-avatar {
+        width: 55px !important;
+        height: 55px !important;
+    }
+
+    .student-name {
+        font-size: 12px !important;
+    }
+
+    .nav-link {
+        padding: 10px 10px !important;
+        font-size: 12px !important;
+    }
+
+    .logout-btn {
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+    }
+
     .header {
         min-height: 56px;
         height: 56px;
@@ -1702,21 +1912,25 @@ body {
 
     /* Account header */
     .account-header {
-        padding: 18px 12px;
-        gap: 12px;
+        padding: 18px 12px !important;
+        gap: 12px !important;
     }
 
     .account-avatar {
-        width: 50px;
-        height: 50px;
+        width: 55px !important;
+        height: 55px !important;
     }
 
     .account-info h2 {
-        font-size: 15px;
+        font-size: 15px !important;
     }
 
     .student-no {
-        font-size: 11px;
+        font-size: 11px !important;
+    }
+
+    .account-form {
+        padding: 18px 12px !important;
     }
 
     .notification-dropdown {
@@ -1801,6 +2015,11 @@ body {
             padding-right: max(15px, env(safe-area-inset-right));
             padding-top: max(84px, calc(env(safe-area-inset-top) + 84px)) !important;
         }
+
+        .sidebar {
+            padding-left: max(15px, env(safe-area-inset-left)) !important;
+            padding-right: max(15px, env(safe-area-inset-right)) !important;
+        }
     }
 
     @media (max-width: 480px) {
@@ -1811,6 +2030,11 @@ body {
         .page-content {
             padding-top: max(76px, calc(env(safe-area-inset-top) + 76px)) !important;
         }
+
+        .sidebar {
+            padding-left: max(12px, env(safe-area-inset-left)) !important;
+            padding-right: max(12px, env(safe-area-inset-right)) !important;
+        }
     }
 
     @media (max-width: 360px) {
@@ -1820,6 +2044,11 @@ body {
 
         .page-content {
             padding-top: max(72px, calc(env(safe-area-inset-top) + 72px)) !important;
+        }
+
+        .sidebar {
+            padding-left: max(10px, env(safe-area-inset-left)) !important;
+            padding-right: max(10px, env(safe-area-inset-right)) !important;
         }
     }
 }
