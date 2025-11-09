@@ -328,6 +328,25 @@ function renderTable(container, requests) {
         width: 100%;
         margin: 0;
         padding: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #bdc3c7 #ecf0f1;
+      }
+
+      .table-wrapper::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-track {
+        background: #ecf0f1;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: #bdc3c7;
+        border-radius: 4px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #95a5a6;
       }
 
       .modern-table {
@@ -779,12 +798,12 @@ function renderTable(container, requests) {
       /* Extra Small Devices */
       @media (max-width: 480px) {
         .modern-table th {
-          padding: 7px 3px;
+          padding: 6px 2px;
           font-size: 0.58rem;
         }
 
         .modern-table td {
-          padding: 7px 3px;
+          padding: 6px 2px;
           font-size: 0.62rem;
         }
 
