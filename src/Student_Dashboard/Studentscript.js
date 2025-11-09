@@ -598,8 +598,22 @@ export const useStudentPortal = () => {
     const sidebar = document.getElementById('sidebar');
     
     if (menuToggle && sidebar) {
-      menuToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
+      // Remove any existing listeners
+      const newMenuToggle = menuToggle.cloneNode(true);
+      menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+      
+      newMenuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Menu toggle clicked');
+        
+        if (window.innerWidth <= 900) {
+          sidebar.classList.toggle('mobile-open');
+          console.log('Sidebar mobile-open toggled:', sidebar.classList.contains('mobile-open'));
+        } else {
+          sidebar.classList.toggle('collapsed');
+          console.log('Sidebar collapsed toggled:', sidebar.classList.contains('collapsed'));
+        }
       });
     }
   }, []);
