@@ -305,17 +305,29 @@ function renderTable(container, requests) {
         background: #2980b9;
       }
 
+      /* FULL WIDTH TABLE CONTAINER - NO RESTRICTIONS */
       .table-container {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        border-radius: 0;
+        box-shadow: none;
         overflow: hidden;
-        margin: 20px 0;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw !important;
+        margin-right: -50vw !important;
       }
 
       .table-wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin: 0;
+        padding: 0;
       }
 
       .modern-table {
@@ -323,6 +335,9 @@ function renderTable(container, requests) {
         border-collapse: collapse;
         background: white;
         font-size: 0.9rem;
+        margin: 0;
+        padding: 0;
+        table-layout: auto;
       }
 
       .modern-table th {
@@ -616,16 +631,9 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations - FULL WIDTH WITH HORIZONTAL SCROLL */
+      /* Mobile Optimizations - ABSOLUTE FULL WIDTH */
       @media (max-width: 768px) {
-        /* Remove container restrictions to use full width */
-        #requestHistoryTableContainer {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100vw !important;
-          max-width: 100vw !important;
-        }
-
+        /* Force full viewport width */
         .table-container {
           margin: 0 !important;
           padding: 0 !important;
@@ -633,84 +641,94 @@ function renderTable(container, requests) {
           box-shadow: none !important;
           width: 100vw !important;
           max-width: 100vw !important;
+          position: relative;
+          left: 50%;
+          right: 50%;
+          margin-left: -50vw !important;
+          margin-right: -50vw !important;
         }
 
         .table-wrapper {
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           width: 100%;
+          margin: 0;
           padding: 0;
         }
 
+        /* Make table scrollable horizontally */
         .modern-table {
-          min-width: 750px;
+          min-width: 100%;
+          width: max-content;
           font-size: 0.75rem;
+          margin: 0;
+          padding: 0;
         }
 
         .modern-table th {
-          padding: 12px 8px;
-          font-size: 0.7rem;
+          padding: 10px 8px;
+          font-size: 0.68rem;
           letter-spacing: 0.2px;
         }
 
         .modern-table td {
-          padding: 12px 8px;
-          font-size: 0.75rem;
+          padding: 10px 8px;
+          font-size: 0.72rem;
         }
 
-        /* All columns visible with proper spacing */
-        .col-id { min-width: 60px; }
-        .col-docs { min-width: 180px; }
-        .col-date { min-width: 110px; }
-        .col-status { min-width: 95px; }
-        .col-amount { min-width: 90px; }
-        .col-payment { min-width: 90px; }
-        .col-actions { min-width: 85px; text-align: center; }
+        /* Compact columns for mobile */
+        .col-id { width: 60px; min-width: 60px; }
+        .col-docs { width: 140px; min-width: 140px; }
+        .col-date { width: 100px; min-width: 100px; }
+        .col-status { width: 85px; min-width: 85px; }
+        .col-amount { width: 85px; min-width: 85px; }
+        .col-payment { width: 80px; min-width: 80px; }
+        .col-actions { width: 75px; min-width: 75px; text-align: center; }
 
         .request-id {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           font-weight: 700;
         }
 
         .doc-main {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           white-space: normal;
           line-height: 1.3;
           word-break: break-word;
         }
 
         .date {
-          font-size: 0.72rem;
+          font-size: 0.68rem;
           line-height: 1.2;
         }
 
         .status-badge {
-          padding: 5px 8px;
-          font-size: 0.65rem;
-          letter-spacing: 0.2px;
+          padding: 4px 6px;
+          font-size: 0.6rem;
+          letter-spacing: 0.1px;
         }
 
         .amount {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
         }
 
         .payment-method {
-          padding: 5px 8px;
-          font-size: 0.68rem;
+          padding: 4px 6px;
+          font-size: 0.62rem;
         }
 
         .view-btn {
-          padding: 7px 12px;
-          font-size: 0.72rem;
-          gap: 4px;
+          padding: 6px 10px;
+          font-size: 0.68rem;
+          gap: 3px;
         }
 
         .view-btn i {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
         }
 
         .btn-text {
-          display: inline;
+          display: none;
         }
 
         .modal-content {
@@ -762,61 +780,57 @@ function renderTable(container, requests) {
 
       /* Extra Small Devices */
       @media (max-width: 480px) {
-        .modern-table {
-          min-width: 700px;
-        }
-
         .modern-table th {
-          padding: 10px 6px;
-          font-size: 0.68rem;
-        }
-
-        .modern-table td {
-          padding: 10px 6px;
-          font-size: 0.72rem;
-        }
-
-        .col-id { min-width: 55px; }
-        .col-docs { min-width: 170px; }
-        .col-date { min-width: 105px; }
-        .col-status { min-width: 90px; }
-        .col-amount { min-width: 85px; }
-        .col-payment { min-width: 85px; }
-        .col-actions { min-width: 80px; }
-
-        .request-id {
-          font-size: 0.72rem;
-        }
-
-        .doc-main {
-          font-size: 0.72rem;
-        }
-
-        .date {
-          font-size: 0.68rem;
-        }
-
-        .status-badge {
-          padding: 4px 7px;
-          font-size: 0.62rem;
-        }
-
-        .amount {
-          font-size: 0.72rem;
-        }
-
-        .payment-method {
-          padding: 4px 7px;
+          padding: 8px 6px;
           font-size: 0.65rem;
         }
 
-        .view-btn {
-          padding: 6px 10px;
+        .modern-table td {
+          padding: 8px 6px;
           font-size: 0.68rem;
         }
 
+        .col-id { width: 55px; min-width: 55px; }
+        .col-docs { width: 130px; min-width: 130px; }
+        .col-date { width: 95px; min-width: 95px; }
+        .col-status { width: 80px; min-width: 80px; }
+        .col-amount { width: 80px; min-width: 80px; }
+        .col-payment { width: 75px; min-width: 75px; }
+        .col-actions { width: 70px; min-width: 70px; }
+
+        .request-id {
+          font-size: 0.68rem;
+        }
+
+        .doc-main {
+          font-size: 0.68rem;
+        }
+
+        .date {
+          font-size: 0.65rem;
+        }
+
+        .status-badge {
+          padding: 3px 5px;
+          font-size: 0.58rem;
+        }
+
+        .amount {
+          font-size: 0.68rem;
+        }
+
+        .payment-method {
+          padding: 3px 5px;
+          font-size: 0.6rem;
+        }
+
+        .view-btn {
+          padding: 5px 8px;
+          font-size: 0.65rem;
+        }
+
         .view-btn i {
-          font-size: 0.7rem;
+          font-size: 0.68rem;
         }
 
         .modal-header h2 {
