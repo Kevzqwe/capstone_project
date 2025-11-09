@@ -183,12 +183,12 @@ function renderTable(container, requests) {
           <thead>
             <tr>
               <th class="col-id">ID</th>
-              <th class="col-docs">Documents</th>
-              <th class="col-date">Date</th>
-              <th class="col-status">Status</th>
-              <th class="col-amount">Amount</th>
-              <th class="col-payment">Payment</th>
-              <th class="col-actions">Actions</th>
+              <th class="col-docs">DOCUMENTS</th>
+              <th class="col-date">DATE</th>
+              <th class="col-status">STATUS</th>
+              <th class="col-amount">AMOUNT</th>
+              <th class="col-payment">PAYMENT</th>
+              <th class="col-actions">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -616,7 +616,7 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations */
+      /* Mobile Optimizations - FIXED */
       @media (max-width: 768px) {
         .table-container {
           margin: 10px 0;
@@ -624,39 +624,39 @@ function renderTable(container, requests) {
         }
 
         .modern-table {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
+          /* REMOVED min-width to let table fit screen */
         }
 
         .modern-table th {
-          padding: 10px 6px;
-          font-size: 0.68rem;
-          letter-spacing: 0.2px;
+          padding: 8px 4px;
+          font-size: 0.65rem;
+          letter-spacing: 0.1px;
         }
 
         .modern-table td {
-          padding: 10px 6px;
-          font-size: 0.72rem;
+          padding: 8px 4px;
+          font-size: 0.7rem;
         }
 
-        /* Wider columns for mobile to prevent text cutoff */
-        .col-id { width: 9%; }
-        .col-docs { width: 28%; }
-        .col-date { width: 15%; }
-        .col-status { width: 15%; }
-        .col-amount { width: 0%; }
-        .col-payment { width: 0%; }
-        .col-actions { width: 13%; }
+        /* Adjusted column widths for mobile - fits in screen */
+        .col-id { width: 12%; min-width: 40px; }
+        .col-docs { width: 30%; min-width: 100px; }
+        .col-date { width: 18%; min-width: 75px; }
+        .col-status { width: 18%; min-width: 70px; }
+        .col-amount { display: none; } /* Hidden on mobile */
+        .col-payment { display: none; } /* Hidden on mobile */
+        .col-actions { width: 22%; min-width: 65px; text-align: center; }
 
         /* Hide Amount and Payment columns on mobile */
-        .col-amount,
-        .col-payment,
         .amount,
         .payment {
           display: none;
         }
 
         .request-id {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
+          font-weight: 700;
         }
 
         .documents-summary {
@@ -664,27 +664,31 @@ function renderTable(container, requests) {
         }
 
         .doc-main {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           white-space: normal;
+          line-height: 1.2;
+          word-break: break-word;
         }
 
         .date {
-          font-size: 0.68rem;
+          font-size: 0.65rem;
+          line-height: 1.2;
         }
 
         .status-badge {
-          padding: 4px 7px;
-          font-size: 0.65rem;
+          padding: 3px 6px;
+          font-size: 0.6rem;
+          letter-spacing: 0.2px;
         }
 
         .view-btn {
-          padding: 6px 10px;
-          font-size: 0.72rem;
-          gap: 4px;
+          padding: 5px 8px;
+          font-size: 0.7rem;
+          gap: 3px;
         }
 
         .view-btn i {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
         }
 
         .btn-text {
@@ -738,42 +742,47 @@ function renderTable(container, requests) {
         }
       }
 
-      /* Extra Small Devices */
+      /* Extra Small Devices - IMPROVED */
       @media (max-width: 480px) {
+        .table-container {
+          margin: 8px 0;
+          border-radius: 6px;
+        }
+
         .modern-table th {
-          padding: 8px 4px;
-          font-size: 0.65rem;
-        }
-
-        .modern-table td {
-          padding: 8px 4px;
-          font-size: 0.7rem;
-        }
-
-        .request-id {
-          font-size: 0.7rem;
-        }
-
-        .doc-main {
-          font-size: 0.7rem;
-        }
-
-        .date {
-          font-size: 0.65rem;
-        }
-
-        .status-badge {
-          padding: 3px 6px;
+          padding: 7px 3px;
           font-size: 0.6rem;
         }
 
+        .modern-table td {
+          padding: 7px 3px;
+          font-size: 0.68rem;
+        }
+
+        .request-id {
+          font-size: 0.68rem;
+        }
+
+        .doc-main {
+          font-size: 0.68rem;
+        }
+
+        .date {
+          font-size: 0.6rem;
+        }
+
+        .status-badge {
+          padding: 3px 5px;
+          font-size: 0.58rem;
+        }
+
         .view-btn {
-          padding: 5px 8px;
-          font-size: 0.7rem;
+          padding: 4px 7px;
+          font-size: 0.68rem;
         }
 
         .view-btn i {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
         }
 
         .modal-header h2 {
