@@ -616,11 +616,12 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations - FIXED */
+      /* Mobile Optimizations - MAXIMIZED SPACE */
       @media (max-width: 768px) {
         .table-container {
-          margin: 10px 0;
-          border-radius: 8px;
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
         }
 
         .modern-table {
@@ -629,24 +630,24 @@ function renderTable(container, requests) {
         }
 
         .modern-table th {
-          padding: 8px 4px;
+          padding: 10px 5px;
           font-size: 0.65rem;
           letter-spacing: 0.1px;
         }
 
         .modern-table td {
-          padding: 8px 4px;
+          padding: 10px 5px;
           font-size: 0.7rem;
         }
 
-        /* Adjusted column widths for mobile - fits in screen */
-        .col-id { width: 12%; min-width: 40px; }
-        .col-docs { width: 30%; min-width: 100px; }
-        .col-date { width: 18%; min-width: 75px; }
-        .col-status { width: 18%; min-width: 70px; }
+        /* Maximized column widths for mobile - uses full screen */
+        .col-id { width: 8%; min-width: 35px; }
+        .col-docs { width: 40%; }
+        .col-date { width: 20%; }
+        .col-status { width: 17%; }
         .col-amount { display: none; } /* Hidden on mobile */
         .col-payment { display: none; } /* Hidden on mobile */
-        .col-actions { width: 22%; min-width: 65px; text-align: center; }
+        .col-actions { width: 15%; text-align: center; }
 
         /* Hide Amount and Payment columns on mobile */
         .amount,
@@ -664,25 +665,25 @@ function renderTable(container, requests) {
         }
 
         .doc-main {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
           white-space: normal;
-          line-height: 1.2;
+          line-height: 1.3;
           word-break: break-word;
         }
 
         .date {
-          font-size: 0.65rem;
+          font-size: 0.68rem;
           line-height: 1.2;
         }
 
         .status-badge {
-          padding: 3px 6px;
-          font-size: 0.6rem;
+          padding: 4px 6px;
+          font-size: 0.62rem;
           letter-spacing: 0.2px;
         }
 
         .view-btn {
-          padding: 5px 8px;
+          padding: 6px 10px;
           font-size: 0.7rem;
           gap: 3px;
         }
@@ -742,43 +743,43 @@ function renderTable(container, requests) {
         }
       }
 
-      /* Extra Small Devices - IMPROVED */
+      /* Extra Small Devices - MAXIMIZED */
       @media (max-width: 480px) {
         .table-container {
-          margin: 8px 0;
-          border-radius: 6px;
+          margin: 0;
+          border-radius: 0;
         }
 
         .modern-table th {
-          padding: 7px 3px;
-          font-size: 0.6rem;
+          padding: 9px 4px;
+          font-size: 0.63rem;
         }
 
         .modern-table td {
-          padding: 7px 3px;
-          font-size: 0.68rem;
+          padding: 9px 4px;
+          font-size: 0.7rem;
         }
 
         .request-id {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
         }
 
         .doc-main {
-          font-size: 0.68rem;
+          font-size: 0.7rem;
         }
 
         .date {
-          font-size: 0.6rem;
+          font-size: 0.66rem;
         }
 
         .status-badge {
-          padding: 3px 5px;
-          font-size: 0.58rem;
+          padding: 4px 6px;
+          font-size: 0.6rem;
         }
 
         .view-btn {
-          padding: 4px 7px;
-          font-size: 0.68rem;
+          padding: 5px 9px;
+          font-size: 0.7rem;
         }
 
         .view-btn i {
