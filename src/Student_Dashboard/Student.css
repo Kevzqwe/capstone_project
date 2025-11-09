@@ -358,6 +358,12 @@ body {
     transform: scale(0.95);
 }
 
+.burger-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
 /* Content Pages */
 .page-content {
     padding: 40px;
@@ -1140,14 +1146,24 @@ body {
         gap: 0;
         flex-shrink: 0;
         align-items: center;
-        padding-right: 15px;
+        padding: 0;
         height: 60px;
+        width: 50px;
+        justify-content: center;
+        border-left: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .action-btn {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 60px;
         font-size: 18px;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .action-btn img {
+        width: 20px;
+        height: 20px;
     }
 
     /* Page content with proper top spacing */
@@ -1341,14 +1357,20 @@ body {
     }
 
     .header-actions {
-        padding-right: 12px;
+        padding: 0;
         height: 56px;
+        width: 48px;
     }
 
     .action-btn {
-        width: 38px;
-        height: 38px;
+        width: 48px;
+        height: 56px;
         font-size: 16px;
+    }
+
+    .action-btn img {
+        width: 18px;
+        height: 18px;
     }
 
     .page-content {
@@ -1500,14 +1522,20 @@ body {
     }
 
     .header-actions {
-        padding-right: 10px;
+        padding: 0;
         height: 52px;
+        width: 45px;
     }
 
     .action-btn {
-        width: 36px;
-        height: 36px;
+        width: 45px;
+        height: 52px;
         font-size: 15px;
+    }
+
+    .action-btn img {
+        width: 16px;
+        height: 16px;
     }
 
     .page-content {
