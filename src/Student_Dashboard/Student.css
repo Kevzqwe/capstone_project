@@ -492,6 +492,11 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .document-card:hover {
@@ -501,12 +506,13 @@ body {
 }
 
 .document-icon {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     margin: 0 auto 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .document-icon img {
@@ -533,20 +539,22 @@ body {
     align-items: center;
     gap: 25px;
     margin-bottom: 35px;
-    padding: 35px;
+    padding: 30px;
     background: linear-gradient(135deg, #2A3663, #4a5568);
     border-radius: 16px;
     color: white;
     box-shadow: 0 8px 25px rgba(42, 54, 99, 0.3);
+    max-width: 500px;
 }
 
 .account-avatar {
-    width: 90px;
-    height: 90px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     border: 4px solid white;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
 }
 
 .account-avatar img {
@@ -558,7 +566,7 @@ body {
 .account-info h2 {
     margin-bottom: 8px;
     font-weight: 700;
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .student-no {
@@ -1074,10 +1082,10 @@ body {
         background: transparent;
     }
 
-    /* Sidebar - FULL SCREEN with same desktop gradient */
+    /* Sidebar - HALF SCREEN with same desktop gradient */
     .sidebar {
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 50vw !important;
+        max-width: 50vw !important;
         height: 100vh !important;
         transform: translateX(-100%) !important;
         background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%) !important;
@@ -1091,18 +1099,6 @@ body {
 
     .sidebar.mobile-open {
         transform: translateX(0) !important;
-    }
-
-    /* Overlay when sidebar is open */
-    .sidebar.mobile-open::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: transparent;
-        z-index: -1;
     }
 
     /* Header - Mobile Layout */
@@ -1235,7 +1231,7 @@ body {
         z-index: 10;
     }
 
-    /* Main content area - NO WHITE SPACE */
+    /* Main content area */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
@@ -1306,7 +1302,7 @@ body {
         box-sizing: border-box;
     }
 
-    /* Documents grid */
+    /* Documents grid - side by side on mobile */
     .documents-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
@@ -1318,34 +1314,42 @@ body {
         padding: 20px 15px;
         width: 100%;
         box-sizing: border-box;
+        aspect-ratio: 1 / 1;
     }
 
     .document-icon {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
     }
 
     .document-title {
         font-size: 14px;
     }
 
-    /* Account page */
+    /* Account page - smaller header */
     .account-header {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
         padding: 25px 20px;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        gap: 20px;
     }
 
     .account-avatar {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
+        flex-shrink: 0;
     }
 
     .account-info h2 {
-        font-size: 20px;
+        font-size: 18px;
+    }
+
+    .student-no {
+        font-size: 13px;
     }
 
     .account-form {
@@ -1509,18 +1513,21 @@ body {
         margin-top: 20px;
     }
 
-    /* Documents grid - single column on very small screens */
+    /* Documents grid - keep side by side */
     .documents-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
     .document-card {
         padding: 18px 12px;
+        aspect-ratio: 1 / 1;
     }
 
     .document-icon {
-        width: 70px;
-        height: 70px;
+        width: 50px;
+        height: 50px;
+        margin-bottom: 12px;
     }
 
     .document-title {
@@ -1531,17 +1538,23 @@ body {
         font-size: 11px;
     }
 
+    /* Account header - smaller */
     .account-header {
         padding: 20px 15px;
+        gap: 15px;
     }
 
     .account-avatar {
-        width: 70px;
-        height: 70px;
+        width: 55px;
+        height: 55px;
     }
 
     .account-info h2 {
-        font-size: 18px;
+        font-size: 16px;
+    }
+
+    .student-no {
+        font-size: 12px;
     }
 
     .account-form {
@@ -1668,6 +1681,42 @@ body {
 
     .info-card {
         padding: 15px 10px;
+    }
+
+    /* Documents grid */
+    .documents-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .document-card {
+        padding: 15px 10px;
+        aspect-ratio: 1 / 1;
+    }
+
+    .document-icon {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 10px;
+    }
+
+    /* Account header */
+    .account-header {
+        padding: 18px 12px;
+        gap: 12px;
+    }
+
+    .account-avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    .account-info h2 {
+        font-size: 15px;
+    }
+
+    .student-no {
+        font-size: 11px;
     }
 
     .notification-dropdown {
