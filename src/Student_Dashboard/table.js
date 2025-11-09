@@ -305,7 +305,7 @@ function renderTable(container, requests) {
         background: #2980b9;
       }
 
-      /* FULL WIDTH TABLE CONTAINER - NO RESTRICTIONS */
+      /* FULL WIDTH TABLE CONTAINER */
       .table-container {
         background: white;
         border-radius: 0;
@@ -337,26 +337,26 @@ function renderTable(container, requests) {
         font-size: 0.9rem;
         margin: 0;
         padding: 0;
-        table-layout: auto;
+        table-layout: fixed;
       }
 
       .modern-table th {
         background: #34495e;
         color: white;
-        padding: 14px 10px;
+        padding: 12px 8px;
         text-align: left;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.3px;
         white-space: nowrap;
       }
 
       .modern-table td {
-        padding: 12px 10px;
+        padding: 10px 8px;
         border-bottom: 1px solid #ecf0f1;
         vertical-align: middle;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
       }
 
       .table-row:hover {
@@ -364,46 +364,43 @@ function renderTable(container, requests) {
         transition: background 0.2s;
       }
 
-      /* Column Width Control - Desktop */
-      .col-id { width: 8%; }
-      .col-docs { width: 22%; }
-      .col-date { width: 14%; }
-      .col-status { width: 12%; }
-      .col-amount { width: 12%; }
-      .col-payment { width: 12%; }
-      .col-actions { width: 12%; text-align: center; }
+      /* Column Width Control - Desktop - FIT TO SCREEN */
+      .col-id { width: 7%; }
+      .col-docs { width: 25%; }
+      .col-date { width: 12%; }
+      .col-status { width: 11%; }
+      .col-amount { width: 11%; }
+      .col-payment { width: 11%; }
+      .col-actions { width: 13%; text-align: center; }
 
       .request-id {
         font-weight: 600;
         color: #2c3e50;
         white-space: nowrap;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
       }
 
       .documents-summary {
-        max-width: 200px;
+        width: 100%;
       }
 
       .doc-main {
         font-weight: 500;
         color: #2c3e50;
         line-height: 1.3;
-        font-size: 0.85rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: 0.8rem;
       }
 
       .date {
         white-space: nowrap;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #555;
       }
 
       .status-badge {
         padding: 5px 10px;
         border-radius: 12px;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.3px;
@@ -420,14 +417,14 @@ function renderTable(container, requests) {
       .amount {
         font-weight: 600;
         color: #27ae60;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         white-space: nowrap;
       }
 
       .payment-method {
         padding: 4px 8px;
         border-radius: 4px;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 500;
         display: inline-block;
         white-space: nowrap;
@@ -442,10 +439,10 @@ function renderTable(container, requests) {
         background: #3498db;
         color: white;
         border: none;
-        padding: 7px 14px;
+        padding: 6px 12px;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -462,7 +459,7 @@ function renderTable(container, requests) {
       }
 
       .view-btn i {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
       }
 
       .btn-text {
@@ -656,79 +653,80 @@ function renderTable(container, requests) {
           padding: 0;
         }
 
-        /* Make table scrollable horizontally */
+        /* Make table fit mobile with proper spacing */
         .modern-table {
-          min-width: 100%;
-          width: max-content;
-          font-size: 0.75rem;
+          width: 100%;
+          font-size: 0.7rem;
           margin: 0;
           padding: 0;
+          table-layout: fixed;
         }
 
         .modern-table th {
-          padding: 10px 8px;
-          font-size: 0.68rem;
-          letter-spacing: 0.2px;
-        }
-
-        .modern-table td {
-          padding: 10px 8px;
-          font-size: 0.72rem;
-        }
-
-        /* Compact columns for mobile */
-        .col-id { width: 60px; min-width: 60px; }
-        .col-docs { width: 140px; min-width: 140px; }
-        .col-date { width: 100px; min-width: 100px; }
-        .col-status { width: 85px; min-width: 85px; }
-        .col-amount { width: 85px; min-width: 85px; }
-        .col-payment { width: 80px; min-width: 80px; }
-        .col-actions { width: 75px; min-width: 75px; text-align: center; }
-
-        .request-id {
-          font-size: 0.72rem;
-          font-weight: 700;
-        }
-
-        .doc-main {
-          font-size: 0.7rem;
-          white-space: normal;
-          line-height: 1.3;
-          word-break: break-word;
-        }
-
-        .date {
-          font-size: 0.68rem;
-          line-height: 1.2;
-        }
-
-        .status-badge {
-          padding: 4px 6px;
+          padding: 8px 4px;
           font-size: 0.6rem;
           letter-spacing: 0.1px;
         }
 
+        .modern-table td {
+          padding: 8px 4px;
+          font-size: 0.65rem;
+        }
+
+        /* Mobile column widths - FIT TO SCREEN */
+        .col-id { width: 9%; }
+        .col-docs { width: 0%; display: none; }
+        .col-date { width: 22%; }
+        .col-status { width: 18%; }
+        .col-amount { width: 17%; }
+        .col-payment { width: 17%; }
+        .col-actions { width: 17%; text-align: center; }
+
+        .request-id {
+          font-size: 0.65rem;
+          font-weight: 700;
+        }
+
+        .documents-summary {
+          display: none;
+        }
+
+        .doc-main {
+          display: none;
+        }
+
+        .date {
+          font-size: 0.62rem;
+          line-height: 1.2;
+        }
+
+        .status-badge {
+          padding: 3px 5px;
+          font-size: 0.55rem;
+          letter-spacing: 0px;
+        }
+
         .amount {
-          font-size: 0.72rem;
+          font-size: 0.65rem;
         }
 
         .payment-method {
-          padding: 4px 6px;
-          font-size: 0.62rem;
+          padding: 3px 5px;
+          font-size: 0.55rem;
         }
 
         .view-btn {
-          padding: 6px 10px;
-          font-size: 0.68rem;
+          padding: 5px 8px;
+          font-size: 0.6rem;
           gap: 3px;
         }
 
         .view-btn i {
-          font-size: 0.7rem;
+          font-size: 0.65rem;
         }
 
         .btn-text {
-          display: none;
+          display: inline;
         }
 
         .modal-content {
@@ -781,56 +779,51 @@ function renderTable(container, requests) {
       /* Extra Small Devices */
       @media (max-width: 480px) {
         .modern-table th {
-          padding: 8px 6px;
-          font-size: 0.65rem;
-        }
-
-        .modern-table td {
-          padding: 8px 6px;
-          font-size: 0.68rem;
-        }
-
-        .col-id { width: 55px; min-width: 55px; }
-        .col-docs { width: 130px; min-width: 130px; }
-        .col-date { width: 95px; min-width: 95px; }
-        .col-status { width: 80px; min-width: 80px; }
-        .col-amount { width: 80px; min-width: 80px; }
-        .col-payment { width: 75px; min-width: 75px; }
-        .col-actions { width: 70px; min-width: 70px; }
-
-        .request-id {
-          font-size: 0.68rem;
-        }
-
-        .doc-main {
-          font-size: 0.68rem;
-        }
-
-        .date {
-          font-size: 0.65rem;
-        }
-
-        .status-badge {
-          padding: 3px 5px;
+          padding: 7px 3px;
           font-size: 0.58rem;
         }
 
-        .amount {
-          font-size: 0.68rem;
+        .modern-table td {
+          padding: 7px 3px;
+          font-size: 0.62rem;
         }
 
-        .payment-method {
-          padding: 3px 5px;
+        .col-id { width: 10%; }
+        .col-date { width: 22%; }
+        .col-status { width: 17%; }
+        .col-amount { width: 17%; }
+        .col-payment { width: 17%; }
+        .col-actions { width: 17%; }
+
+        .request-id {
+          font-size: 0.62rem;
+        }
+
+        .date {
           font-size: 0.6rem;
         }
 
+        .status-badge {
+          padding: 2px 4px;
+          font-size: 0.52rem;
+        }
+
+        .amount {
+          font-size: 0.62rem;
+        }
+
+        .payment-method {
+          padding: 2px 4px;
+          font-size: 0.52rem;
+        }
+
         .view-btn {
-          padding: 5px 8px;
-          font-size: 0.65rem;
+          padding: 4px 6px;
+          font-size: 0.58rem;
         }
 
         .view-btn i {
-          font-size: 0.68rem;
+          font-size: 0.6rem;
         }
 
         .modal-header h2 {
