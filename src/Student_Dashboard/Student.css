@@ -1115,15 +1115,20 @@ body {
 
     .menu-toggle {
         display: flex !important;
-        width: 50px;
+        width: 60px;
         height: 60px;
         flex-shrink: 0;
-        background: transparent;
+        background: transparent !important;
         border-radius: 0;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 22px;
         border-right: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: none !important;
+    }
+
+    .menu-toggle:hover {
+        background: rgba(0, 0, 0, 0.03) !important;
     }
 
     .header-title {
@@ -1148,22 +1153,34 @@ body {
         align-items: center;
         padding: 0;
         height: 60px;
-        width: 50px;
+        width: 60px;
         justify-content: center;
         border-left: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .action-btn {
-        width: 50px;
-        height: 60px;
-        font-size: 18px;
-        border-radius: 0;
-        background: transparent;
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 20px;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .action-btn:hover {
+        background: rgba(0, 0, 0, 0.03) !important;
+        transform: none !important;
+        box-shadow: none !important;
     }
 
     .action-btn img {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .burger-icon {
+        width: 24px;
+        height: 24px;
     }
 
     /* Page content with proper top spacing */
@@ -1345,9 +1362,9 @@ body {
     }
 
     .menu-toggle {
-        width: 48px;
+        width: 56px;
         height: 56px;
-        font-size: 18px;
+        font-size: 20px;
     }
 
     .header-title {
@@ -1359,18 +1376,23 @@ body {
     .header-actions {
         padding: 0;
         height: 56px;
-        width: 48px;
+        width: 56px;
     }
 
     .action-btn {
-        width: 48px;
-        height: 56px;
-        font-size: 16px;
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 18px;
     }
 
     .action-btn img {
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .burger-icon {
+        width: 22px;
+        height: 22px;
     }
 
     .page-content {
@@ -1510,9 +1532,9 @@ body {
     }
 
     .menu-toggle {
-        width: 45px;
+        width: 52px;
         height: 52px;
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .header-title {
@@ -1524,18 +1546,23 @@ body {
     .header-actions {
         padding: 0;
         height: 52px;
-        width: 45px;
+        width: 52px;
     }
 
     .action-btn {
-        width: 45px;
-        height: 52px;
-        font-size: 15px;
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 16px;
     }
 
     .action-btn img {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .burger-icon {
+        width: 20px;
+        height: 20px;
     }
 
     .page-content {
