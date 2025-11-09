@@ -616,45 +616,56 @@ function renderTable(container, requests) {
         font-size: 1rem;
       }
 
-      /* Mobile Optimizations - WITH HORIZONTAL SCROLL */
+      /* Mobile Optimizations - FULL WIDTH WITH HORIZONTAL SCROLL */
       @media (max-width: 768px) {
+        /* Remove container restrictions to use full width */
+        #requestHistoryTableContainer {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+        }
+
         .table-container {
-          margin: 0;
-          border-radius: 0;
-          box-shadow: none;
+          margin: 0 !important;
+          padding: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
         }
 
         .table-wrapper {
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
-          /* Enable horizontal scrolling */
+          width: 100%;
+          padding: 0;
         }
 
         .modern-table {
-          min-width: 700px;
-          /* Set minimum width to force horizontal scroll */
+          min-width: 750px;
           font-size: 0.75rem;
         }
 
         .modern-table th {
-          padding: 10px 8px;
-          font-size: 0.65rem;
+          padding: 12px 8px;
+          font-size: 0.7rem;
           letter-spacing: 0.2px;
         }
 
         .modern-table td {
-          padding: 10px 8px;
+          padding: 12px 8px;
           font-size: 0.75rem;
         }
 
-        /* All columns remain visible with fixed widths */
+        /* All columns visible with proper spacing */
         .col-id { min-width: 60px; }
-        .col-docs { min-width: 150px; }
-        .col-date { min-width: 100px; }
-        .col-status { min-width: 90px; }
+        .col-docs { min-width: 180px; }
+        .col-date { min-width: 110px; }
+        .col-status { min-width: 95px; }
         .col-amount { min-width: 90px; }
         .col-payment { min-width: 90px; }
-        .col-actions { min-width: 80px; text-align: center; }
+        .col-actions { min-width: 85px; text-align: center; }
 
         .request-id {
           font-size: 0.75rem;
@@ -669,13 +680,13 @@ function renderTable(container, requests) {
         }
 
         .date {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
           line-height: 1.2;
         }
 
         .status-badge {
-          padding: 4px 7px;
-          font-size: 0.62rem;
+          padding: 5px 8px;
+          font-size: 0.65rem;
           letter-spacing: 0.2px;
         }
 
@@ -684,13 +695,13 @@ function renderTable(container, requests) {
         }
 
         .payment-method {
-          padding: 4px 7px;
-          font-size: 0.65rem;
+          padding: 5px 8px;
+          font-size: 0.68rem;
         }
 
         .view-btn {
-          padding: 6px 10px;
-          font-size: 0.7rem;
+          padding: 7px 12px;
+          font-size: 0.72rem;
           gap: 4px;
         }
 
@@ -752,27 +763,26 @@ function renderTable(container, requests) {
       /* Extra Small Devices */
       @media (max-width: 480px) {
         .modern-table {
-          min-width: 650px;
-          /* Slightly smaller minimum width for very small devices */
+          min-width: 700px;
         }
 
         .modern-table th {
-          padding: 9px 6px;
-          font-size: 0.63rem;
+          padding: 10px 6px;
+          font-size: 0.68rem;
         }
 
         .modern-table td {
-          padding: 9px 6px;
+          padding: 10px 6px;
           font-size: 0.72rem;
         }
 
         .col-id { min-width: 55px; }
-        .col-docs { min-width: 140px; }
-        .col-date { min-width: 95px; }
-        .col-status { min-width: 85px; }
+        .col-docs { min-width: 170px; }
+        .col-date { min-width: 105px; }
+        .col-status { min-width: 90px; }
         .col-amount { min-width: 85px; }
         .col-payment { min-width: 85px; }
-        .col-actions { min-width: 75px; }
+        .col-actions { min-width: 80px; }
 
         .request-id {
           font-size: 0.72rem;
@@ -787,8 +797,8 @@ function renderTable(container, requests) {
         }
 
         .status-badge {
-          padding: 4px 6px;
-          font-size: 0.6rem;
+          padding: 4px 7px;
+          font-size: 0.62rem;
         }
 
         .amount {
@@ -796,12 +806,12 @@ function renderTable(container, requests) {
         }
 
         .payment-method {
-          padding: 4px 6px;
-          font-size: 0.63rem;
+          padding: 4px 7px;
+          font-size: 0.65rem;
         }
 
         .view-btn {
-          padding: 5px 9px;
+          padding: 6px 10px;
           font-size: 0.68rem;
         }
 
