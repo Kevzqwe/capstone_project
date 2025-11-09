@@ -218,6 +218,7 @@ function renderTable(container, requests) {
                   <button class="view-btn" onclick="openRequestModal(${req.request_id})" 
                     data-request='${JSON.stringify(req).replace(/'/g, "&#39;")}'>
                     <i class="fas fa-eye"></i>
+                    <span class="btn-text">View</span>
                   </button>
                 </td>
               </tr>
@@ -327,7 +328,7 @@ function renderTable(container, requests) {
       .modern-table th {
         background: #34495e;
         color: white;
-        padding: 14px 8px;
+        padding: 14px 10px;
         text-align: left;
         font-weight: 600;
         font-size: 0.8rem;
@@ -337,7 +338,7 @@ function renderTable(container, requests) {
       }
 
       .modern-table td {
-        padding: 12px 8px;
+        padding: 12px 10px;
         border-bottom: 1px solid #ecf0f1;
         vertical-align: middle;
         font-size: 0.85rem;
@@ -348,31 +349,31 @@ function renderTable(container, requests) {
         transition: background 0.2s;
       }
 
-      /* Column Width Control */
-      .col-id { width: 8%; min-width: 50px; }
-      .col-docs { width: 20%; min-width: 100px; }
-      .col-date { width: 15%; min-width: 90px; }
-      .col-status { width: 15%; min-width: 85px; }
-      .col-amount { width: 13%; min-width: 70px; }
-      .col-payment { width: 14%; min-width: 70px; }
-      .col-actions { width: 10%; min-width: 50px; text-align: center; }
+      /* Column Width Control - Desktop */
+      .col-id { width: 8%; }
+      .col-docs { width: 22%; }
+      .col-date { width: 14%; }
+      .col-status { width: 12%; }
+      .col-amount { width: 12%; }
+      .col-payment { width: 12%; }
+      .col-actions { width: 12%; text-align: center; }
 
       .request-id {
         font-weight: 600;
         color: #2c3e50;
         white-space: nowrap;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
       }
 
       .documents-summary {
-        max-width: 150px;
+        max-width: 200px;
       }
 
       .doc-main {
         font-weight: 500;
         color: #2c3e50;
         line-height: 1.3;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -380,14 +381,14 @@ function renderTable(container, requests) {
 
       .date {
         white-space: nowrap;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: #555;
       }
 
       .status-badge {
-        padding: 4px 8px;
+        padding: 5px 10px;
         border-radius: 12px;
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.3px;
@@ -404,14 +405,14 @@ function renderTable(container, requests) {
       .amount {
         font-weight: 600;
         color: #27ae60;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         white-space: nowrap;
       }
 
       .payment-method {
-        padding: 3px 6px;
+        padding: 4px 8px;
         border-radius: 4px;
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         font-weight: 500;
         display: inline-block;
         white-space: nowrap;
@@ -426,18 +427,17 @@ function renderTable(container, requests) {
         background: #3498db;
         color: white;
         border: none;
-        padding: 6px 10px;
+        padding: 7px 14px;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 5px;
         transition: all 0.2s;
         font-weight: 500;
         white-space: nowrap;
-        min-width: 36px;
-        height: 32px;
       }
 
       .view-btn:hover {
@@ -447,7 +447,11 @@ function renderTable(container, requests) {
       }
 
       .view-btn i {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+      }
+
+      .btn-text {
+        display: inline;
       }
 
       /* Modal Styles */
@@ -624,60 +628,67 @@ function renderTable(container, requests) {
         }
 
         .modern-table th {
-          padding: 10px 4px;
-          font-size: 0.65rem;
+          padding: 10px 6px;
+          font-size: 0.68rem;
           letter-spacing: 0.2px;
         }
 
         .modern-table td {
-          padding: 10px 4px;
-          font-size: 0.7rem;
+          padding: 10px 6px;
+          font-size: 0.72rem;
         }
 
-        /* Tighter column widths for mobile */
-        .col-id { width: 10%; min-width: 45px; }
-        .col-docs { width: 22%; min-width: 80px; }
-        .col-date { width: 16%; min-width: 75px; }
-        .col-status { width: 14%; min-width: 70px; }
-        .col-amount { width: 14%; min-width: 65px; }
-        .col-payment { width: 14%; min-width: 65px; }
-        .col-actions { width: 10%; min-width: 45px; }
+        /* Wider columns for mobile to prevent text cutoff */
+        .col-id { width: 9%; }
+        .col-docs { width: 28%; }
+        .col-date { width: 15%; }
+        .col-status { width: 15%; }
+        .col-amount { width: 0%; }
+        .col-payment { width: 0%; }
+        .col-actions { width: 13%; }
+
+        /* Hide Amount and Payment columns on mobile */
+        .col-amount,
+        .col-payment,
+        .amount,
+        .payment {
+          display: none;
+        }
 
         .request-id {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
+        }
+
+        .documents-summary {
+          max-width: none;
         }
 
         .doc-main {
-          font-size: 0.7rem;
+          font-size: 0.72rem;
+          white-space: normal;
         }
 
         .date {
-          font-size: 0.65rem;
+          font-size: 0.68rem;
         }
 
         .status-badge {
-          padding: 3px 6px;
-          font-size: 0.6rem;
-        }
-
-        .payment-method {
-          padding: 2px 5px;
-          font-size: 0.6rem;
-        }
-
-        .amount {
-          font-size: 0.7rem;
+          padding: 4px 7px;
+          font-size: 0.65rem;
         }
 
         .view-btn {
-          padding: 5px 8px;
-          min-width: 32px;
-          height: 28px;
-          font-size: 0.8rem;
+          padding: 6px 10px;
+          font-size: 0.72rem;
+          gap: 4px;
         }
 
         .view-btn i {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
+        }
+
+        .btn-text {
+          display: inline;
         }
 
         .modal-content {
@@ -730,44 +741,35 @@ function renderTable(container, requests) {
       /* Extra Small Devices */
       @media (max-width: 480px) {
         .modern-table th {
-          padding: 8px 3px;
-          font-size: 0.6rem;
+          padding: 8px 4px;
+          font-size: 0.65rem;
         }
 
         .modern-table td {
-          padding: 8px 3px;
-          font-size: 0.65rem;
+          padding: 8px 4px;
+          font-size: 0.7rem;
         }
 
         .request-id {
-          font-size: 0.65rem;
+          font-size: 0.7rem;
         }
 
         .doc-main {
-          font-size: 0.65rem;
+          font-size: 0.7rem;
         }
 
         .date {
-          font-size: 0.6rem;
-        }
-
-        .status-badge {
-          padding: 2px 4px;
-          font-size: 0.55rem;
-        }
-
-        .payment-method {
-          font-size: 0.55rem;
-        }
-
-        .amount {
           font-size: 0.65rem;
         }
 
+        .status-badge {
+          padding: 3px 6px;
+          font-size: 0.6rem;
+        }
+
         .view-btn {
-          padding: 4px 6px;
-          min-width: 28px;
-          height: 24px;
+          padding: 5px 8px;
+          font-size: 0.7rem;
         }
 
         .view-btn i {
