@@ -189,13 +189,18 @@ export const useAdminDashboard = () => {
             });
             
             if (!response.ok) {
+                // clear flag before throwing
+                sessionCheckInProgress.current = false;
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
             console.log('📋 Session check response:', data);
             
-            if (data.logged_in && data.role === 'admin') {
+            // Accept multiple possible session indicators to match student script behavior
+            const sessionValid = (data.logged_in || data.authenticated || data.session_exists) && (data.role === 'admin' || (data.role && String(data.role).toLowerCase() === 'admin'));
+            
+            if (sessionValid) {
                 console.log('✅ Valid admin session found');
                 setSessionChecked(true);
                 setIsAuthenticating(false);
@@ -203,14 +208,15 @@ export const useAdminDashboard = () => {
                 return true;
             } else {
                 console.warn('❌ No valid session found:', data);
-                handleAuthenticationError('No valid session');
+                // always clear the flag before handling auth error
                 sessionCheckInProgress.current = false;
+                handleAuthenticationError('No valid session');
                 return false;
             }
         } catch (error) {
             console.error('❌ Session check failed:', error);
-            handleAuthenticationError('Session check failed');
             sessionCheckInProgress.current = false;
+            handleAuthenticationError('Session check failed');
             return false;
         }
     }, [sessionChecked, handleAuthenticationError]);
@@ -221,18 +227,22 @@ export const useAdminDashboard = () => {
         try {
             console.log('📡 Fetching:', url);
             
+            // Ensure our defaults (credentials, headers) are always present.
+            // Merge order changed so passed options won't accidentally remove credentials/headers.
             const defaultOptions = {
                 credentials: 'include',
                 mode: 'cors',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Cache-Control': 'no-cache',
-                    ...options.headers
+                    'Cache-Control': 'no-cache'
                 }
             };
             
-            const response = await fetch(url, { ...defaultOptions, ...options });
+            // Merge so defaults are preserved (options may override selectively but won't remove credentials)
+            const merged = { ...defaultOptions, ...options, headers: { ...defaultOptions.headers, ...(options.headers || {}) } };
+            
+            const response = await fetch(url, merged);
             
             console.log('📥 Response status:', response.status);
             
@@ -253,16 +263,16 @@ export const useAdminDashboard = () => {
             console.log('📦 Response data received');
             
             // Check for authentication errors in response
-            if (data.status === 'error') {
+            if (data && data.status === 'error') {
                 if (data.redirect || 
                     data.session_expired ||
                     data.message === 'Not authenticated' || 
                     data.message === 'Not authenticated - Please login' ||
                     data.message === 'Email missing in session' ||
                     data.message === 'Not authorized - Admin access required' ||
-                    data.message.toLowerCase().includes('not authenticated') ||
-                    data.message.toLowerCase().includes('session')) {
-                    handleAuthenticationError(data.message);
+                    (data.message && data.message.toLowerCase().includes('not authenticated')) ||
+                    (data.message && data.message.toLowerCase().includes('session'))) {
+                    handleAuthenticationError(data.message || 'Authentication error');
                     return null;
                 }
             }
