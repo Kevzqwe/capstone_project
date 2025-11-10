@@ -52,6 +52,11 @@ function normalizeKeys(obj) {
 // Prevent multiple simultaneous calls
 let isLoading = false;
 
+// Pagination state
+let currentPage = 1;
+let rowsPerPage = 10;
+let allRequests = [];
+
 // Main function
 export async function RequestHistoryTable() {
   console.log('🔄 RequestHistoryTable function called');
@@ -114,7 +119,37 @@ export async function RequestHistoryTable() {
       console.log(`✅ Rendering ${result.data.length} document entries`);
       // Normalize all data keys
       const normalizedData = result.data.map(normalizeKeys);
-      renderTable(container, normalizedData);
+      
+      // Group requests by Request_ID to handle multiple documents per request
+      const grouped = {};
+      normalizedData.forEach((r) => {
+        const id = r.Request_ID || r.request_id;
+        if (!grouped[id]) {
+          grouped[id] = { 
+            request_id: id,
+            date_requested: r.Date_Requested || r.date_requested,
+            status: r.Status || r.status,
+            payment_method: r.Payment_Method || r.payment_method,
+            documents: [],
+            total_amount: 0
+          };
+        }
+        
+        // Add document details
+        const subtotal = parseFloat(r.Subtotal || r.subtotal || 0);
+        grouped[id].total_amount += subtotal;
+        
+        grouped[id].documents.push({
+          document_type: r.Document_Type || r.document_type,
+          quantity: r.Quantity || r.quantity,
+          unit_price: r.Unit_Price || r.unit_price,
+          subtotal: subtotal
+        });
+      });
+
+      allRequests = Object.values(grouped);
+      currentPage = 1;
+      renderTable(container, allRequests);
     } else {
       console.log('ℹ️ No data found');
       container.innerHTML = `
@@ -144,37 +179,12 @@ export async function RequestHistoryTable() {
 
 // === Render Table Function ===
 function renderTable(container, requests) {
-  console.log('📋 Raw requests data:', requests);
+  console.log('📋 Rendering table with requests:', requests);
 
-  // Group requests by Request_ID to handle multiple documents per request
-  const grouped = {};
-  requests.forEach((r) => {
-    const id = r.Request_ID || r.request_id;
-    if (!grouped[id]) {
-      grouped[id] = { 
-        request_id: id,
-        date_requested: r.Date_Requested || r.date_requested,
-        status: r.Status || r.status,
-        payment_method: r.Payment_Method || r.payment_method,
-        documents: [],
-        total_amount: 0
-      };
-    }
-    
-    // Add document details
-    const subtotal = parseFloat(r.Subtotal || r.subtotal || 0);
-    grouped[id].total_amount += subtotal;
-    
-    grouped[id].documents.push({
-      document_type: r.Document_Type || r.document_type,
-      quantity: r.Quantity || r.quantity,
-      unit_price: r.Unit_Price || r.unit_price,
-      subtotal: subtotal
-    });
-  });
-
-  const uniqueRequests = Object.values(grouped);
-  console.log('📦 Grouped requests:', uniqueRequests);
+  const totalPages = Math.ceil(requests.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedRequests = requests.slice(startIndex, endIndex);
 
   container.innerHTML = `
     <div class="table-container">
@@ -192,7 +202,7 @@ function renderTable(container, requests) {
             </tr>
           </thead>
           <tbody>
-            ${uniqueRequests.map(req => {
+            ${paginatedRequests.map(req => {
               // Create a summary of documents
               const docSummary = req.documents.length === 1 
                 ? req.documents[0].document_type 
@@ -231,6 +241,28 @@ function renderTable(container, requests) {
             }).join('')}
           </tbody>
         </table>
+      </div>
+      
+      <!-- Pagination Controls -->
+      <div class="pagination-container">
+        <div class="pagination-info">
+          Showing ${startIndex + 1} to ${Math.min(endIndex, requests.length)} of ${requests.length} entries
+        </div>
+        <div class="pagination-controls">
+          <button class="pagination-btn" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-left"></i>
+          </button>
+          ${generatePageNumbers(currentPage, totalPages)}
+          <button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+            <i class="fas fa-angle-right"></i>
+          </button>
+          <button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -328,17 +360,17 @@ function renderTable(container, requests) {
       .modern-table th {
         background: #34495e;
         color: white;
-        padding: 16px 12px;
+        padding: 12px 10px;
         text-align: left;
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         white-space: nowrap;
       }
 
       .modern-table td {
-        padding: 16px 12px;
+        padding: 12px 10px;
         border-bottom: 1px solid #ecf0f1;
         vertical-align: middle;
       }
@@ -408,7 +440,7 @@ function renderTable(container, requests) {
         background: #3498db;
         color: white;
         border: none;
-        padding: 8px 16px;
+        padding: 8px 14px;
         border-radius: 6px;
         cursor: pointer;
         font-size: 0.8rem;
@@ -424,6 +456,62 @@ function renderTable(container, requests) {
         background: #2980b9;
         transform: translateY(-1px);
         box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+      }
+
+      /* Pagination Styles */
+      .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #ecf0f1;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .pagination-info {
+        color: #7f8c8d;
+        font-size: 0.85rem;
+      }
+
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .pagination-btn {
+        background: white;
+        border: 1px solid #ddd;
+        color: #34495e;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        min-width: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+      }
+
+      .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .pagination-btn.active {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+        font-weight: 600;
       }
 
       /* Modal Styles */
@@ -455,7 +543,7 @@ function renderTable(container, requests) {
       }
 
       .modal-header {
-        padding: 24px;
+        padding: 20px;
         border-bottom: 1px solid #ecf0f1;
         display: flex;
         justify-content: space-between;
@@ -487,7 +575,7 @@ function renderTable(container, requests) {
       }
 
       .modal-body {
-        padding: 24px;
+        padding: 20px;
         max-height: 60vh;
         overflow-y: auto;
       }
@@ -575,15 +663,61 @@ function renderTable(container, requests) {
         font-size: 1.1rem;
       }
 
+      /* Mobile Responsive */
       @media (max-width: 768px) {
         .modern-table th, .modern-table td {
-          padding: 12px 8px;
-          font-size: 0.8rem;
+          padding: 10px 6px;
+          font-size: 0.75rem;
+        }
+
+        .modern-table th {
+          font-size: 0.7rem;
         }
 
         .view-btn {
-          padding: 6px 12px;
+          padding: 6px 10px;
+          font-size: 0.7rem;
+        }
+
+        .view-btn i {
+          font-size: 0.8rem;
+        }
+
+        .status-badge {
+          padding: 4px 8px;
+          font-size: 0.65rem;
+        }
+
+        .payment-method {
+          font-size: 0.7rem;
+          padding: 3px 6px;
+        }
+
+        .amount {
+          font-size: 0.85rem;
+        }
+
+        .pagination-container {
+          flex-direction: column;
+          padding: 12px;
+          gap: 10px;
+        }
+
+        .pagination-info {
           font-size: 0.75rem;
+          text-align: center;
+        }
+
+        .pagination-controls {
+          gap: 3px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .pagination-btn {
+          padding: 6px 10px;
+          font-size: 0.75rem;
+          min-width: 32px;
         }
 
         .detail-grid {
@@ -595,10 +729,23 @@ function renderTable(container, requests) {
           margin: 10% auto;
         }
 
+        .modal-header {
+          padding: 15px;
+        }
+
+        .modal-header h2 {
+          font-size: 1.2rem;
+        }
+
+        .modal-body {
+          padding: 15px;
+        }
+
         .document-item {
           flex-direction: column;
           align-items: flex-start;
           gap: 8px;
+          padding: 12px;
         }
 
         .document-price {
@@ -611,7 +758,19 @@ function renderTable(container, requests) {
         }
 
         .doc-list {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
+        }
+      }
+
+      /* Tablet adjustments */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .modern-table th, .modern-table td {
+          padding: 11px 8px;
+          font-size: 0.82rem;
+        }
+
+        .pagination-btn {
+          padding: 7px 11px;
         }
       }
     </style>
@@ -620,6 +779,40 @@ function renderTable(container, requests) {
   // Initialize modal functions
   initializeModalFunctions();
 }
+
+// Generate page numbers for pagination
+function generatePageNumbers(currentPage, totalPages) {
+  let pages = '';
+  const maxVisible = 5;
+  
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pages += `
+      <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+              onclick="goToPage(${i})">
+        ${i}
+      </button>
+    `;
+  }
+  
+  return pages;
+}
+
+// Pagination navigation
+window.goToPage = function(page) {
+  const totalPages = Math.ceil(allRequests.length / rowsPerPage);
+  if (page < 1 || page > totalPages) return;
+  
+  currentPage = page;
+  const container = document.getElementById('requestHistoryTableContainer');
+  renderTable(container, allRequests);
+};
 
 // Modal functions
 function initializeModalFunctions() {
