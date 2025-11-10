@@ -484,14 +484,12 @@ export const useStudentPortal = () => {
   }, [studentData]);
 
   const openFeedbackModal = useCallback(() => {
-    console.log('🔓 Opening feedback modal...');
     setShowFeedbackModal(true);
-    // Populate email after modal opens with longer delay to ensure DOM is ready
+    // Populate email after modal opens
     setTimeout(() => {
-      console.log('Attempting to populate email after delay...');
       populateFeedbackEmail();
-    }, 300);
-  }, [populateFeedbackModal]);
+    }, 100);
+  }, [populateFeedbackEmail]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
@@ -512,21 +510,10 @@ export const useStudentPortal = () => {
       return;
     }
 
-    // Get feedback type from the form
-    const feedbackTypeSelect = document.querySelector('#feedbackModal select[name="feedback_type"]') || 
-                               document.querySelector('.feedback-modal select') ||
-                               document.querySelector('select');
-    const feedbackType = feedbackTypeSelect?.value || 'General';
-
     setIsSubmitting(true);
     
     try {
-      console.log('📤 Submitting feedback...');
-      console.log('Email:', email);
-      console.log('Type:', feedbackType);
-      console.log('Message:', feedback);
-      
-      const response = await fetch(FEEDBACK_API_URL, {
+      const response = await fetch(`${FEEDBACK_API_URL}?action=submitFeedback`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -534,21 +521,13 @@ export const useStudentPortal = () => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          action: 'submitFeedback',
           email: email,
-          feedback_type: feedbackType,
+          feedback_type: 'General',
           message: feedback
         })
       });
 
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const result = await response.json();
-      console.log('Response:', result);
       
       if (result.success) {
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
@@ -713,31 +692,15 @@ export const useStudentPortal = () => {
   // Set up global functions
   useEffect(() => {
     window.openFeedbackModal = () => {
-      console.log('🔓 Global openFeedbackModal called');
       setShowFeedbackModal(true);
       setTimeout(() => {
-        console.log('Populating email via global function...');
         populateFeedbackEmail();
-      }, 300);
+      }, 100);
     };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
     };
-    
-    // Also set up event listener for feedback button
-    const feedbackBtn = document.querySelector('.action-btn[title="Feedback"]');
-    if (feedbackBtn) {
-      feedbackBtn.addEventListener('click', () => {
-        console.log('📧 Feedback button clicked');
-        setShowFeedbackModal(true);
-        setTimeout(() => {
-          console.log('Populating email via button click...');
-          populateFeedbackEmail();
-        }, 300);
-      });
-      console.log('✓ Feedback button listener added');
-    }
   }, [populateFeedbackEmail]);
 
   // Load initial data on mount
@@ -757,7 +720,6 @@ export const useStudentPortal = () => {
     if (studentData) {
       console.log('=== Student data changed ===');
       console.log('Current data:', studentData);
-      console.log('Email in data:', studentData.Email || studentData.email);
       updateAllUserInterfaces(studentData);
     }
   }, [studentData, updateAllUserInterfaces]);
@@ -783,15 +745,8 @@ export const useStudentPortal = () => {
         setTimeout(window.RequestHistoryTable, 100);
       }
     }
-    
-    // Re-populate feedback email when switching pages (in case modal state persists)
-    if (showFeedbackModal && studentData) {
-      setTimeout(() => {
-        populateFeedbackEmail();
-      }, 200);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage, isAuthenticated, studentData, showFeedbackModal]);
+  }, [activePage, isAuthenticated, studentData]);
 
   return {
     studentData,
