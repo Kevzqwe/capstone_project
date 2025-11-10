@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // API base URLs for your PHP backend
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/admin_data.php';
@@ -27,6 +27,11 @@ export const useAdminDashboard = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [sessionChecked, setSessionChecked] = useState(false);
+    const [isAuthenticating, setIsAuthenticating] = useState(true);
+    
+    // Use ref to prevent multiple simultaneous session checks
+    const sessionCheckInProgress = useRef(false);
+    const dataLoadedRef = useRef(false);
     
     // Notification states
     const [notifications, setNotifications] = useState([]);
@@ -131,9 +136,32 @@ export const useAdminDashboard = () => {
         return formattedName;
     }, []);
 
+    // ==================== AUTHENTICATION ERROR HANDLER ====================
+    
+    const handleAuthenticationError = useCallback((errorMessage) => {
+        console.error('🚫 Authentication error:', errorMessage);
+        setError('Session expired or not authenticated. Redirecting to login...');
+        setIsAuthenticating(false);
+        showMessage('Session expired. Please login again.', 'error');
+        
+        localStorage.clear();
+        
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+    }, [showMessage]);
+
     // ==================== SESSION CHECK ====================
     
     const checkSession = useCallback(async () => {
+        // Prevent multiple simultaneous checks
+        if (sessionCheckInProgress.current) {
+            console.log('⏸️ Session check already in progress');
+            return sessionChecked;
+        }
+
+        sessionCheckInProgress.current = true;
+        
         try {
             console.log('🔍 Checking session status...');
             
@@ -147,37 +175,27 @@ export const useAdminDashboard = () => {
             });
             
             const data = await response.json();
-            console.log('Session check response:', data);
+            console.log('📋 Session check response:', data);
             
             if (data.logged_in && data.role === 'admin') {
                 console.log('✅ Valid admin session found');
                 setSessionChecked(true);
+                setIsAuthenticating(false);
+                sessionCheckInProgress.current = false;
                 return true;
             } else {
-                console.warn('❌ No valid session found');
+                console.warn('❌ No valid session found:', data);
                 handleAuthenticationError('No valid session');
+                sessionCheckInProgress.current = false;
                 return false;
             }
         } catch (error) {
-            console.error('Session check failed:', error);
+            console.error('❌ Session check failed:', error);
             handleAuthenticationError('Session check failed');
+            sessionCheckInProgress.current = false;
             return false;
         }
-    }, []);
-
-    // ==================== AUTHENTICATION ERROR HANDLER ====================
-    
-    const handleAuthenticationError = useCallback((errorMessage) => {
-        console.error('🚫 Authentication error:', errorMessage);
-        setError('Session expired or not authenticated. Redirecting to login...');
-        showMessage('Session expired. Please login again.', 'error');
-        
-        localStorage.clear();
-        
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 2000);
-    }, [showMessage]);
+    }, [sessionChecked, handleAuthenticationError]);
 
     // ==================== ENHANCED FETCH WITH AUTH CHECK ====================
     
@@ -214,14 +232,16 @@ export const useAdminDashboard = () => {
             }
             
             const data = await response.json();
-            console.log('📦 Response data:', data);
+            console.log('📦 Response data received');
             
             // Check for authentication errors in response
             if (data.status === 'error') {
                 if (data.redirect || 
                     data.session_expired ||
                     data.message === 'Not authenticated' || 
+                    data.message === 'Not authenticated - Please login' ||
                     data.message === 'Email missing in session' ||
+                    data.message === 'Not authorized - Admin access required' ||
                     data.message.toLowerCase().includes('not authenticated') ||
                     data.message.toLowerCase().includes('session')) {
                     handleAuthenticationError(data.message);
@@ -294,9 +314,8 @@ export const useAdminDashboard = () => {
     }, []);
 
     const loadAdminData = useCallback(async () => {
-        // Don't load if session hasn't been checked
         if (!sessionChecked) {
-            console.log('⏳ Waiting for session check...');
+            console.log('⏳ Session not verified yet, skipping admin data load');
             return;
         }
         
@@ -347,7 +366,10 @@ export const useAdminDashboard = () => {
     // ==================== DASHBOARD DATA FUNCTIONS ====================
 
     const loadDashboardData = useCallback(async () => {
-        if (!sessionChecked) return;
+        if (!sessionChecked) {
+            console.log('⏳ Session not verified yet, skipping dashboard data load');
+            return;
+        }
         
         try {
             console.log('Loading dashboard data...');
@@ -409,7 +431,10 @@ export const useAdminDashboard = () => {
     }, []);
 
     const fetchNotifications = useCallback(async () => {
-        if (!sessionChecked) return;
+        if (!sessionChecked) {
+            console.log('⏳ Session not verified yet, skipping notifications fetch');
+            return;
+        }
         
         const url = `${API_BASE_URL}?action=getNotifications`;
         console.log('Fetching notifications from:', url);
@@ -419,7 +444,7 @@ export const useAdminDashboard = () => {
             
             if (!data) return;
             
-            console.log('Notifications response:', data);
+            console.log('Notifications response received');
             
             if (data.status === 'success' && Array.isArray(data.notifications)) {
                 const allNotifs = data.notifications;
@@ -559,7 +584,10 @@ export const useAdminDashboard = () => {
     }, []);
 
     const fetchMails = useCallback(async () => {
-        if (!sessionChecked) return;
+        if (!sessionChecked) {
+            console.log('⏳ Session not verified yet, skipping mails fetch');
+            return;
+        }
         
         try {
             const data = await fetchWithAuth(`${API_BASE_URL}?action=getMails`, {
@@ -585,8 +613,6 @@ export const useAdminDashboard = () => {
         }
     }, [sessionChecked, fetchWithAuth, updateMailBadge, getReadMails]);
 
-    // ... (Keep all other functions the same, just add sessionChecked check where needed)
-
     const handleLogout = useCallback(async () => {
         if (window.confirm('Are you sure you want to logout?')) {
             try {
@@ -609,12 +635,14 @@ export const useAdminDashboard = () => {
     useEffect(() => {
         console.log('🚀 Component mounted - checking session...');
         checkSession();
-    }, [checkSession]);
+    }, []); // Empty dependency array - runs once on mount
 
-    // Second effect: Initialize data after session is checked
+    // Second effect: Load data after session is verified
     useEffect(() => {
-        if (sessionChecked) {
+        if (sessionChecked && !dataLoadedRef.current) {
             console.log('✅ Session verified - loading initial data...');
+            dataLoadedRef.current = true;
+            
             updateDate();
             loadAdminData();
             fetchNotifications();
@@ -626,18 +654,18 @@ export const useAdminDashboard = () => {
         }
     }, [sessionChecked]); // Only depend on sessionChecked
 
-    // Third effect: Poll notifications
+    // Third effect: Poll notifications periodically
     useEffect(() => {
         if (!sessionChecked) return;
         
         const interval = setInterval(() => {
             fetchNotifications();
-        }, 30000);
+        }, 30000); // Every 30 seconds
         
         return () => clearInterval(interval);
     }, [sessionChecked, fetchNotifications]);
 
-    // Fourth effect: Load section-specific data
+    // Fourth effect: Load section-specific data when section changes
     useEffect(() => {
         if (!sessionChecked) return;
         
@@ -666,35 +694,56 @@ export const useAdminDashboard = () => {
         selectedRequest,
         showModal,
         sessionChecked,
-        // ... (return all other states and functions)
+        isAuthenticating,
         notifications,
+        allNotifications,
         unreadCount,
         showNotificationDropdown,
         toggleNotificationDropdown,
+        markNotificationAsRead,
+        fetchNotifications,
         showNotificationModal,
         notificationRequestData,
+        setShowNotificationModal,
+        setNotificationRequestData,
         mails,
         unreadMailCount: actualUnreadMailCount,
         showMailDropdown,
         selectedMail,
         showMailModal,
         toggleMailDropdown,
+        setSelectedMail,
+        setShowMailModal,
+        saveReadMail,
         closeMailModal: () => setShowMailModal(false),
         announcementData,
         announcements,
         isEditingAnnouncement,
         announcementLoading,
+        setAnnouncementData,
+        setAnnouncements,
+        setIsEditingAnnouncement,
+        setAnnouncementLoading,
         transactionData,
         transactions,
         isEditingTransaction,
         transactionLoading,
+        setTransactionData,
+        setTransactions,
+        setIsEditingTransaction,
+        setTransactionLoading,
         filteredData,
         isFiltering,
         dateFilterRange,
+        setFilteredData,
+        setIsFiltering,
+        setDateFilterRange,
         handleNavigation: (section) => setActiveSection(section),
         handleLogout,
         reloadAdminData: loadAdminData,
-        loadDashboardData
+        loadDashboardData,
+        normalizeRequestData,
+        showMessage
     };
 };
 
