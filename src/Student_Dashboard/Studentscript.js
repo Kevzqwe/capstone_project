@@ -436,7 +436,7 @@ export const useStudentPortal = () => {
     setShowFeedbackModal(false);
     setFeedback('');
     setFeedbackEmail('');
-    setFeedbackType('Bug Report'); // Reset to Bug Report when closing
+    setFeedbackType('Select type'); // Reset to 'Select type' when closing
     setFeedbackSuccess(false);
   }, []);
 
@@ -456,6 +456,12 @@ export const useStudentPortal = () => {
 
     if (!feedbackEmail || !feedbackEmail.trim()) {
       showMessage('Email not found. Please try again.', 'error');
+      return;
+    }
+
+    // Validate feedback type is selected
+    if (!feedbackType || feedbackType === 'Select type') {
+      showMessage('Please select a feedback type', 'error');
       return;
     }
 
@@ -511,7 +517,7 @@ export const useStudentPortal = () => {
         // Clear form and close modal after 2 seconds
         setTimeout(() => {
           setFeedback('');
-          setFeedbackType('Bug Report'); // Reset to Bug Report after successful submit
+          setFeedbackType('Select type'); // Reset to 'Select type' after successful submit
           closeFeedbackModal();
         }, 2000);
       } else {
@@ -682,7 +688,7 @@ export const useStudentPortal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
       setFeedbackEmail('');
-      setFeedbackType('Bug Report'); // Reset to Bug Report when closing
+      setFeedbackType('Select type'); // Reset to 'Select type' when closing
       setFeedbackSuccess(false);
     };
   }, [studentData]);
