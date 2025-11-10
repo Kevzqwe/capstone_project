@@ -34,6 +34,7 @@ export const useAdminDashboard = () => {
     const dataLoadedRef = useRef(false);
     const dataLoadingRef = useRef(false);
     const logoutInProgress = useRef(false);
+    const isInitialized = useRef(false);
     
     // Notification states
     const [notifications, setNotifications] = useState([]);
@@ -189,7 +190,6 @@ export const useAdminDashboard = () => {
             });
             
             if (!response.ok) {
-                // clear flag before throwing
                 sessionCheckInProgress.current = false;
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -197,8 +197,11 @@ export const useAdminDashboard = () => {
             const data = await response.json();
             console.log('📋 Session check response:', data);
             
-            // Accept multiple possible session indicators to match student script behavior
-            const sessionValid = (data.logged_in || data.authenticated || data.session_exists) && (data.role === 'admin' || (data.role && String(data.role).toLowerCase() === 'admin'));
+            // FIXED: Accept both 'admin' and 'Admin' (case-insensitive)
+            const roleValid = data.role && String(data.role).toLowerCase() === 'admin';
+            const sessionValid = (data.logged_in || data.authenticated || data.session_exists) && 
+                                roleValid &&
+                                data.email;
             
             if (sessionValid) {
                 console.log('✅ Valid admin session found');
@@ -207,8 +210,12 @@ export const useAdminDashboard = () => {
                 sessionCheckInProgress.current = false;
                 return true;
             } else {
-                console.warn('❌ No valid session found:', data);
-                // always clear the flag before handling auth error
+                console.warn('❌ No valid session found:', {
+                    logged_in: data.logged_in,
+                    role: data.role,
+                    roleValid: roleValid,
+                    email: data.email
+                });
                 sessionCheckInProgress.current = false;
                 handleAuthenticationError('No valid session');
                 return false;
@@ -227,24 +234,22 @@ export const useAdminDashboard = () => {
         try {
             console.log('📡 Fetching:', url);
             
-            // Ensure our defaults (credentials, headers) are always present.
-            // Merge order changed so passed options won't accidentally remove credentials/headers.
-            const defaultOptions = {
+            // Build fetch options with proper credentials
+            const fetchOptions = {
                 credentials: 'include',
                 mode: 'cors',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Cache-Control': 'no-cache'
-                }
+                    'Cache-Control': 'no-cache',
+                    ...(options.headers || {})
+                },
+                ...options
             };
             
-            // Merge so defaults are preserved (options may override selectively but won't remove credentials)
-            const merged = { ...defaultOptions, ...options, headers: { ...defaultOptions.headers, ...(options.headers || {}) } };
+            const response = await fetch(url, fetchOptions);
             
-            const response = await fetch(url, merged);
-            
-            console.log('📥 Response status:', response.status);
+            console.log('📥 Response status:', response.status, 'for', url);
             
             // Handle authentication errors
             if (response.status === 401 || response.status === 403) {
@@ -260,7 +265,7 @@ export const useAdminDashboard = () => {
             }
             
             const data = await response.json();
-            console.log('📦 Response data received');
+            console.log('📦 Response data received for', url);
             
             // Check for authentication errors in response
             if (data && data.status === 'error') {
@@ -279,7 +284,7 @@ export const useAdminDashboard = () => {
             
             return data;
         } catch (error) {
-            console.error('❌ Fetch error:', error);
+            console.error('❌ Fetch error for', url, ':', error);
             throw error;
         }
     }, [handleAuthenticationError]);
@@ -658,7 +663,7 @@ export const useAdminDashboard = () => {
         }
     }, []);
 
-    // ==================== LOAD ALL DATA AT ONCE ====================
+    // ==================== LOAD ALL DATA WITH LONGER DELAYS ====================
     
     const loadAllData = useCallback(async () => {
         if (!sessionChecked || dataLoadingRef.current) {
@@ -669,16 +674,19 @@ export const useAdminDashboard = () => {
         dataLoadingRef.current = true;
         
         try {
-            // Load all data in sequence with small delays to ensure session is maintained
+            // Load admin data first
             await loadAdminData();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
+            // Then load notifications
             await fetchNotifications();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
+            // Then load mails
             await fetchMails();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
+            // Finally load dashboard if needed
             if (activeSection === 'dashboard') {
                 await loadDashboardData();
             }
@@ -693,23 +701,29 @@ export const useAdminDashboard = () => {
 
     // ==================== EFFECTS ====================
 
-    // First effect: Check session and load data
+    // Single initialization effect
     useEffect(() => {
+        if (isInitialized.current) {
+            console.log('⏭️ Already initialized, skipping');
+            return;
+        }
+
         const initializeAdmin = async () => {
             console.log('🚀 Component mounted - initializing...');
+            isInitialized.current = true;
             
             // Check session first
             const isValid = await checkSession();
             
             if (isValid && !dataLoadedRef.current) {
-                console.log('✅ Session valid - loading data...');
+                console.log('✅ Session valid - waiting before loading data...');
                 dataLoadedRef.current = true;
                 updateDate();
                 
-                // Small delay to ensure session is fully established
+                // Wait longer to ensure session is fully established
                 setTimeout(() => {
                     loadAllData();
-                }, 500);
+                }, 1500);
             }
         };
         
@@ -727,13 +741,14 @@ export const useAdminDashboard = () => {
         }
     }, [activeSection, sessionChecked, loadDashboardData]);
 
-    // Periodic refresh of notifications (optional)
+    // Periodic refresh of notifications (less frequent)
     useEffect(() => {
         if (!sessionChecked || !dataLoadedRef.current) return;
         
         const interval = setInterval(() => {
+            console.log('🔄 Periodic notification refresh');
             fetchNotifications();
-        }, 60000); // Every 60 seconds
+        }, 120000); // Every 2 minutes
         
         return () => clearInterval(interval);
     }, [sessionChecked, fetchNotifications]);
