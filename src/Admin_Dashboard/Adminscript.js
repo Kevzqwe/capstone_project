@@ -7,6 +7,7 @@ const API_CREATE_ANNOUNCEMENT_URL = 'https://mediumaquamarine-heron-545485.hosti
 const API_CREATE_TRANSACTION_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/create_transaction.php';
 const API_UPDATE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/update_request.php';
 const API_FILTERED_DATE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/filtered_date.php';
+const API_LOGOUT_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/logout.php';
 
 export const useAdminDashboard = () => {
     const [currentDate, setCurrentDate] = useState('');
@@ -129,6 +130,70 @@ export const useAdminDashboard = () => {
         return formattedName;
     }, []);
 
+    // ==================== AUTHENTICATION ERROR HANDLER ====================
+    
+    const handleAuthenticationError = useCallback((errorMessage) => {
+        console.error('Authentication error:', errorMessage);
+        setError('Session expired or not authenticated. Redirecting to login...');
+        showMessage('Session expired. Please login again.', 'error');
+        
+        // Clear any local storage
+        localStorage.clear();
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+    }, [showMessage]);
+
+    // ==================== ENHANCED FETCH WITH AUTH CHECK ====================
+    
+    const fetchWithAuth = useCallback(async (url, options = {}) => {
+        try {
+            console.log('Fetching:', url);
+            
+            const defaultOptions = {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    ...options.headers
+                }
+            };
+            
+            const response = await fetch(url, { ...defaultOptions, ...options });
+            
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    handleAuthenticationError('Unauthorized access');
+                    return null;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            // Check for authentication errors in response
+            if (data.status === 'error') {
+                if (data.message === 'Not authenticated' || 
+                    data.message === 'Email missing in session' ||
+                    data.message.toLowerCase().includes('not authenticated') ||
+                    data.message.toLowerCase().includes('session')) {
+                    handleAuthenticationError(data.message);
+                    return null;
+                }
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    }, [handleAuthenticationError]);
+
     // ==================== FIELD NORMALIZATION ====================
     
     const normalizeRequestData = useCallback((data) => {
@@ -193,82 +258,69 @@ export const useAdminDashboard = () => {
         setShowNotificationDropdown(prev => !prev);
     }, []);
 
-    const fetchNotifications = useCallback(() => {
+    const fetchNotifications = useCallback(async () => {
         const url = `${API_BASE_URL}?action=getNotifications`;
         console.log('Fetching notifications from:', url);
         
-        fetch(url, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Cache-Control': 'no-cache'
-            }
-        })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('===== FULL NOTIFICATIONS API RESPONSE =====');
-                console.log('Full response object:', data);
+        try {
+            const data = await fetchWithAuth(url, { method: 'GET' });
+            
+            if (!data) return; // Auth error handled in fetchWithAuth
+            
+            console.log('===== FULL NOTIFICATIONS API RESPONSE =====');
+            console.log('Full response object:', data);
+            
+            if (data.status === 'success' && Array.isArray(data.notifications)) {
+                const allNotifs = data.notifications;
                 
-                if (data.status === 'success' && Array.isArray(data.notifications)) {
-                    const allNotifs = data.notifications;
-                    
-                    console.log('✓ Success - Processing', allNotifs.length, 'notifications');
-                    
-                    setAllNotifications(allNotifs);
-                    setNotifications(allNotifs);
-                    
-                    const unreadNotifications = allNotifs.filter(notif => 
-                        notif.is_read === 0 || notif.is_read === '0'
-                    );
-                    
-                    console.log('✓ Unread count calculated:', unreadNotifications.length);
-                    
-                    setUnreadCount(unreadNotifications.length);
-                    window.adminNotifications = allNotifs;
-                    updateNotificationBadge(unreadNotifications.length);
-                } else if (data.status === 'success' && (!data.notifications || data.notifications.length === 0)) {
-                    console.warn('⚠ API returned success but notifications array is empty or missing');
-                    setAllNotifications([]);
-                    setNotifications([]);
-                    setUnreadCount(0);
-                    updateNotificationBadge(0);
-                } else {
-                    console.error('✗ API Error:', data.message);
-                    setAllNotifications([]);
-                    setNotifications([]);
-                    setUnreadCount(0);
-                }
-            })
-            .catch(error => {
-                console.error('✗ Fetch error:', error);
-            });
-    }, [updateNotificationBadge]);
+                console.log('✓ Success - Processing', allNotifs.length, 'notifications');
+                
+                setAllNotifications(allNotifs);
+                setNotifications(allNotifs);
+                
+                const unreadNotifications = allNotifs.filter(notif => 
+                    notif.is_read === 0 || notif.is_read === '0'
+                );
+                
+                console.log('✓ Unread count calculated:', unreadNotifications.length);
+                
+                setUnreadCount(unreadNotifications.length);
+                window.adminNotifications = allNotifs;
+                updateNotificationBadge(unreadNotifications.length);
+            } else if (data.status === 'success' && (!data.notifications || data.notifications.length === 0)) {
+                console.warn('⚠ API returned success but notifications array is empty or missing');
+                setAllNotifications([]);
+                setNotifications([]);
+                setUnreadCount(0);
+                updateNotificationBadge(0);
+            } else {
+                console.error('✗ API Error:', data.message);
+                setAllNotifications([]);
+                setNotifications([]);
+                setUnreadCount(0);
+            }
+        } catch (error) {
+            console.error('✗ Fetch error:', error);
+        }
+    }, [fetchWithAuth, updateNotificationBadge]);
 
     const markNotificationAsRead = useCallback(async (notificationId) => {
         try {
             console.log('Marking notification as read:', notificationId);
             
-            const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=markNotificationRead`, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({ notification_id: notificationId })
             });
 
-            const result = await response.json();
-            console.log('Mark as read response:', result);
+            if (!data) return false; // Auth error
             
-            if (result.status === 'success') {
+            console.log('Mark as read response:', data);
+            
+            if (data.status === 'success') {
                 console.log('✓ Notification marked as read in database:', notificationId);
                 
                 setAllNotifications(prev => {
@@ -296,14 +348,14 @@ export const useAdminDashboard = () => {
                 
                 return true;
             } else {
-                console.warn('✗ Failed to mark notification as read:', result.message);
+                console.warn('✗ Failed to mark notification as read:', data.message);
                 return false;
             }
         } catch (error) {
             console.error('✗ Error marking notification as read:', error);
             return false;
         }
-    }, [updateNotificationBadge]);
+    }, [fetchWithAuth, updateNotificationBadge]);
 
     // ==================== NOTIFICATION MODAL FUNCTIONS ====================
 
@@ -325,15 +377,12 @@ export const useAdminDashboard = () => {
         try {
             console.log('Fetching request details for notification:', requestId);
             
-            const requestResponse = await fetch(`${API_RH_URL}?action=viewRequest&request_id=${requestId}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const requestData = await fetchWithAuth(`${API_RH_URL}?action=viewRequest&request_id=${requestId}`, {
+                method: 'GET'
             });
 
-            const requestData = await requestResponse.json();
+            if (!requestData) return null; // Auth error
+            
             console.log('Raw request data from API:', requestData);
             
             if (requestData.status !== 'success') {
@@ -341,15 +390,12 @@ export const useAdminDashboard = () => {
                 return null;
             }
 
-            const paymentResponse = await fetch(`${API_BASE_URL}?action=getPaymentStatus&request_id=${requestId}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    }
+            const paymentData = await fetchWithAuth(`${API_BASE_URL}?action=getPaymentStatus&request_id=${requestId}`, {
+                method: 'GET'
             });
 
-            const paymentData = await paymentResponse.json();
+            if (!paymentData) return null; // Auth error
+            
             console.log('Raw payment data from API:', paymentData);
             
             const combinedData = {
@@ -371,7 +417,7 @@ export const useAdminDashboard = () => {
             console.error('Error fetching request details for notification:', error);
             return null;
         }
-    }, [normalizeRequestData]);
+    }, [fetchWithAuth, normalizeRequestData]);
 
     const handleNotificationClick = useCallback(async (notificationId) => {
         console.log('Notification clicked:', notificationId);
@@ -503,33 +549,30 @@ export const useAdminDashboard = () => {
         setShowMailDropdown(prev => !prev);
     }, []);
 
-    const fetchMails = useCallback(() => {
-        fetch(`${API_BASE_URL}?action=getMails`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    setMails(data.mails || []);
-                    
-                    const readMails = getReadMails();
-                    const unreadCount = data.mails?.filter(mail => 
-                        !readMails.includes(mail.id)
-                    ).length || 0;
-                    
-                    setUnreadMailCount(unreadCount);
-                    window.adminMails = data.mails || [];
-                    updateMailBadge(unreadCount);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching mails:', error);
+    const fetchMails = useCallback(async () => {
+        try {
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=getMails`, {
+                method: 'GET'
             });
-    }, [updateMailBadge, getReadMails]);
+            
+            if (!data) return; // Auth error
+            
+            if (data.status === 'success') {
+                setMails(data.mails || []);
+                
+                const readMails = getReadMails();
+                const unreadCount = data.mails?.filter(mail => 
+                    !readMails.includes(mail.id)
+                ).length || 0;
+                
+                setUnreadMailCount(unreadCount);
+                window.adminMails = data.mails || [];
+                updateMailBadge(unreadCount);
+            }
+        } catch (error) {
+            console.error('Error fetching mails:', error);
+        }
+    }, [fetchWithAuth, updateMailBadge, getReadMails]);
 
     const openMailModal = useCallback((mail) => {
         setSelectedMail(mail);
@@ -554,23 +597,22 @@ export const useAdminDashboard = () => {
             setUnreadMailCount(unreadCount);
             updateMailBadge(unreadCount);
 
-            const response = await fetch(`${API_BASE_URL}?action=markMailRead`, {
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=markMailRead`, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({ mail_id: mailId })
             });
 
-            const result = await response.json();
-            return result.status === 'success';
+            if (!data) return false; // Auth error
+            
+            return data.status === 'success';
         } catch (error) {
             console.error('Error marking mail as read:', error);
             return false;
         }
-    }, [mails, updateMailBadge, saveReadMail, getReadMails]);
+    }, [mails, updateMailBadge, saveReadMail, getReadMails, fetchWithAuth]);
 
     const handleMailClick = useCallback((mail) => {
         console.log('Mail clicked:', mail.id);
@@ -583,15 +625,12 @@ export const useAdminDashboard = () => {
     const loadAnnouncements = useCallback(async () => {
         try {
             console.log('Loading announcements...');
-            const response = await fetch(`${API_BASE_URL}?action=getAnnouncements`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=getAnnouncements`, {
+                method: 'GET'
             });
 
-            const data = await response.json();
+            if (!data) return; // Auth error
+            
             console.log('Announcements response:', data);
             
             if (data.status === 'success' && data.data) {
@@ -609,14 +648,14 @@ export const useAdminDashboard = () => {
                     });
                 }
             } else {
-                console.warn('No announcements found or error:', data.message);
+                console.warn('No announcements found or error:', data?.message);
                 setAnnouncements([]);
             }
         } catch (error) {
             console.error('Error loading announcements:', error);
             setAnnouncements([]);
         }
-    }, []);
+    }, [fetchWithAuth]);
 
     const handleAnnouncementEdit = useCallback((announcement = null) => {
         if (announcement) {
@@ -669,23 +708,24 @@ export const useAdminDashboard = () => {
             
             // Add ID for updates
             if (isUpdate) {
-                // If updating, include Announcement_ID (backend create handler may ignore it but it's harmless)
                 payload.Announcement_ID = announcementData.Announcement_ID;
             }
             
             console.log('Sending payload:', payload);
             
-            const response = await fetch(API_CREATE_ANNOUNCEMENT_URL, {
+            const data = await fetchWithAuth(API_CREATE_ANNOUNCEMENT_URL, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            if (!data) {
+                setAnnouncementLoading(false);
+                return; // Auth error
+            }
+            
             console.log('Save announcement response:', data);
             
             if (data.status === 'success') {
@@ -707,7 +747,7 @@ export const useAdminDashboard = () => {
         } finally {
             setAnnouncementLoading(false);
         }
-    }, [announcementData, showMessage, loadAnnouncements]);
+    }, [announcementData, showMessage, loadAnnouncements, fetchWithAuth]);
 
     const handleAnnouncementChange = useCallback((field, value) => {
         setAnnouncementData(prev => ({
@@ -746,15 +786,12 @@ export const useAdminDashboard = () => {
     const loadTransactions = useCallback(async () => {
         try {
             console.log('Loading transactions...');
-            const response = await fetch(`${API_BASE_URL}?action=getTransactions`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=getTransactions`, {
+                method: 'GET'
             });
 
-            const data = await response.json();
+            if (!data) return; // Auth error
+            
             console.log('Transactions response:', data);
             
             if (data.status === 'success' && data.data) {
@@ -769,14 +806,14 @@ export const useAdminDashboard = () => {
                     });
                 }
             } else {
-                console.warn('No transactions found or error:', data.message);
+                console.warn('No transactions found or error:', data?.message);
                 setTransactions([]);
             }
         } catch (error) {
             console.error('Error loading transactions:', error);
             setTransactions([]);
         }
-    }, []);
+    }, [fetchWithAuth]);
 
     const handleTransactionEdit = useCallback((transaction = null) => {
         if (transaction) {
@@ -820,23 +857,24 @@ export const useAdminDashboard = () => {
             
             // Add ID for updates
             if (isUpdate) {
-                // If updating, include Transaction_Sched_ID (backend create handler may ignore it)
                 payload.Transaction_Sched_ID = transactionData.Transaction_Sched_ID;
             }
             
             console.log('Sending payload:', payload);
             
-            const response = await fetch(API_CREATE_TRANSACTION_URL, {
+            const data = await fetchWithAuth(API_CREATE_TRANSACTION_URL, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            if (!data) {
+                setTransactionLoading(false);
+                return; // Auth error
+            }
+            
             console.log('Save transaction response:', data);
             
             if (data.status === 'success') {
@@ -858,7 +896,7 @@ export const useAdminDashboard = () => {
         } finally {
             setTransactionLoading(false);
         }
-    }, [transactionData, showMessage, loadTransactions]);
+    }, [transactionData, showMessage, loadTransactions, fetchWithAuth]);
 
     const handleTransactionChange = useCallback((field, value) => {
         setTransactionData(prev => ({
@@ -892,18 +930,12 @@ export const useAdminDashboard = () => {
         try {
             console.log('Fetching payment status for request:', requestId);
             
-            const response = await fetch(
+            const paymentData = await fetchWithAuth(
                 `${API_BASE_URL}?action=getPaymentStatus&request_id=${requestId}`,
-                {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                    }
-                }
+                { method: 'GET' }
             );
 
-            const paymentData = await response.json();
+            if (!paymentData) return null; // Auth error
             
             if (paymentData.status === 'success') {
                 console.log('Payment status fetched:', paymentData);
@@ -931,7 +963,7 @@ export const useAdminDashboard = () => {
                 paymongo_session_id: null
             };
         }
-    }, []);
+    }, [fetchWithAuth]);
 
     // ==================== DATE FILTER FUNCTIONS ====================
 
@@ -960,19 +992,13 @@ export const useAdminDashboard = () => {
             const url = `${API_FILTERED_DATE_URL}?action=filterByDateRange&start_date=${startDate}&end_date=${endDate}`;
             console.log('Fetching from URL:', url);
             
-            const response = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
+            const data = await fetchWithAuth(url, { method: 'GET' });
 
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+            if (!data) {
+                setIsFiltering(false);
+                return; // Auth error
             }
 
-            const data = await response.json();
             console.log('Date filter response:', data);
             
             if (data.status === 'success') {
@@ -1008,7 +1034,7 @@ export const useAdminDashboard = () => {
         } finally {
             setIsFiltering(false);
         }
-    }, [showMessage]);
+    }, [showMessage, fetchWithAuth]);
 
     const resetDateFilter = useCallback(async () => {
         try {
@@ -1019,22 +1045,16 @@ export const useAdminDashboard = () => {
             // Reset the filter range
             setDateFilterRange({ startDate: '', endDate: '' });
             
-            const response = await fetch(
+            const data = await fetchWithAuth(
                 `${API_FILTERED_DATE_URL}?action=resetDateFilter`,
-                {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                }
+                { method: 'GET' }
             );
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (!data) {
+                setIsFiltering(false);
+                return; // Auth error
             }
 
-            const data = await response.json();
             console.log('Reset filter response:', data);
             
             if (data.status === 'success') {
@@ -1066,7 +1086,7 @@ export const useAdminDashboard = () => {
         } finally {
             setIsFiltering(false);
         }
-    }, [showMessage]);
+    }, [showMessage, fetchWithAuth]);
 
     const applyCurrentDateFilter = useCallback(() => {
         if (dateFilterRange.startDate && dateFilterRange.endDate) {
@@ -1110,23 +1130,15 @@ export const useAdminDashboard = () => {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}?action=getAdminData`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=getAdminData`, {
+                method: 'GET'
             });
 
-            console.log('Response status:', response.status);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Response error:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (!data) {
+                setLoading(false);
+                return; // Auth error handled in fetchWithAuth
             }
 
-            const data = await response.json();
             console.log('Admin data response:', data);
 
             if (data.status === 'success' && data.data) {
@@ -1135,16 +1147,7 @@ export const useAdminDashboard = () => {
                 setError(null);
             } else {
                 console.error('Error loading admin data:', data.message);
-                
-                if (data.message === 'Not authenticated' || data.message === 'Email missing in session') {
-                    setError('Session expired. Please login again.');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
-                } else {
-                    setError(data.message || 'Failed to load admin data');
-                }
-                
+                setError(data.message || 'Failed to load admin data');
                 displayFallbackAdminData();
             }
         } catch (error) {
@@ -1164,22 +1167,19 @@ export const useAdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [displayAdminData, displayFallbackAdminData]);
+    }, [fetchWithAuth, displayAdminData, displayFallbackAdminData]);
 
     // ==================== DASHBOARD DATA FUNCTIONS ====================
 
     const loadDashboardData = useCallback(async () => {
         try {
             console.log('Loading dashboard data...');
-            const response = await fetch(`${API_BASE_URL}?action=getDashboardData`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_BASE_URL}?action=getDashboardData`, {
+                method: 'GET'
             });
 
-            const data = await response.json();
+            if (!data) return; // Auth error
+            
             console.log('Dashboard data response:', data);
             
             if (data.status === 'success') {
@@ -1192,7 +1192,7 @@ export const useAdminDashboard = () => {
             console.error('Error fetching dashboard data:', error);
             setDashboardData({});
         }
-    }, []);
+    }, [fetchWithAuth]);
 
     // ==================== DOCUMENT REQUESTS FUNCTIONS ====================
 
@@ -1201,15 +1201,15 @@ export const useAdminDashboard = () => {
             console.log('Loading document requests...');
             setLoading(true);
             
-            const response = await fetch(`${API_RH_URL}?action=getRequests`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_RH_URL}?action=getRequests`, {
+                method: 'GET'
             });
 
-            const data = await response.json();
+            if (!data) {
+                setLoading(false);
+                return; // Auth error
+            }
+            
             console.log('Document requests response:', data);
             
             if (data.status === 'success') {
@@ -1225,7 +1225,7 @@ export const useAdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [fetchWithAuth]);
 
     const handleNavigation = useCallback((section) => {
         console.log('Navigating to:', section);
@@ -1242,13 +1242,16 @@ export const useAdminDashboard = () => {
     const handleLogout = useCallback(async () => {
         if (window.confirm('Are you sure you want to logout?')) {
             try {
-                await fetch('http://localhost/capstone_project/public/php-backend/logout.php', {
+                await fetch(API_LOGOUT_URL, {
                     method: 'POST',
                     credentials: 'include'
                 });
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
+                // Clear local storage
+                localStorage.clear();
+                
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 500);
@@ -1266,15 +1269,11 @@ export const useAdminDashboard = () => {
         try {
             console.log('Viewing request:', request);
             
-            const response = await fetch(`${API_RH_URL}?action=viewRequest&request_id=${request.request_id}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                }
+            const data = await fetchWithAuth(`${API_RH_URL}?action=viewRequest&request_id=${request.request_id}`, {
+                method: 'GET'
             });
 
-            const data = await response.json();
+            if (!data) return; // Auth error
             
             if (data.status === 'success') {
                 const paymentInfo = await fetchPaymentStatus(request.request_id);
@@ -1295,7 +1294,7 @@ export const useAdminDashboard = () => {
             console.error('Error viewing request:', error);
             showMessage('Error loading request details', 'error');
         }
-    }, [fetchPaymentStatus, normalizeRequestData, showMessage]);
+    }, [fetchWithAuth, fetchPaymentStatus, normalizeRequestData, showMessage]);
 
     const handleCloseModal = useCallback(() => {
         setShowModal(false);
@@ -1308,12 +1307,10 @@ export const useAdminDashboard = () => {
         try {
             console.log('Saving request:', request);
             
-            const response = await fetch(`${API_UPDATE_URL}?action=updateRequest`, {
+            const data = await fetchWithAuth(`${API_UPDATE_URL}?action=updateRequest`, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({
                     request_id: request.request_id,
@@ -1323,13 +1320,14 @@ export const useAdminDashboard = () => {
                 })
             });
 
-            const result = await response.json();
-            console.log('Save request response:', result);
+            if (!data) return; // Auth error
             
-            if (result.status === 'success') {
+            console.log('Save request response:', data);
+            
+            if (data.status === 'success') {
                 setDocumentRequests(prev => prev.map(req => 
                     req.request_id === request.request_id 
-                        ? { ...req, ...result.data } 
+                        ? { ...req, ...data.data } 
                         : req
                 ));
                 showMessage('Request saved successfully!', 'success');
@@ -1341,7 +1339,7 @@ export const useAdminDashboard = () => {
             console.error('Error saving request:', error);
             showMessage('Error saving request. Please try again.', 'error');
         }
-    }, [showMessage, loadDashboardData]);
+    }, [fetchWithAuth, showMessage, loadDashboardData]);
 
     // ==================== EFFECTS ====================
 
