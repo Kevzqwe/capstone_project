@@ -690,17 +690,17 @@ function renderTable(container, requests) {
         .modern-table tr {
           display: block;
           background: white;
-          margin-bottom: 15px;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          padding: 15px;
-          border: 1px solid #ecf0f1;
+          margin-bottom: 20px;
+          border-radius: 12px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+          padding: 20px;
+          border: 1px solid #e8e8e8;
         }
 
         .modern-table td {
           display: block;
           text-align: left;
-          padding: 8px 0;
+          padding: 10px 0;
           border: none;
           position: relative;
         }
@@ -708,17 +708,20 @@ function renderTable(container, requests) {
         .modern-table td:before {
           content: attr(data-label);
           font-weight: 600;
-          color: #7f8c8d;
-          font-size: 0.75rem;
+          color: #95a5a6;
+          font-size: 0.7rem;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.8px;
           display: block;
-          margin-bottom: 5px;
+          margin-bottom: 6px;
         }
 
         .request-id {
-          font-size: 1.1rem;
+          font-size: 1.3rem;
           padding-top: 0;
+          padding-bottom: 12px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid #ecf0f1;
         }
 
         .request-id:before {
@@ -739,11 +742,11 @@ function renderTable(container, requests) {
 
         .date {
           color: #2c3e50;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
         }
 
         .status-badge {
-          padding: 5px 10px;
+          padding: 6px 14px;
           font-size: 0.7rem;
         }
 
@@ -753,7 +756,7 @@ function renderTable(container, requests) {
 
         .payment-method {
           font-size: 0.75rem;
-          padding: 4px 8px;
+          padding: 5px 10px;
         }
 
         .view-btn {
@@ -765,19 +768,21 @@ function renderTable(container, requests) {
 
         .pagination-container {
           flex-direction: column;
-          padding: 15px;
-          gap: 12px;
+          padding: 20px 15px;
+          gap: 15px;
           background: white;
+          border-radius: 0;
+          box-shadow: none;
         }
 
         .pagination-info {
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           text-align: center;
           color: #7f8c8d;
         }
 
         .pagination-controls {
-          gap: 5px;
+          gap: 8px;
           flex-wrap: nowrap;
           justify-content: center;
           overflow-x: auto;
@@ -786,9 +791,9 @@ function renderTable(container, requests) {
         }
 
         .pagination-btn {
-          padding: 8px 12px;
-          font-size: 0.85rem;
-          min-width: 38px;
+          padding: 10px 14px;
+          font-size: 0.9rem;
+          min-width: 42px;
           flex-shrink: 0;
         }
 
