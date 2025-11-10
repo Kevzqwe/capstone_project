@@ -17,6 +17,7 @@ export const useStudentPortal = () => {
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackType, setFeedbackType] = useState('General');
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
   const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
@@ -435,6 +436,7 @@ export const useStudentPortal = () => {
     setFeedback('');
     setFeedbackEmail('');
     setFeedbackType('General');
+    setFeedbackSuccess(false);
   }, []);
 
   const handleFeedbackSubmit = useCallback(async (e) => {
@@ -471,7 +473,7 @@ export const useStudentPortal = () => {
         console.log(pair[0] + ': ' + pair[1]);
       }
 
-      // Send request
+      // Send request with proper error handling
       const response = await fetch(FEEDBACK_API_URL, {
         method: 'POST',
         body: formData,
@@ -479,9 +481,13 @@ export const useStudentPortal = () => {
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      console.log('Response content-type:', response.headers.get('content-type'));
 
-      // Get response text first
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Get response text first for debugging
       const responseText = await response.text();
       console.log('Raw response:', responseText);
 
@@ -491,22 +497,29 @@ export const useStudentPortal = () => {
         result = JSON.parse(responseText);
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
-        throw new Error('Invalid response from server');
+        console.error('Response was:', responseText);
+        throw new Error('Server returned invalid JSON. Please check server logs.');
       }
 
       console.log('Parsed result:', result);
       
       if (result.success) {
+        setFeedbackSuccess(true);
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
-        setFeedback('');
-        setFeedbackType('General');
-        closeFeedbackModal();
+        
+        // Clear form and close modal after 2 seconds
+        setTimeout(() => {
+          setFeedback('');
+          setFeedbackType('General');
+          closeFeedbackModal();
+        }, 2000);
       } else {
+        console.error('Server returned error:', result.message);
         showMessage(result.message || 'Failed to submit feedback', 'error');
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      showMessage('Error submitting feedback. Please try again.', 'error');
+      showMessage('Error submitting feedback: ' + error.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -669,6 +682,7 @@ export const useStudentPortal = () => {
       setFeedback('');
       setFeedbackEmail('');
       setFeedbackType('General');
+      setFeedbackSuccess(false);
     };
   }, [studentData]);
 
@@ -726,6 +740,7 @@ export const useStudentPortal = () => {
     feedbackEmail,
     feedbackType,
     isSubmitting,
+    feedbackSuccess,
     announcement,
     transactionDays,
     announcementLoading,
