@@ -19,6 +19,7 @@ export default function StudentDashboard() {
     showFeedbackModal,
     feedback,
     feedbackEmail,
+    feedbackType,
     isSubmitting,
     announcement,
     transactionDays,
@@ -26,6 +27,7 @@ export default function StudentDashboard() {
     transactionLoading,
     setFeedback,
     setFeedbackEmail,
+    setFeedbackType,
     openFeedbackModal,
     closeFeedbackModal,
     toggleNotificationDropdown,
@@ -603,12 +605,17 @@ export default function StudentDashboard() {
 
                 <div className="form-group">
                   <label htmlFor="feedbackType">Feedback Type</label>
-                  <select id="feedbackType">
+                  <select 
+                    id="feedbackType"
+                    value={feedbackType}
+                    onChange={(e) => setFeedbackType(e.target.value)}
+                    required
+                  >
                     <option value="">Select type</option>
-                    <option value="bug">Bug Report</option>
-                    <option value="feature">Feature Request</option>
-                    <option value="improvement">Improvement</option>
-                    <option value="other">Other</option>
+                    <option value="Bug Report">Bug Report</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Improvement">Improvement</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
 
