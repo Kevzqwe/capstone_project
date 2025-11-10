@@ -778,14 +778,18 @@ function renderTable(container, requests) {
 
         .pagination-controls {
           gap: 5px;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           justify-content: center;
+          overflow-x: auto;
+          width: 100%;
+          padding: 5px 0;
         }
 
         .pagination-btn {
           padding: 8px 12px;
           font-size: 0.85rem;
           min-width: 38px;
+          flex-shrink: 0;
         }
 
         .detail-grid {
