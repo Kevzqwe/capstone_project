@@ -435,28 +435,51 @@ export const useStudentPortal = () => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
-  // ✅ NEW: Function to populate feedback modal email field
+  // ✅ FIXED: Function to populate feedback modal email field
   const populateFeedbackEmail = useCallback(() => {
     console.log('📧 Populating feedback modal email...');
     
-    if (!studentData) {
+    if (!studentData && !window.studentData) {
       console.warn('⚠️ No student data available for feedback email');
       return;
     }
     
-    // Get email from studentData (handle both uppercase and lowercase)
-    const userEmail = studentData.Email || studentData.email || '';
+    // Get email from studentData or window.studentData (handle both uppercase and lowercase)
+    const data = studentData || window.studentData;
+    const userEmail = data.Email || data.email || '';
     
     console.log('User email found:', userEmail);
+    console.log('Student data being used:', data);
     
-    // Find the email input in feedback modal
-    const feedbackEmailInput = document.querySelector('#feedbackModal input[type="email"]');
+    // Try multiple selectors to find the email input in feedback modal
+    let feedbackEmailInput = document.querySelector('#feedbackModal input[type="email"]');
+    
+    if (!feedbackEmailInput) {
+      feedbackEmailInput = document.querySelector('.feedback-modal input[type="email"]');
+    }
+    
+    if (!feedbackEmailInput) {
+      feedbackEmailInput = document.querySelector('input[placeholder*="email" i]');
+    }
+    
+    if (!feedbackEmailInput) {
+      feedbackEmailInput = document.querySelector('input[name="email"]');
+    }
+    
+    if (!feedbackEmailInput) {
+      feedbackEmailInput = document.querySelector('[id*="email" i]');
+    }
     
     if (feedbackEmailInput) {
       feedbackEmailInput.value = userEmail;
-      console.log('✓ Feedback email field populated:', userEmail);
+      feedbackEmailInput.readOnly = true;
+      feedbackEmailInput.style.backgroundColor = '#f5f5f5';
+      feedbackEmailInput.style.cursor = 'not-allowed';
+      console.log('✓ Feedback email field populated and locked:', userEmail);
+      console.log('✓ Email input element:', feedbackEmailInput);
     } else {
-      console.warn('⚠️ Feedback email input not found');
+      console.error('❌ Feedback email input not found with any selector!');
+      console.log('Available inputs:', document.querySelectorAll('input'));
     }
   }, [studentData]);
 
