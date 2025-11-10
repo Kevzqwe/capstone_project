@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 
 // API base URLs for your PHP backend
-const API_BASE_URL = 'http://localhost/capstone_project/public/php-backend/admin_data.php';
-const API_RH_URL = 'http://localhost/capstone_project/public/php-backend/admin_rh.php';
-const API_CREATE_ANNOUNCEMENT_URL = 'http://localhost/capstone_project/public/php-backend/create_announcement.php';
-const API_CREATE_TRANSACTION_URL = 'http://localhost/capstone_project/public/php-backend/create_transaction.php';
-const API_UPDATE_URL = 'http://localhost/capstone_project/public/php-backend/update_request.php';
-const API_FILTERED_DATE_URL = 'http://localhost/capstone_project/public/php-backend/filtered_date.php';
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/admin_data.php';
+const API_RH_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/admin_rh.php';
+const API_CREATE_ANNOUNCEMENT_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/create_announcement.php';
+const API_CREATE_TRANSACTION_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/create_transaction.php';
+const API_UPDATE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/update_request.php';
+const API_FILTERED_DATE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/filtered_date.php';
 
 export const useAdminDashboard = () => {
     const [currentDate, setCurrentDate] = useState('');
