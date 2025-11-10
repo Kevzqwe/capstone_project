@@ -435,7 +435,6 @@ export const useStudentPortal = () => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
-  // ✅ FIXED: Function to populate feedback modal email field
   const populateFeedbackEmail = useCallback(() => {
     console.log('📧 Populating feedback modal email...');
     
@@ -444,15 +443,13 @@ export const useStudentPortal = () => {
       return;
     }
     
-    // Get email from studentData or window.studentData (handle both uppercase and lowercase)
     const data = studentData || window.studentData;
     const userEmail = data.Email || data.email || '';
     
     console.log('User email found:', userEmail);
     console.log('Student data being used:', data);
     
-    // Try multiple selectors to find the email input in feedback modal
-    let feedbackEmailInput = document.querySelector('#feedbackModal input[type="email"]');
+    let feedbackEmailInput = document.querySelector('#feedbackEmail');
     
     if (!feedbackEmailInput) {
       feedbackEmailInput = document.querySelector('.feedback-modal input[type="email"]');
@@ -485,7 +482,6 @@ export const useStudentPortal = () => {
 
   const openFeedbackModal = useCallback(() => {
     setShowFeedbackModal(true);
-    // Populate email after modal opens
     setTimeout(() => {
       populateFeedbackEmail();
     }, 100);
@@ -513,18 +509,15 @@ export const useStudentPortal = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${FEEDBACK_API_URL}?action=submitFeedback`, {
+      const formData = new FormData();
+      formData.append('action', 'submitFeedback');
+      formData.append('email', email);
+      formData.append('feedback_type', 'General');
+      formData.append('message', feedback);
+
+      const response = await fetch(FEEDBACK_API_URL, {
         method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          feedback_type: 'General',
-          message: feedback
-        })
+        body: formData
       });
 
       const result = await response.json();
@@ -650,7 +643,6 @@ export const useStudentPortal = () => {
     const sidebar = document.getElementById('sidebar');
     
     if (menuToggle && sidebar) {
-      // Remove any existing listeners
       const newMenuToggle = menuToggle.cloneNode(true);
       menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
       
@@ -689,7 +681,6 @@ export const useStudentPortal = () => {
     }
   }, [loadDashboardData]);
 
-  // Set up global functions
   useEffect(() => {
     window.openFeedbackModal = () => {
       setShowFeedbackModal(true);
@@ -703,7 +694,6 @@ export const useStudentPortal = () => {
     };
   }, [populateFeedbackEmail]);
 
-  // Load initial data on mount
   useEffect(() => {
     console.log('=== Component mounted ===');
     loadUserData();
@@ -715,7 +705,6 @@ export const useStudentPortal = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update UI when student data changes
   useEffect(() => {
     if (studentData) {
       console.log('=== Student data changed ===');
@@ -724,7 +713,6 @@ export const useStudentPortal = () => {
     }
   }, [studentData, updateAllUserInterfaces]);
 
-  // Handle page changes
   useEffect(() => {
     console.log('=== Page changed to:', activePage, '===');
     
