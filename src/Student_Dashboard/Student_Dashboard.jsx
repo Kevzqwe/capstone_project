@@ -18,12 +18,14 @@ export default function StudentDashboard() {
     showNotificationDropdown,
     showFeedbackModal,
     feedback,
+    feedbackEmail,
     isSubmitting,
     announcement,
     transactionDays,
     announcementLoading,
     transactionLoading,
     setFeedback,
+    setFeedbackEmail,
     openFeedbackModal,
     closeFeedbackModal,
     toggleNotificationDropdown,
@@ -35,7 +37,6 @@ export default function StudentDashboard() {
 
   const [renderKey, setRenderKey] = useState(0);
 
-  // Initialize dashboard page as active on mount
   useEffect(() => {
     console.log('Initializing dashboard...');
     
@@ -53,7 +54,6 @@ export default function StudentDashboard() {
     }
   }, []);
 
-  // Handle navigation clicks
   useEffect(() => {
     const navLinks = document.querySelectorAll('.nav-link[data-page]');
     
@@ -105,7 +105,6 @@ export default function StudentDashboard() {
     };
   }, []);
 
-  // Handle menu toggle for mobile
   useEffect(() => {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
@@ -591,8 +590,13 @@ export default function StudentDashboard() {
                   <input
                     type="email"
                     id="feedbackEmail"
-                    value={studentData?.email || ''}
+                    value={feedbackEmail}
+                    onChange={(e) => setFeedbackEmail(e.target.value)}
                     readOnly
+                    style={{
+                      backgroundColor: '#f5f5f5',
+                      cursor: 'not-allowed'
+                    }}
                     placeholder="Enter your email"
                   />
                 </div>
