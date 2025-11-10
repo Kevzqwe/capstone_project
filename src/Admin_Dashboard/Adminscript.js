@@ -29,9 +29,11 @@ export const useAdminDashboard = () => {
     const [sessionChecked, setSessionChecked] = useState(false);
     const [isAuthenticating, setIsAuthenticating] = useState(true);
     
-    // Use ref to prevent multiple simultaneous session checks
+    // Use ref to prevent multiple simultaneous operations
     const sessionCheckInProgress = useRef(false);
     const dataLoadedRef = useRef(false);
+    const dataLoadingRef = useRef(false);
+    const logoutInProgress = useRef(false);
     
     // Notification states
     const [notifications, setNotifications] = useState([]);
@@ -139,13 +141,24 @@ export const useAdminDashboard = () => {
     // ==================== AUTHENTICATION ERROR HANDLER ====================
     
     const handleAuthenticationError = useCallback((errorMessage) => {
+        // Prevent multiple logout attempts
+        if (logoutInProgress.current) {
+            console.log('⏸️ Logout already in progress');
+            return;
+        }
+
+        logoutInProgress.current = true;
         console.error('🚫 Authentication error:', errorMessage);
+        
         setError('Session expired or not authenticated. Redirecting to login...');
         setIsAuthenticating(false);
+        setSessionChecked(false);
         showMessage('Session expired. Please login again.', 'error');
         
+        // Clear local storage
         localStorage.clear();
         
+        // Redirect after a short delay
         setTimeout(() => {
             window.location.href = '/login';
         }, 2000);
@@ -170,9 +183,14 @@ export const useAdminDashboard = () => {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
                 }
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const data = await response.json();
             console.log('📋 Session check response:', data);
@@ -615,6 +633,7 @@ export const useAdminDashboard = () => {
 
     const handleLogout = useCallback(async () => {
         if (window.confirm('Are you sure you want to logout?')) {
+            logoutInProgress.current = true;
             try {
                 await fetch(API_LOGOUT_URL, {
                     method: 'POST',
@@ -629,53 +648,85 @@ export const useAdminDashboard = () => {
         }
     }, []);
 
-    // ==================== EFFECTS ====================
-
-    // First effect: Check session immediately on mount
-    useEffect(() => {
-        console.log('🚀 Component mounted - checking session...');
-        checkSession();
-    }, []); // Empty dependency array - runs once on mount
-
-    // Second effect: Load data after session is verified
-    useEffect(() => {
-        if (sessionChecked && !dataLoadedRef.current) {
-            console.log('✅ Session verified - loading initial data...');
-            dataLoadedRef.current = true;
+    // ==================== LOAD ALL DATA AT ONCE ====================
+    
+    const loadAllData = useCallback(async () => {
+        if (!sessionChecked || dataLoadingRef.current) {
+            return;
+        }
+        
+        console.log('🔄 Loading all data...');
+        dataLoadingRef.current = true;
+        
+        try {
+            // Load all data in sequence with small delays to ensure session is maintained
+            await loadAdminData();
+            await new Promise(resolve => setTimeout(resolve, 100));
             
-            updateDate();
-            loadAdminData();
-            fetchNotifications();
-            fetchMails();
+            await fetchNotifications();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            await fetchMails();
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             if (activeSection === 'dashboard') {
-                loadDashboardData();
+                await loadDashboardData();
             }
+            
+            console.log('✅ All data loaded successfully');
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+        } finally {
+            dataLoadingRef.current = false;
         }
-    }, [sessionChecked]); // Only depend on sessionChecked
+    }, [sessionChecked, loadAdminData, fetchNotifications, fetchMails, loadDashboardData, activeSection]);
 
-    // Third effect: Poll notifications periodically
-    useEffect(() => {
-        if (!sessionChecked) return;
-        
-        const interval = setInterval(() => {
-            fetchNotifications();
-        }, 30000); // Every 30 seconds
-        
-        return () => clearInterval(interval);
-    }, [sessionChecked, fetchNotifications]);
+    // ==================== EFFECTS ====================
 
-    // Fourth effect: Load section-specific data when section changes
+    // First effect: Check session and load data
     useEffect(() => {
-        if (!sessionChecked) return;
+        const initializeAdmin = async () => {
+            console.log('🚀 Component mounted - initializing...');
+            
+            // Check session first
+            const isValid = await checkSession();
+            
+            if (isValid && !dataLoadedRef.current) {
+                console.log('✅ Session valid - loading data...');
+                dataLoadedRef.current = true;
+                updateDate();
+                
+                // Small delay to ensure session is fully established
+                setTimeout(() => {
+                    loadAllData();
+                }, 500);
+            }
+        };
+        
+        initializeAdmin();
+    }, []); // Only run once on mount
+
+    // Effect to handle section changes
+    useEffect(() => {
+        if (!sessionChecked || !dataLoadedRef.current) return;
         
         console.log('Active section changed to:', activeSection);
         
         if (activeSection === 'dashboard') {
             loadDashboardData();
         }
-        // Add other section handlers as needed
-    }, [sessionChecked, activeSection, loadDashboardData]);
+    }, [activeSection, sessionChecked, loadDashboardData]);
+
+    // Periodic refresh of notifications (optional)
+    useEffect(() => {
+        if (!sessionChecked || !dataLoadedRef.current) return;
+        
+        const interval = setInterval(() => {
+            fetchNotifications();
+        }, 60000); // Every 60 seconds
+        
+        return () => clearInterval(interval);
+    }, [sessionChecked, fetchNotifications]);
 
     // Calculate actual unread mail count
     const actualUnreadMailCount = mails.filter(mail => !getReadMails().includes(mail.id)).length;
