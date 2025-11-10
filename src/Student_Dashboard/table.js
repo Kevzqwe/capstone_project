@@ -210,8 +210,8 @@ function renderTable(container, requests) {
               
               return `
               <tr class="table-row">
-                <td class="request-id">#${req.request_id}</td>
-                <td class="documents-summary">
+                <td class="request-id" data-label="Request ID">#${req.request_id}</td>
+                <td class="documents-summary" data-label="Documents">
                   <div class="doc-main">${docSummary}</div>
                   ${req.documents.length > 1 ? `
                     <div class="doc-list">
@@ -219,17 +219,17 @@ function renderTable(container, requests) {
                     </div>
                   ` : ''}
                 </td>
-                <td class="date">${formatDate(req.date_requested)}</td>
-                <td class="status">
+                <td class="date" data-label="Date Requested">${formatDate(req.date_requested)}</td>
+                <td class="status" data-label="Status">
                   <span class="status-badge ${getStatusClass(req.status)}">${req.status || 'Pending'}</span>
                 </td>
-                <td class="amount">₱${req.total_amount.toFixed(2)}</td>
-                <td class="payment">
+                <td class="amount" data-label="Total Amount">₱${req.total_amount.toFixed(2)}</td>
+                <td class="payment" data-label="Payment Method">
                   <span class="payment-method ${getPaymentClass(req.payment_method)}">
                     ${formatPaymentMethod(req.payment_method)}
                   </span>
                 </td>
-                <td class="actions">
+                <td class="actions" data-label="Actions">
                   <button class="view-btn" onclick="openRequestModal(${req.request_id})" 
                     data-request='${JSON.stringify(req).replace(/'/g, "&#39;")}'>
                     <i class="fas fa-eye"></i>
@@ -768,32 +768,40 @@ function renderTable(container, requests) {
 
         .pagination-container {
           flex-direction: column;
-          padding: 20px 15px;
-          gap: 15px;
+          padding: 15px;
+          gap: 12px;
           background: white;
           border-radius: 0;
           box-shadow: none;
         }
 
         .pagination-info {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           text-align: center;
           color: #7f8c8d;
+          order: 2;
         }
 
         .pagination-controls {
-          gap: 8px;
+          gap: 6px;
           flex-wrap: nowrap;
           justify-content: center;
-          overflow-x: auto;
           width: 100%;
-          padding: 5px 0;
+          order: 1;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .pagination-controls::-webkit-scrollbar {
+          display: none;
         }
 
         .pagination-btn {
-          padding: 10px 14px;
-          font-size: 0.9rem;
-          min-width: 42px;
+          padding: 8px 10px;
+          font-size: 0.85rem;
+          min-width: 36px;
           flex-shrink: 0;
         }
 
