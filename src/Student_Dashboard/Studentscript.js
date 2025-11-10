@@ -16,7 +16,7 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
-  const [feedbackType, setFeedbackType] = useState('General');
+  const [feedbackType, setFeedbackType] = useState('Select type'); // Default to 'Select type'
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
@@ -428,14 +428,15 @@ export const useStudentPortal = () => {
     const data = studentData || window.studentData;
     const userEmail = data?.Email || data?.email || '';
     setFeedbackEmail(userEmail);
-    setFeedbackType('General');
+    // REMOVED: setFeedbackType('General'); - Don't reset the type when opening modal
+    // Keep whatever type is currently selected or default to 'Bug Report'
   }, [studentData]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
     setFeedback('');
     setFeedbackEmail('');
-    setFeedbackType('General');
+    setFeedbackType('Bug Report'); // Reset to Bug Report when closing
     setFeedbackSuccess(false);
   }, []);
 
@@ -443,9 +444,9 @@ export const useStudentPortal = () => {
     e.preventDefault();
     
     console.log('=== Submitting Feedback ===');
-    console.log('Feedback:', feedback);
+    console.log('Feedback message:', feedback);
     console.log('Email:', feedbackEmail);
-    console.log('Type:', feedbackType);
+    console.log('Type BEFORE submit:', feedbackType);
     
     // Validation
     if (!feedback || !feedback.trim()) {
@@ -465,10 +466,10 @@ export const useStudentPortal = () => {
       const formData = new FormData();
       formData.append('action', 'submitFeedback');
       formData.append('email', feedbackEmail.trim());
-      formData.append('feedback_type', feedbackType);
+      formData.append('feedback_type', feedbackType); // Use the state value directly
       formData.append('message', feedback.trim());
 
-      console.log('FormData entries:');
+      console.log('=== FormData being sent ===');
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
@@ -510,7 +511,7 @@ export const useStudentPortal = () => {
         // Clear form and close modal after 2 seconds
         setTimeout(() => {
           setFeedback('');
-          setFeedbackType('General');
+          setFeedbackType('Bug Report'); // Reset to Bug Report after successful submit
           closeFeedbackModal();
         }, 2000);
       } else {
@@ -675,13 +676,13 @@ export const useStudentPortal = () => {
       const data = studentData || window.studentData;
       const userEmail = data?.Email || data?.email || '';
       setFeedbackEmail(userEmail);
-      setFeedbackType('General');
+      // REMOVED: setFeedbackType('General'); - Don't reset when opening
     };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
       setFeedbackEmail('');
-      setFeedbackType('General');
+      setFeedbackType('Bug Report'); // Reset to Bug Report when closing
       setFeedbackSuccess(false);
     };
   }, [studentData]);
