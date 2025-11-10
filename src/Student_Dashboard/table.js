@@ -663,61 +663,129 @@ function renderTable(container, requests) {
         font-size: 1.1rem;
       }
 
-      /* Mobile Responsive */
+      /* Mobile Responsive - Card Layout */
       @media (max-width: 768px) {
-        .modern-table th, .modern-table td {
-          padding: 10px 6px;
+        .table-container {
+          box-shadow: none;
+          background: transparent;
+        }
+
+        .table-wrapper {
+          overflow-x: visible;
+        }
+
+        .modern-table {
+          display: block;
+          background: transparent;
+        }
+
+        .modern-table thead {
+          display: none;
+        }
+
+        .modern-table tbody {
+          display: block;
+        }
+
+        .modern-table tr {
+          display: block;
+          background: white;
+          margin-bottom: 15px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          padding: 15px;
+          border: 1px solid #ecf0f1;
+        }
+
+        .modern-table td {
+          display: block;
+          text-align: left;
+          padding: 8px 0;
+          border: none;
+          position: relative;
+        }
+
+        .modern-table td:before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: #7f8c8d;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: block;
+          margin-bottom: 5px;
+        }
+
+        .request-id {
+          font-size: 1.1rem;
+          padding-top: 0;
+        }
+
+        .request-id:before {
+          content: none;
+        }
+
+        .documents-summary {
+          max-width: 100%;
+        }
+
+        .doc-main {
+          font-size: 0.9rem;
+        }
+
+        .doc-list {
           font-size: 0.75rem;
         }
 
-        .modern-table th {
-          font-size: 0.7rem;
-        }
-
-        .view-btn {
-          padding: 6px 10px;
-          font-size: 0.7rem;
-        }
-
-        .view-btn i {
-          font-size: 0.8rem;
+        .date {
+          color: #2c3e50;
+          font-size: 0.85rem;
         }
 
         .status-badge {
-          padding: 4px 8px;
-          font-size: 0.65rem;
-        }
-
-        .payment-method {
+          padding: 5px 10px;
           font-size: 0.7rem;
-          padding: 3px 6px;
         }
 
         .amount {
-          font-size: 0.85rem;
+          font-size: 1rem;
+        }
+
+        .payment-method {
+          font-size: 0.75rem;
+          padding: 4px 8px;
+        }
+
+        .view-btn {
+          padding: 8px 16px;
+          font-size: 0.8rem;
+          width: 100%;
+          justify-content: center;
         }
 
         .pagination-container {
           flex-direction: column;
-          padding: 12px;
-          gap: 10px;
+          padding: 15px;
+          gap: 12px;
+          background: white;
         }
 
         .pagination-info {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           text-align: center;
+          color: #7f8c8d;
         }
 
         .pagination-controls {
-          gap: 3px;
+          gap: 5px;
           flex-wrap: wrap;
           justify-content: center;
         }
 
         .pagination-btn {
-          padding: 6px 10px;
-          font-size: 0.75rem;
-          min-width: 32px;
+          padding: 8px 12px;
+          font-size: 0.85rem;
+          min-width: 38px;
         }
 
         .detail-grid {
@@ -751,14 +819,6 @@ function renderTable(container, requests) {
         .document-price {
           text-align: left;
           width: 100%;
-        }
-
-        .documents-summary {
-          max-width: 150px;
-        }
-
-        .doc-list {
-          font-size: 0.7rem;
         }
       }
 
