@@ -16,7 +16,7 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
-  const [feedbackType, setFeedbackType] = useState(''); // Empty string as default
+  const [feedbackType, setFeedbackType] = useState('Select type'); // Default to 'Select type'
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
@@ -423,13 +423,6 @@ export const useStudentPortal = () => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
-  const handleFeedbackTypeChange = useCallback((newType) => {
-    console.log('=== Feedback Type Changed ===');
-    console.log('Old type:', feedbackType);
-    console.log('New type:', newType);
-    setFeedbackType(newType);
-  }, [feedbackType]);
-
   const openFeedbackModal = useCallback(() => {
     setShowFeedbackModal(true);
     const data = studentData || window.studentData;
@@ -443,7 +436,7 @@ export const useStudentPortal = () => {
     setShowFeedbackModal(false);
     setFeedback('');
     setFeedbackEmail('');
-    setFeedbackType('Select type'); // Reset to 'Select type' when closing
+    setFeedbackType('Bug Report'); // Reset to Bug Report when closing
     setFeedbackSuccess(false);
   }, []);
 
@@ -463,12 +456,6 @@ export const useStudentPortal = () => {
 
     if (!feedbackEmail || !feedbackEmail.trim()) {
       showMessage('Email not found. Please try again.', 'error');
-      return;
-    }
-
-    // Validate feedback type is selected
-    if (!feedbackType || feedbackType === 'Select type') {
-      showMessage('Please select a feedback type', 'error');
       return;
     }
 
@@ -524,7 +511,7 @@ export const useStudentPortal = () => {
         // Clear form and close modal after 2 seconds
         setTimeout(() => {
           setFeedback('');
-          setFeedbackType('Select type'); // Reset to 'Select type' after successful submit
+          setFeedbackType('Bug Report'); // Reset to Bug Report after successful submit
           closeFeedbackModal();
         }, 2000);
       } else {
@@ -695,7 +682,7 @@ export const useStudentPortal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
       setFeedbackEmail('');
-      setFeedbackType('Select type'); // Reset to 'Select type' when closing
+      setFeedbackType('Bug Report'); // Reset to Bug Report when closing
       setFeedbackSuccess(false);
     };
   }, [studentData]);
