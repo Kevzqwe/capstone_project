@@ -15,6 +15,7 @@ export const useStudentPortal = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [feedbackEmail, setFeedbackEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
   const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
@@ -46,7 +47,6 @@ export const useStudentPortal = () => {
     setTimeout(() => messageDiv.remove(), 5000);
   }, []);
 
-  // Fetch announcement data
   const loadAnnouncement = useCallback(async () => {
     try {
       console.log('Loading announcement...');
@@ -82,7 +82,6 @@ export const useStudentPortal = () => {
     }
   }, []);
 
-  // Fetch transaction days data
   const loadTransaction = useCallback(async () => {
     try {
       console.log('Loading transaction hours...');
@@ -173,7 +172,6 @@ export const useStudentPortal = () => {
   const updateWelcomeMessages = useCallback((data) => {
     console.log('Updating welcome messages with data:', data);
     
-    // Backend returns: First_Name, full_name
     const firstName = data.First_Name || data.first_name || 'Student';
     
     console.log('Using first name:', firstName);
@@ -190,7 +188,6 @@ export const useStudentPortal = () => {
       console.log('✓ Updated welcome message');
     }
     
-    // Backend returns: full_name (already concatenated in SQL)
     const accountName = document.getElementById('accountName');
     const fullName = data.full_name || 'N/A';
     if (accountName) {
@@ -216,7 +213,6 @@ export const useStudentPortal = () => {
     console.log('=== Updating account page ===');
     console.log('Data received:', data);
     
-    // Update account name (full_name comes from backend CONCAT)
     const accountName = document.getElementById('accountName');
     const fullName = data.full_name || 'N/A';
     
@@ -225,7 +221,6 @@ export const useStudentPortal = () => {
       console.log('✓ Account name:', fullName);
     }
     
-    // Update student number (Student_ID from backend)
     const studentNoElement = document.querySelector('.student-no');
     const studentId = data.Student_ID || data.student_id || 'undefined';
     
@@ -234,13 +229,11 @@ export const useStudentPortal = () => {
       console.log('✓ Student number:', studentId);
     }
     
-    // Field mappings based on your backend response
     const fieldMappings = {
       'address': data.Address || data.address || '',
       'contact': data.Contact_No || data.contact_no || '',
       'email': data.Email || data.email || '',
       'grade': (() => {
-        // Backend returns: grade_display (e.g., "Grade 10"), Section
         const gradeDisplay = data.grade_display || '';
         const section = data.Section || data.section || '';
         
@@ -257,7 +250,6 @@ export const useStudentPortal = () => {
     
     console.log('Field mappings:', fieldMappings);
     
-    // Update each field
     Object.keys(fieldMappings).forEach(fieldId => {
       const element = document.getElementById(fieldId);
       if (element) {
@@ -278,7 +270,6 @@ export const useStudentPortal = () => {
     console.log('=== Updating all UI elements ===');
     console.log('Data:', data);
     
-    // Update sidebar name
     const sidebarName = document.getElementById('studentName');
     const fullName = data.full_name || 'Student';
     
@@ -287,10 +278,8 @@ export const useStudentPortal = () => {
       console.log('✓ Sidebar name:', fullName);
     }
     
-    // Update welcome messages
     updateWelcomeMessages(data);
     
-    // If on account page, update it
     if (activePage === 'account') {
       console.log('On account page, updating...');
       updateAccountPage(data);
@@ -329,15 +318,12 @@ export const useStudentPortal = () => {
           console.log('Student data:', data.data);
           console.log('Keys in data:', Object.keys(data.data));
           
-          // Store the data
           setStudentData(data.data);
           setIsAuthenticated(true);
           window.studentData = data.data;
           
-          // Immediately update UI
           updateAllUserInterfaces(data.data);
           
-          // Load announcement and transaction
           setTimeout(() => {
             loadAnnouncement();
             loadTransaction();
@@ -435,61 +421,17 @@ export const useStudentPortal = () => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
-  const populateFeedbackEmail = useCallback(() => {
-    console.log('📧 Populating feedback modal email...');
-    
-    if (!studentData && !window.studentData) {
-      console.warn('⚠️ No student data available for feedback email');
-      return;
-    }
-    
-    const data = studentData || window.studentData;
-    const userEmail = data.Email || data.email || '';
-    
-    console.log('User email found:', userEmail);
-    console.log('Student data being used:', data);
-    
-    let feedbackEmailInput = document.querySelector('#feedbackEmail');
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('.feedback-modal input[type="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[placeholder*="email" i]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[name="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('[id*="email" i]');
-    }
-    
-    if (feedbackEmailInput) {
-      feedbackEmailInput.value = userEmail;
-      feedbackEmailInput.readOnly = true;
-      feedbackEmailInput.style.backgroundColor = '#f5f5f5';
-      feedbackEmailInput.style.cursor = 'not-allowed';
-      console.log('✓ Feedback email field populated and locked:', userEmail);
-      console.log('✓ Email input element:', feedbackEmailInput);
-    } else {
-      console.error('❌ Feedback email input not found with any selector!');
-      console.log('Available inputs:', document.querySelectorAll('input'));
-    }
-  }, [studentData]);
-
   const openFeedbackModal = useCallback(() => {
     setShowFeedbackModal(true);
-    setTimeout(() => {
-      populateFeedbackEmail();
-    }, 100);
-  }, [populateFeedbackEmail]);
+    const data = studentData || window.studentData;
+    const userEmail = data?.Email || data?.email || '';
+    setFeedbackEmail(userEmail);
+  }, [studentData]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
     setFeedback('');
+    setFeedbackEmail('');
   }, []);
 
   const handleFeedbackSubmit = useCallback(async (e) => {
@@ -500,8 +442,7 @@ export const useStudentPortal = () => {
       return;
     }
 
-    const email = studentData?.Email || studentData?.email;
-    if (!email) {
+    if (!feedbackEmail) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
@@ -511,7 +452,7 @@ export const useStudentPortal = () => {
     try {
       const formData = new FormData();
       formData.append('action', 'submitFeedback');
-      formData.append('email', email);
+      formData.append('email', feedbackEmail);
       formData.append('feedback_type', 'General');
       formData.append('message', feedback);
 
@@ -535,7 +476,7 @@ export const useStudentPortal = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [feedback, studentData, showMessage, closeFeedbackModal]);
+  }, [feedback, feedbackEmail, showMessage, closeFeedbackModal]);
 
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
@@ -684,15 +625,16 @@ export const useStudentPortal = () => {
   useEffect(() => {
     window.openFeedbackModal = () => {
       setShowFeedbackModal(true);
-      setTimeout(() => {
-        populateFeedbackEmail();
-      }, 100);
+      const data = studentData || window.studentData;
+      const userEmail = data?.Email || data?.email || '';
+      setFeedbackEmail(userEmail);
     };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
+      setFeedbackEmail('');
     };
-  }, [populateFeedbackEmail]);
+  }, [studentData]);
 
   useEffect(() => {
     console.log('=== Component mounted ===');
@@ -745,6 +687,7 @@ export const useStudentPortal = () => {
     showFeedbackModal,
     dashboardData,
     feedback,
+    feedbackEmail,
     isSubmitting,
     announcement,
     transactionDays,
@@ -752,13 +695,13 @@ export const useStudentPortal = () => {
     transactionLoading,
     isAuthenticated,
     setFeedback,
+    setFeedbackEmail,
     openFeedbackModal,
     closeFeedbackModal,
     toggleNotificationDropdown,
     handleFeedbackSubmit,
     handleNotificationClick,
-    markNotificationAsRead,
-    populateFeedbackEmail
+    markNotificationAsRead
   };
 };
 
