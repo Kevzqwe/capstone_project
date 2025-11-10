@@ -479,6 +479,7 @@ function renderTable(container, requests) {
         display: flex;
         align-items: center;
         gap: 5px;
+        flex-direction: row;
       }
 
       .pagination-btn {
@@ -785,7 +786,8 @@ function renderTable(container, requests) {
         .pagination-controls {
           gap: 6px;
           flex-wrap: nowrap;
-          justify-content: center;
+          flex-direction: row !important;
+          justify-content: flex-start;
           width: 100%;
           order: 2;
           overflow-x: auto;
