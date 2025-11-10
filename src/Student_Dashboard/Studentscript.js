@@ -16,6 +16,7 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackType, setFeedbackType] = useState('General');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
   const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
@@ -426,23 +427,31 @@ export const useStudentPortal = () => {
     const data = studentData || window.studentData;
     const userEmail = data?.Email || data?.email || '';
     setFeedbackEmail(userEmail);
+    setFeedbackType('General');
   }, [studentData]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
     setFeedback('');
     setFeedbackEmail('');
+    setFeedbackType('General');
   }, []);
 
   const handleFeedbackSubmit = useCallback(async (e) => {
     e.preventDefault();
     
+    console.log('=== Submitting Feedback ===');
+    console.log('Feedback:', feedback);
+    console.log('Email:', feedbackEmail);
+    console.log('Type:', feedbackType);
+    
+    // Validation
     if (!feedback || !feedback.trim()) {
       showMessage('Please provide a feedback message', 'error');
       return;
     }
 
-    if (!feedbackEmail) {
+    if (!feedbackEmail || !feedbackEmail.trim()) {
       showMessage('Email not found. Please try again.', 'error');
       return;
     }
@@ -450,22 +459,47 @@ export const useStudentPortal = () => {
     setIsSubmitting(true);
     
     try {
+      // Create FormData
       const formData = new FormData();
       formData.append('action', 'submitFeedback');
-      formData.append('email', feedbackEmail);
-      formData.append('feedback_type', 'General');
-      formData.append('message', feedback);
+      formData.append('email', feedbackEmail.trim());
+      formData.append('feedback_type', feedbackType);
+      formData.append('message', feedback.trim());
 
+      console.log('FormData entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+
+      // Send request
       const response = await fetch(FEEDBACK_API_URL, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
 
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      // Get response text first
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+
+      // Try to parse as JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response from server');
+      }
+
+      console.log('Parsed result:', result);
       
       if (result.success) {
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
         setFeedback('');
+        setFeedbackType('General');
         closeFeedbackModal();
       } else {
         showMessage(result.message || 'Failed to submit feedback', 'error');
@@ -476,7 +510,7 @@ export const useStudentPortal = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [feedback, feedbackEmail, showMessage, closeFeedbackModal]);
+  }, [feedback, feedbackEmail, feedbackType, showMessage, closeFeedbackModal]);
 
   const markNotificationAsRead = useCallback(async (notificationId) => {
     try {
@@ -628,11 +662,13 @@ export const useStudentPortal = () => {
       const data = studentData || window.studentData;
       const userEmail = data?.Email || data?.email || '';
       setFeedbackEmail(userEmail);
+      setFeedbackType('General');
     };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
       setFeedbackEmail('');
+      setFeedbackType('General');
     };
   }, [studentData]);
 
@@ -688,6 +724,7 @@ export const useStudentPortal = () => {
     dashboardData,
     feedback,
     feedbackEmail,
+    feedbackType,
     isSubmitting,
     announcement,
     transactionDays,
@@ -696,6 +733,7 @@ export const useStudentPortal = () => {
     isAuthenticated,
     setFeedback,
     setFeedbackEmail,
+    setFeedbackType,
     openFeedbackModal,
     closeFeedbackModal,
     toggleNotificationDropdown,
