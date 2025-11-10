@@ -435,9 +435,38 @@ export const useStudentPortal = () => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
 
+  // ✅ NEW: Function to populate feedback modal email field
+  const populateFeedbackEmail = useCallback(() => {
+    console.log('📧 Populating feedback modal email...');
+    
+    if (!studentData) {
+      console.warn('⚠️ No student data available for feedback email');
+      return;
+    }
+    
+    // Get email from studentData (handle both uppercase and lowercase)
+    const userEmail = studentData.Email || studentData.email || '';
+    
+    console.log('User email found:', userEmail);
+    
+    // Find the email input in feedback modal
+    const feedbackEmailInput = document.querySelector('#feedbackModal input[type="email"]');
+    
+    if (feedbackEmailInput) {
+      feedbackEmailInput.value = userEmail;
+      console.log('✓ Feedback email field populated:', userEmail);
+    } else {
+      console.warn('⚠️ Feedback email input not found');
+    }
+  }, [studentData]);
+
   const openFeedbackModal = useCallback(() => {
     setShowFeedbackModal(true);
-  }, []);
+    // Populate email after modal opens
+    setTimeout(() => {
+      populateFeedbackEmail();
+    }, 100);
+  }, [populateFeedbackEmail]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
@@ -639,12 +668,17 @@ export const useStudentPortal = () => {
 
   // Set up global functions
   useEffect(() => {
-    window.openFeedbackModal = () => setShowFeedbackModal(true);
+    window.openFeedbackModal = () => {
+      setShowFeedbackModal(true);
+      setTimeout(() => {
+        populateFeedbackEmail();
+      }, 100);
+    };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
     };
-  }, []);
+  }, [populateFeedbackEmail]);
 
   // Load initial data on mount
   useEffect(() => {
@@ -712,7 +746,8 @@ export const useStudentPortal = () => {
     toggleNotificationDropdown,
     handleFeedbackSubmit,
     handleNotificationClick,
-    markNotificationAsRead
+    markNotificationAsRead,
+    populateFeedbackEmail
   };
 };
 
