@@ -16,7 +16,7 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
-  const [feedbackType, setFeedbackType] = useState('Select type'); // Default to 'Select type'
+  const [feedbackType, setFeedbackType] = useState(''); // Empty string as default
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
@@ -422,6 +422,13 @@ export const useStudentPortal = () => {
   const toggleNotificationDropdown = useCallback(() => {
     setShowNotificationDropdown(prev => !prev);
   }, []);
+
+  const handleFeedbackTypeChange = useCallback((newType) => {
+    console.log('=== Feedback Type Changed ===');
+    console.log('Old type:', feedbackType);
+    console.log('New type:', newType);
+    setFeedbackType(newType);
+  }, [feedbackType]);
 
   const openFeedbackModal = useCallback(() => {
     setShowFeedbackModal(true);
