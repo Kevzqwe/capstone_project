@@ -769,7 +769,7 @@ function renderTable(container, requests) {
         .pagination-container {
           flex-direction: column;
           padding: 15px;
-          gap: 12px;
+          gap: 15px;
           background: white;
           border-radius: 0;
           box-shadow: none;
@@ -779,7 +779,7 @@ function renderTable(container, requests) {
           font-size: 0.8rem;
           text-align: center;
           color: #7f8c8d;
-          order: 2;
+          order: 1;
         }
 
         .pagination-controls {
@@ -787,21 +787,35 @@ function renderTable(container, requests) {
           flex-wrap: nowrap;
           justify-content: center;
           width: 100%;
-          order: 1;
+          order: 2;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
+          scrollbar-width: thin;
+          padding-bottom: 5px;
         }
 
         .pagination-controls::-webkit-scrollbar {
-          display: none;
+          height: 6px;
+        }
+
+        .pagination-controls::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+
+        .pagination-controls::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+
+        .pagination-controls::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
 
         .pagination-btn {
-          padding: 8px 10px;
+          padding: 10px 12px;
           font-size: 0.85rem;
-          min-width: 36px;
+          min-width: 40px;
           flex-shrink: 0;
         }
 
