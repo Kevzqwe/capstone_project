@@ -1,765 +1,633 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useState } from "react";
+import "./Student.css";
+import PCSlogo from "../Components/Assets/PCSlogo.png";
+import Icon from "../Components/Assets/Icon.png";
+import Docsimg from "../Components/Assets/Docsimg.png";
+import burger from "../Components/Assets/burger.png";
+import Bell from "../Components/Assets/bell.png";
+import useStudentPortal from "./Studentscript";
+import useDocumentRequest from "./request";
+import { RequestHistoryTable } from "./table.js";
+import InitializeChatbase from './Chatbase'; 
 
-const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
-const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
-const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
-const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/transaction.php';
-
-export const useStudentPortal = () => {
-  const [studentData, setStudentData] = useState(null);
-  const [activePage, setActivePage] = useState('dashboard');
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
-  const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
-  const [announcementLoading, setAnnouncementLoading] = useState(false);
-  const [transactionLoading, setTransactionLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const showMessage = useCallback((message, type) => {
-    const existing = document.querySelector('.status-message');
-    if (existing) existing.remove();
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `status-message ${type}`;
-    messageDiv.textContent = message;
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      border-radius: 5px;
-      color: white;
-      font-weight: bold;
-      z-index: 3000;
-      background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    document.body.appendChild(messageDiv);
-    setTimeout(() => messageDiv.remove(), 5000);
-  }, []);
-
-  // Fetch announcement data
-  const loadAnnouncement = useCallback(async () => {
-    try {
-      console.log('Loading announcement...');
-      setAnnouncementLoading(true);
-      
-      const response = await fetch(`${ANNOUNCEMENT_API_URL}?action=get_announcement_data`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        setAnnouncementLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.data) {
-        const announcementText = data.data.Content || 
-                                data.data.content || 
-                                'Welcome to Pateros Catholic School Document Request System';
-        
-        setAnnouncement(announcementText);
-      }
-    } catch (error) {
-      console.error('Error fetching announcement:', error);
-    } finally {
-      setAnnouncementLoading(false);
-    }
-  }, []);
-
-  // Fetch transaction days data
-  const loadTransaction = useCallback(async () => {
-    try {
-      console.log('Loading transaction hours...');
-      setTransactionLoading(true);
-      
-      const response = await fetch(`${TRANSACTION_API_URL}?action=get_transaction_data`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        setTransactionLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.data) {
-        const transactionText = data.data.Description || 
-                               data.data.description || 
-                               'Monday to Friday, 8:00 AM - 5:00 PM';
-        
-        setTransactionDays(transactionText);
-      }
-    } catch (error) {
-      console.error('Error fetching transaction:', error);
-    } finally {
-      setTransactionLoading(false);
-    }
-  }, []);
-
-  const updateNotificationBadge = useCallback((count) => {
-    const notificationBtn = document.querySelector('.action-btn[title="Notifications"]');
-    if (!notificationBtn) return;
-    
-    let badge = notificationBtn.querySelector('.notification-badge');
-    if (!badge) {
-      badge = document.createElement('span');
-      badge.className = 'notification-badge';
-      badge.style.cssText = `
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #e74c3c;
-        color: white;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        font-size: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      `;
-      notificationBtn.style.position = 'relative';
-      notificationBtn.appendChild(badge);
-    }
-    
-    badge.textContent = count > 9 ? '9+' : count;
-    badge.style.display = count > 0 ? 'flex' : 'none';
-  }, []);
-
-  const getReadNotifications = useCallback(() => {
-    try {
-      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    } catch (error) {
-      console.error('Error reading read notifications from localStorage:', error);
-      return [];
-    }
-  }, []);
-
-  const saveReadNotification = useCallback((notificationId) => {
-    try {
-      const readNotifications = getReadNotifications();
-      if (!readNotifications.includes(notificationId)) {
-        readNotifications.push(notificationId);
-        localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
-      }
-    } catch (error) {
-      console.error('Error saving read notification to localStorage:', error);
-    }
-  }, [getReadNotifications]);
-
-  const updateWelcomeMessages = useCallback((data) => {
-    console.log('Updating welcome messages with data:', data);
-    
-    // Backend returns: First_Name, full_name
-    const firstName = data.First_Name || data.first_name || 'Student';
-    
-    console.log('Using first name:', firstName);
-    
-    const welcomeName = document.getElementById('welcomeName');
-    if (welcomeName) {
-      welcomeName.textContent = firstName;
-      console.log('✓ Updated welcomeName element');
-    }
-    
-    const welcomeMessage = document.querySelector('.welcome-message h2');
-    if (welcomeMessage) {
-      welcomeMessage.innerHTML = `Welcome back, <span id="welcomeName">${firstName}</span>!`;
-      console.log('✓ Updated welcome message');
-    }
-    
-    // Backend returns: full_name (already concatenated in SQL)
-    const accountName = document.getElementById('accountName');
-    const fullName = data.full_name || 'N/A';
-    if (accountName) {
-      accountName.textContent = fullName;
-      console.log('✓ Updated account name:', fullName);
-    }
-    
-    const welcomeDate = document.getElementById('welcomeDate');
-    if (welcomeDate) {
-      const today = new Date();
-      const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      };
-      welcomeDate.textContent = today.toLocaleDateString('en-US', options);
-      console.log('✓ Updated welcome date');
-    }
-  }, []);
-
-  const updateAccountPage = useCallback((data) => {
-    console.log('=== Updating account page ===');
-    console.log('Data received:', data);
-    
-    // Update account name (full_name comes from backend CONCAT)
-    const accountName = document.getElementById('accountName');
-    const fullName = data.full_name || 'N/A';
-    
-    if (accountName) {
-      accountName.textContent = fullName;
-      console.log('✓ Account name:', fullName);
-    }
-    
-    // Update student number (Student_ID from backend)
-    const studentNoElement = document.querySelector('.student-no');
-    const studentId = data.Student_ID || data.student_id || 'undefined';
-    
-    if (studentNoElement) {
-      studentNoElement.textContent = `Student No: ${studentId}`;
-      console.log('✓ Student number:', studentId);
-    }
-    
-    // Field mappings based on your backend response
-    const fieldMappings = {
-      'address': data.Address || data.address || '',
-      'contact': data.Contact_No || data.contact_no || '',
-      'email': data.Email || data.email || '',
-      'grade': (() => {
-        // Backend returns: grade_display (e.g., "Grade 10"), Section
-        const gradeDisplay = data.grade_display || '';
-        const section = data.Section || data.section || '';
-        
-        if (gradeDisplay && section) {
-          return `${gradeDisplay} - ${section}`;
-        } else if (gradeDisplay) {
-          return gradeDisplay;
-        } else if (section) {
-          return `Section ${section}`;
-        }
-        return 'Not assigned';
-      })()
-    };
-    
-    console.log('Field mappings:', fieldMappings);
-    
-    // Update each field
-    Object.keys(fieldMappings).forEach(fieldId => {
-      const element = document.getElementById(fieldId);
-      if (element) {
-        element.value = fieldMappings[fieldId];
-        element.readOnly = true;
-        element.style.cursor = 'not-allowed';
-        element.style.backgroundColor = '#f8f9fa';
-        console.log(`✓ Updated ${fieldId}:`, fieldMappings[fieldId]);
-      } else {
-        console.warn(`✗ Element not found: ${fieldId}`);
-      }
-    });
-    
-    console.log('=== Account page update complete ===');
-  }, []);
-
-  const updateAllUserInterfaces = useCallback((data) => {
-    console.log('=== Updating all UI elements ===');
-    console.log('Data:', data);
-    
-    // Update sidebar name
-    const sidebarName = document.getElementById('studentName');
-    const fullName = data.full_name || 'Student';
-    
-    if (sidebarName) {
-      sidebarName.textContent = fullName;
-      console.log('✓ Sidebar name:', fullName);
-    }
-    
-    // Update welcome messages
-    updateWelcomeMessages(data);
-    
-    // If on account page, update it
-    if (activePage === 'account') {
-      console.log('On account page, updating...');
-      updateAccountPage(data);
-    }
-    
-    console.log('=== UI update complete ===');
-  }, [updateWelcomeMessages, updateAccountPage, activePage]);
-
-  const loadUserData = useCallback(() => {
-    if (isLoadingUserData) {
-      console.log('Already loading user data, skipping...');
-      return;
-    }
-    
-    console.log('=== Loading user data ===');
-    setIsLoadingUserData(true);
-    
-    fetch(`${API_BASE_URL}?action=getStudentData`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        console.log('=== API Response ===');
-        console.log('Full response:', data);
-        
-        if (data.status === 'success' && data.data) {
-          console.log('Student data:', data.data);
-          console.log('Keys in data:', Object.keys(data.data));
-          
-          // Store the data
-          setStudentData(data.data);
-          setIsAuthenticated(true);
-          window.studentData = data.data;
-          
-          // Immediately update UI
-          updateAllUserInterfaces(data.data);
-          
-          // Load announcement and transaction
-          setTimeout(() => {
-            loadAnnouncement();
-            loadTransaction();
-          }, 300);
-          
-          console.log('✓ User data loaded successfully');
-        } else {
-          console.error('Failed to load student data:', data.message);
-          setIsAuthenticated(false);
-          showMessage('Failed to load student data: ' + data.message, 'error');
-        }
-      })
-      .catch(error => {
-        console.error('Error loading user data:', error);
-        setIsAuthenticated(false);
-        showMessage('Error loading student data', 'error');
-      })
-      .finally(() => {
-        setIsLoadingUserData(false);
-      });
-  }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction, updateAllUserInterfaces]);
-
-  const updateDashboard = useCallback((data) => {
-    if (studentData) {
-      updateWelcomeMessages(studentData);
-    }
-    
-    const announcementCard = document.querySelector('.info-card h3');
-    if (announcementCard && announcementCard.textContent === 'Announcement') {
-      const announcementContent = announcementCard.nextElementSibling;
-      if (announcementContent && data.announcement) {
-        announcementContent.textContent = data.announcement;
-      }
-    }
-    
-    const transactionCard = document.querySelectorAll('.info-card h3')[1];
-    if (transactionCard && transactionCard.textContent === 'Transaction Days') {
-      const transactionContent = transactionCard.nextElementSibling;
-      if (transactionContent && data.transaction_hours) {
-        transactionContent.textContent = data.transaction_hours;
-      }
-    }
-  }, [studentData, updateWelcomeMessages]);
-
-  const loadDashboardData = useCallback(() => {
-    fetch(`${API_BASE_URL}?action=getDashboardData`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          setDashboardData(data.data);
-          updateDashboard(data.data);
-        }
-      })
-      .catch(error => {
-        console.error('Error loading dashboard data:', error);
-      });
-  }, [updateDashboard]);
-
-  const fetchNotifications = useCallback(() => {
-    fetch(`${API_BASE_URL}?action=getNotifications`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          const readNotifications = getReadNotifications();
-          const filteredNotifications = data.notifications?.filter(notif => 
-            !readNotifications.includes(notif.id)
-          ) || [];
-          
-          setNotifications(filteredNotifications);
-          setUnreadCount(filteredNotifications.length);
-          window.studentNotifications = filteredNotifications;
-          updateNotificationBadge(filteredNotifications.length);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching notifications:', error);
-      });
-  }, [updateNotificationBadge, getReadNotifications]);
-
-  const toggleNotificationDropdown = useCallback(() => {
-    setShowNotificationDropdown(prev => !prev);
-  }, []);
-
-  const populateFeedbackEmail = useCallback(() => {
-    console.log('📧 Populating feedback modal email...');
-    
-    if (!studentData && !window.studentData) {
-      console.warn('⚠️ No student data available for feedback email');
-      return;
-    }
-    
-    const data = studentData || window.studentData;
-    const userEmail = data.Email || data.email || '';
-    
-    console.log('User email found:', userEmail);
-    console.log('Student data being used:', data);
-    
-    let feedbackEmailInput = document.querySelector('#feedbackEmail');
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('.feedback-modal input[type="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[placeholder*="email" i]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[name="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('[id*="email" i]');
-    }
-    
-    if (feedbackEmailInput) {
-      feedbackEmailInput.value = userEmail;
-      feedbackEmailInput.readOnly = true;
-      feedbackEmailInput.style.backgroundColor = '#f5f5f5';
-      feedbackEmailInput.style.cursor = 'not-allowed';
-      console.log('✓ Feedback email field populated and locked:', userEmail);
-      console.log('✓ Email input element:', feedbackEmailInput);
-    } else {
-      console.error('❌ Feedback email input not found with any selector!');
-      console.log('Available inputs:', document.querySelectorAll('input'));
-    }
-  }, [studentData]);
-
-  const openFeedbackModal = useCallback(() => {
-    setShowFeedbackModal(true);
-    setTimeout(() => {
-      populateFeedbackEmail();
-    }, 100);
-  }, [populateFeedbackEmail]);
-
-  const closeFeedbackModal = useCallback(() => {
-    setShowFeedbackModal(false);
-    setFeedback('');
-  }, []);
-
-  const handleFeedbackSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    
-    if (!feedback || !feedback.trim()) {
-      showMessage('Please provide a feedback message', 'error');
-      return;
-    }
-
-    const email = studentData?.Email || studentData?.email;
-    if (!email) {
-      showMessage('Email not found. Please try again.', 'error');
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('action', 'submitFeedback');
-      formData.append('email', email);
-      formData.append('feedback_type', 'General');
-      formData.append('message', feedback);
-
-      const response = await fetch(FEEDBACK_API_URL, {
-        method: 'POST',
-        body: formData
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        showMessage(result.message || 'Feedback submitted successfully!', 'success');
-        setFeedback('');
-        closeFeedbackModal();
-      } else {
-        showMessage(result.message || 'Failed to submit feedback', 'error');
-      }
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      showMessage('Error submitting feedback. Please try again.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [feedback, studentData, showMessage, closeFeedbackModal]);
-
-  const markNotificationAsRead = useCallback(async (notificationId) => {
-    try {
-      saveReadNotification(notificationId);
-      
-      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      updateNotificationBadge(Math.max(0, unreadCount - 1));
-      
-      if (window.studentNotifications) {
-        window.studentNotifications = window.studentNotifications.filter(
-          notif => notif.id !== notificationId
-        );
-      }
-
-      const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ notification_id: notificationId })
-      });
-
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        console.log('Notification marked as read');
-        return true;
-      } else {
-        console.warn('Failed to mark notification as read:', result.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-      return false;
-    }
-  }, [unreadCount, updateNotificationBadge, saveReadNotification]);
-
-  const handleNotificationClick = useCallback(async (notificationId) => {
-    await markNotificationAsRead(notificationId);
-  }, [markNotificationAsRead]);
-
-  const updatePageTitle = useCallback((pageName) => {
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-      const titles = {
-        'dashboard': 'Dashboard',
-        'documents': 'Documents',
-        'request-history': 'Request History',
-        'account': 'Account'
-      };
-      pageTitle.textContent = titles[pageName] || pageName.charAt(0).toUpperCase() + pageName.slice(1);
-    }
-  }, []);
-
-  const updateActiveNav = useCallback((pageName) => {
-    const navItems = document.querySelectorAll('.nav-link');
-    navItems.forEach(item => {
-      item.classList.remove('active');
-      const itemPage = item.getAttribute('data-page');
-      if (itemPage === pageName) {
-        item.classList.add('active');
-      }
-    });
-  }, []);
-
-  const showPage = useCallback((pageName) => {
-    console.log('Showing page:', pageName);
-    setActivePage(pageName);
-    
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-      page.classList.remove('active');
-      page.style.display = 'none';
-    });
-    
-    const activePageEl = document.getElementById(pageName);
-    if (activePageEl) {
-      activePageEl.classList.add('active');
-      activePageEl.style.display = 'block';
-    }
-    
-    updateActiveNav(pageName);
-    updatePageTitle(pageName);
-  }, [updateActiveNav, updatePageTitle]);
-
-  const setupNavigationHandlers = useCallback(() => {
-    const navItems = document.querySelectorAll('[data-page], nav a');
-    navItems.forEach(item => {
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-        const pageName = this.getAttribute('data-page') || 
-                       this.getAttribute('href')?.replace('#', '');
-        if (pageName) {
-          showPage(pageName);
-        }
-      });
-    });
-  }, [showPage]);
-
-  const setupMenuToggleHandler = useCallback(() => {
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    if (menuToggle && sidebar) {
-      const newMenuToggle = menuToggle.cloneNode(true);
-      menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-      
-      newMenuToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Menu toggle clicked');
-        
-        if (window.innerWidth <= 900) {
-          sidebar.classList.toggle('mobile-open');
-          console.log('Sidebar mobile-open toggled:', sidebar.classList.contains('mobile-open'));
-        } else {
-          sidebar.classList.toggle('collapsed');
-          console.log('Sidebar collapsed toggled:', sidebar.classList.contains('collapsed'));
-        }
-      });
-    }
-  }, []);
-
-  const setupLogoutHandler = useCallback(() => {
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.confirm('Are you sure you want to logout?')) {
-          window.location.href = 'https://mediumaquamarine-heron-545485.hostingersite.com/index.html';
-        }
-      });
-    }
-  }, []);
-
-  const loadInitialData = useCallback(() => {
-    const activePageEl = document.querySelector('.page.active');
-    if (activePageEl && activePageEl.id === 'dashboard') {
-      loadDashboardData();
-    }
-  }, [loadDashboardData]);
-
-  useEffect(() => {
-    window.openFeedbackModal = () => {
-      setShowFeedbackModal(true);
-      setTimeout(() => {
-        populateFeedbackEmail();
-      }, 100);
-    };
-    window.closeFeedbackModal = () => {
-      setShowFeedbackModal(false);
-      setFeedback('');
-    };
-  }, [populateFeedbackEmail]);
-
-  useEffect(() => {
-    console.log('=== Component mounted ===');
-    loadUserData();
-    fetchNotifications();
-    loadInitialData();
-    setupNavigationHandlers();
-    setupMenuToggleHandler();
-    setupLogoutHandler();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (studentData) {
-      console.log('=== Student data changed ===');
-      console.log('Current data:', studentData);
-      updateAllUserInterfaces(studentData);
-    }
-  }, [studentData, updateAllUserInterfaces]);
-
-  useEffect(() => {
-    console.log('=== Page changed to:', activePage, '===');
-    
-    if (activePage === 'dashboard') {
-      loadDashboardData();
-      if (isAuthenticated) {
-        loadAnnouncement();
-        loadTransaction();
-      }
-    } else if (activePage === 'account') {
-      if (studentData) {
-        setTimeout(() => {
-          updateAccountPage(studentData);
-        }, 100);
-      }
-    } else if (activePage === 'request-history') {
-      if (typeof window.RequestHistoryTable === 'function') {
-        setTimeout(window.RequestHistoryTable, 100);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage, isAuthenticated, studentData]);
-
-  return {
+export default function StudentDashboard() {
+  const {
     studentData,
-    activePage,
     notifications,
     unreadCount,
     showNotificationDropdown,
     showFeedbackModal,
-    dashboardData,
     feedback,
     isSubmitting,
     announcement,
     transactionDays,
     announcementLoading,
     transactionLoading,
-    isAuthenticated,
     setFeedback,
     openFeedbackModal,
     closeFeedbackModal,
     toggleNotificationDropdown,
     handleFeedbackSubmit,
-    handleNotificationClick,
-    markNotificationAsRead,
-    populateFeedbackEmail
-  };
-};
+    handleNotificationClick
+  } = useStudentPortal();
 
-export default useStudentPortal;
+  useDocumentRequest();
+
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Initialize dashboard page as active on mount
+  useEffect(() => {
+    console.log('Initializing dashboard...');
+    
+    const dashboardPage = document.getElementById('dashboard');
+    if (dashboardPage) {
+      dashboardPage.classList.add('active');
+      dashboardPage.style.display = 'block';
+      console.log('Dashboard page shown');
+    }
+    
+    const firstNavLink = document.querySelector('.nav-link[data-page="dashboard"]');
+    if (firstNavLink) {
+      firstNavLink.classList.add('active');
+      console.log('Dashboard nav link activated');
+    }
+  }, []);
+
+  // Handle navigation clicks
+  useEffect(() => {
+    const navLinks = document.querySelectorAll('.nav-link[data-page]');
+    
+    const handleNavClick = (e) => {
+      e.preventDefault();
+      const pageName = e.currentTarget.getAttribute('data-page');
+      console.log('Navigating to:', pageName);
+      
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none';
+      });
+      
+      const selectedPage = document.getElementById(pageName);
+      if (selectedPage) {
+        selectedPage.classList.add('active');
+        selectedPage.style.display = 'block';
+        console.log('Page shown:', pageName);
+      }
+      
+      navLinks.forEach(link => link.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      const titles = {
+        'dashboard': 'Dashboard',
+        'documents': 'Documents',
+        'request-history': 'Request History',
+        'account': 'Account'
+      };
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) {
+        pageTitle.textContent = titles[pageName] || 'Dashboard';
+      }
+      
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && window.innerWidth <= 900) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    navLinks.forEach(link => {
+      link.addEventListener('click', handleNavClick);
+    });
+    
+    return () => {
+      navLinks.forEach(link => {
+        link.removeEventListener('click', handleNavClick);
+      });
+    };
+  }, []);
+
+  // Handle menu toggle for mobile
+  useEffect(() => {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    const handleMenuToggle = (e) => {
+      e.stopPropagation();
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+        console.log('Sidebar toggled');
+      }
+    };
+    
+    if (menuToggle) {
+      menuToggle.addEventListener('click', handleMenuToggle);
+    }
+    
+    const handleClickOutside = (e) => {
+      if (window.innerWidth <= 900 && 
+          sidebar && 
+          sidebar.classList.contains('mobile-open') &&
+          !sidebar.contains(e.target) && 
+          e.target !== menuToggle &&
+          !menuToggle.contains(e.target)) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    
+    return () => {
+      if (menuToggle) {
+        menuToggle.removeEventListener('click', handleMenuToggle);
+      }
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const requestHistoryPage = document.getElementById('request-history');
+      if (requestHistoryPage?.classList.contains('active')) {
+        setTimeout(() => {
+          RequestHistoryTable();
+        }, 100);
+      }
+    });
+
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      observer.observe(mainContent, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    InitializeChatbase();
+  }, []);
+
+  useEffect(() => {
+    console.log('=== ANNOUNCEMENT DATA ===', announcement);
+    console.log('=== TRANSACTION DAYS DATA ===', transactionDays);
+    setRenderKey(prev => prev + 1);
+  }, [announcement, transactionDays]);
+
+  const handleFeedbackClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('=== FEEDBACK BUTTON CLICKED ===');
+    openFeedbackModal();
+  };
+
+  return (
+    <div className="container">
+      <nav className="sidebar" id="sidebar">
+        <div className="school-header">
+          <div className="school-logo">
+            <img src={PCSlogo} alt="School Logo" />
+          </div>
+          <div className="school-name">Pateros Catholic School</div>
+        </div>
+
+        <div className="student-profile">
+          <div className="student-avatar">
+            <img src={Icon} alt="Student Avatar" />
+          </div>
+          <div className="student-name">
+            <span id="studentName">John Doe</span>
+          </div>
+          <span className="student-badge">Student</span>
+        </div>
+
+        <ul className="nav-menu">
+          <li className="nav-item">
+            <button className="nav-link" data-page="dashboard">
+              <i className="fas fa-home"></i> Dashboard
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="documents">
+              <i className="fas fa-file-alt"></i> Documents
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="request-history">
+              <i className="fas fa-history"></i> Request History
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="account">
+              <i className="fas fa-user"></i> Account
+            </button>
+          </li>
+        </ul>
+
+        <button className="logout-btn" id="logoutBtn">
+          <i className="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </nav>
+
+      <main className="main-content">
+        <header className="header">
+          <button className="action-btn menu-toggle" id="menuToggle">
+            <img src={burger} alt="Menu" className="burger-icon" />
+          </button>
+          
+          <h1 className="header-title" id="pageTitle">
+            Dashboard
+          </h1>
+
+          <div className="header-actions">
+            <button 
+              className="action-btn notification-btn" 
+              title="Notifications"
+              onClick={toggleNotificationDropdown}
+            >
+              <img src={Bell} alt="Notifications" />
+              {unreadCount > 0 && (
+                <span className="notification-badge">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </header>
+
+        {showNotificationDropdown && (
+          <div className="notification-dropdown">
+            <div className="notification-header">
+              <h3>Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
+              <button onClick={toggleNotificationDropdown} className="close-dropdown">×</button>
+            </div>
+            <div className="notification-list">
+              {notifications.length === 0 ? (
+                <div className="no-notifications">No notifications</div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification.id)}
+                    className="notification-item"
+                  >
+                    <div className="notification-title">
+                      {notification.title}
+                    </div>
+                    <div className="notification-time">
+                      {notification.created_at}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="page" id="dashboard">
+          <div className="page-content">
+            <div className="welcome-card">
+              <div className="welcome-date" id="welcomeDate"></div>
+              <div className="welcome-message">
+                <h2>Welcome back, <span id="welcomeName"></span>!</h2>
+                <p></p>
+              </div>
+            </div>
+
+            <div className="cards-grid" key={renderKey}>
+              <div className="info-card">
+                <h3>Announcement</h3>
+                <p>{announcementLoading ? 'Loading...' : announcement}</p>
+              </div>
+              <div className="info-card">
+                <h3>Transaction Days</h3>
+                <p>{transactionLoading ? 'Loading...' : transactionDays}</p>
+              </div>
+            </div>
+
+            <button 
+              className="request-btn feedback-btn" 
+              onClick={handleFeedbackClick}
+            >
+              <i className="fas fa-paper-plane"></i> Send Feedback
+            </button>
+          </div>
+        </div>
+
+        <div className="page" id="documents">
+          <div className="page-content">
+            <h2>Available Documents</h2>
+            <div className="documents-grid">
+              <button className="document-card" data-modal="modal-grades">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="COG" />
+                </div>
+                <div className="document-title">Copy of Grades</div>
+                <div className="document-subtitle">(Form 138)</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-diploma">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Diploma" />
+                </div>
+                <div className="document-title">Diploma</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-coe">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="COE" />
+                </div>
+                <div className="document-title">Certificate of Enrollment</div>
+                <div className="document-subtitle">(COE)</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-form137">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Form 137" />
+                </div>
+                <div className="document-title">Form 137</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-moral">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Good Moral" />
+                </div>
+                <div className="document-title">Good Moral Certificate</div>
+              </button>
+            </div>
+
+            <button className="request-btn" id="openModalBtn">
+              <i className="fas fa-paper-plane"></i> Request Documents
+            </button>
+          </div>
+        </div>
+
+        <div className="page" id="request-history">
+          <div className="page-content">
+            <h2>Request History</h2>
+            <div id="requestHistoryTableContainer"></div>
+          </div>
+        </div>
+
+        <div className="page" id="account">
+          <div className="page-content">
+            <div className="account-header">
+              <div className="account-avatar">
+                <img src={Icon} alt="Student Avatar" />
+              </div>
+              <div className="account-info">
+                <h2>
+                  <span id="accountName"></span>
+                </h2>
+                <p className="student-no"></p>
+              </div>
+            </div>
+
+            <div className="account-form">
+              <div className="form-group">
+                <label htmlFor="address">Address</label>
+                <input 
+                  type="text" 
+                  id="address" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contact">Contact No</label>
+                <input 
+                  type="tel" 
+                  id="contact" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="email">Email</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="grade">Grade Level and Section</label>
+                <input 
+                  type="text" 
+                  id="grade" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <div className="modal-overlay" id="documentModal">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Document Request Form</h2>
+            <button className="close-modal" id="closeModalBtn">×</button>
+          </div>
+
+          <div className="form-content">
+            <form id="documentRequestForm" onSubmit={(e) => e.preventDefault()}>
+              <div className="form-section">
+                <h3>Student Information</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="studentNumber">Student Number*</label>
+                    <input type="text" id="studentNumber" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="emailField">Email*</label>
+                    <input type="email" id="emailField" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="contactNo">Contact No.*</label>
+                    <input type="tel" id="contactNo" required />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="surname">Surname*</label>
+                    <input type="text" id="surname" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="firstname">Firstname*</label>
+                    <input type="text" id="firstname" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="middlename">Middlename</label>
+                    <input type="text" id="middlename" />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="gradeField">Grade*</label>
+                    <input type="text" id="gradeField" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="section">Section*</label>
+                    <input type="text" id="section" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="date">Date</label>
+                    <input type="date" id="date" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="documents-section">
+                <h3>Available Documents</h3>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="regForm" data-id="1" data-price="50" />
+                    <label htmlFor="regForm" className="document-name">Copy of Grades</label>
+                  </div>
+                  <div className="document-price">₱ 50.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="cog" data-id="2" data-price="100" />
+                    <label htmlFor="cog" className="document-name">Diploma</label>
+                  </div>
+                  <div className="document-price">₱ 100.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="coe" data-id="3" data-price="100" />
+                    <label htmlFor="coe" className="document-name">Certificate of Enrollment</label>
+                  </div>
+                  <div className="document-price">₱ 100.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="tor" data-id="4" data-price="150" />
+                    <label htmlFor="tor" className="document-name">Form 137</label>
+                  </div>
+                  <div className="document-price">₱ 150.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="gmc" data-id="5" data-price="50" />
+                    <label htmlFor="gmc" className="document-name">Good Moral Certificate</label>
+                  </div>
+                  <div className="document-price">₱ 50.00</div>
+                </div>
+              </div>
+
+              <div className="total-section">
+                <span>Total:</span>
+                <span id="totalAmount">₱ 0.00</span>
+              </div>
+
+              <div className="form-section">
+                <h3>Payment Method</h3>
+                <div className="payment-options">
+                  <div className="payment-option">
+                    <input type="radio" id="cash" name="payment" value="cash" required />
+                    <label htmlFor="cash">Cash</label>
+                  </div>
+
+                  <div className="payment-option">
+                    <input type="radio" id="gcash" name="payment" value="gcash" />
+                    <label htmlFor="gcash">
+                      <span>G</span> Cash
+                    </label>
+                  </div>
+
+                  <div className="payment-option">
+                    <input type="radio" id="maya" name="payment" value="maya" />
+                    <label htmlFor="maya">maya</label>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="submit-btn">Submit Request</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {showFeedbackModal && (
+        <div 
+          className="modal-overlay feedback-modal-overlay"
+          style={{ display: 'flex', zIndex: 9999 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeFeedbackModal();
+            }
+          }}
+        >
+          <div className="modal-content feedback-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Send Feedback</h2>
+              <button className="close-modal" onClick={closeFeedbackModal}>×</button>
+            </div>
+            <div className="form-content">
+              <form onSubmit={handleFeedbackSubmit}>
+                <div className="form-group">
+                  <label htmlFor="feedbackEmail">Email</label>
+                  <input
+                    type="email"
+                    id="feedbackEmail"
+                    value={studentData?.email || ''}
+                    readOnly
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="feedbackType">Feedback Type</label>
+                  <select id="feedbackType">
+                    <option value="">Select type</option>
+                    <option value="bug">Bug Report</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="improvement">Improvement</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="feedbackText">Message</label>
+                  <textarea
+                    id="feedbackText"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Please share your feedback..."
+                    required
+                    className="feedback-textarea"
+                  />
+                </div>
+                
+                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Sending...' : 'Send Feedback'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
