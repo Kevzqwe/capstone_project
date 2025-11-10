@@ -1,803 +1,710 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
-const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
-const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
-const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/transaction.php';
+// API Configuration - Updated to Hostinger
+const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend';
 
-export const useStudentPortal = () => {
+// Custom hook for document request system
+export const useDocumentRequest = () => {
   const [studentData, setStudentData] = useState(null);
-  const [activePage, setActivePage] = useState('dashboard');
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
-  const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
-  const [transactionDays, setTransactionDays] = useState('Monday to Friday, 8:00 AM - 5:00 PM');
-  const [announcementLoading, setAnnouncementLoading] = useState(false);
-  const [transactionLoading, setTransactionLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const showMessage = useCallback((message, type) => {
-    const existing = document.querySelector('.status-message');
-    if (existing) existing.remove();
+  // Load student data from database
+  const loadStudentData = useCallback(async () => {
+    console.log('📡 Loading student data...');
     
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `status-message ${type}`;
-    messageDiv.textContent = message;
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      border-radius: 5px;
-      color: white;
-      font-weight: bold;
-      z-index: 3000;
-      background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    document.body.appendChild(messageDiv);
-    setTimeout(() => messageDiv.remove(), 5000);
-  }, []);
-
-  // Fetch announcement data
-  const loadAnnouncement = useCallback(async () => {
     try {
-      console.log('Loading announcement...');
-      setAnnouncementLoading(true);
-      
-      const response = await fetch(`${ANNOUNCEMENT_API_URL}?action=get_announcement_data`, {
+      const response = await fetch(`${API_BASE_URL}/student_data.php?action=getStudentData&t=${Date.now()}`, {
         method: 'GET',
-        credentials: 'include',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json',
-        }
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
 
-      if (!response.ok) {
-        setAnnouncementLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.data) {
-        const announcementText = data.data.Content || 
-                                data.data.content || 
-                                'Welcome to Pateros Catholic School Document Request System';
-        
-        setAnnouncement(announcementText);
-      }
-    } catch (error) {
-      console.error('Error fetching announcement:', error);
-    } finally {
-      setAnnouncementLoading(false);
-    }
-  }, []);
-
-  // Fetch transaction days data
-  const loadTransaction = useCallback(async () => {
-    try {
-      console.log('Loading transaction hours...');
-      setTransactionLoading(true);
-      
-      const response = await fetch(`${TRANSACTION_API_URL}?action=get_transaction_data`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      });
+      console.log('Response status:', response.status);
 
       if (!response.ok) {
-        setTransactionLoading(false);
-        return;
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.data) {
-        const transactionText = data.data.Description || 
-                               data.data.description || 
-                               'Monday to Friday, 8:00 AM - 5:00 PM';
+      const result = await response.json();
+      console.log('📥 Raw API Response:', result);
+
+      if (result.status === 'success' && result.data) {
+        console.log('✅ API returned success with data');
+        console.log('Raw data fields:', Object.keys(result.data));
         
-        setTransactionDays(transactionText);
-      }
-    } catch (error) {
-      console.error('Error fetching transaction:', error);
-    } finally {
-      setTransactionLoading(false);
-    }
-  }, []);
+        // ✅ FIX: Normalize the data to handle both uppercase and lowercase field names
+        const normalizedData = {
+          // Student ID - handle both formats
+          student_id: result.data.Student_ID || result.data.student_id || '',
+          Student_ID: result.data.Student_ID || result.data.student_id || '',
+          
+          // First Name
+          first_name: result.data.First_Name || result.data.first_name || '',
+          First_Name: result.data.First_Name || result.data.first_name || '',
+          
+          // Middle Name
+          middle_name: result.data.Middle_Name || result.data.middle_name || '',
+          Middle_Name: result.data.Middle_Name || result.data.middle_name || '',
+          
+          // Last Name
+          last_name: result.data.Last_Name || result.data.last_name || '',
+          Last_Name: result.data.Last_Name || result.data.last_name || '',
+          
+          // Full Name - construct if not provided
+          full_name: result.data.full_name || 
+                     `${result.data.First_Name || result.data.first_name || ''} ${result.data.Middle_Name || result.data.middle_name || ''} ${result.data.Last_Name || result.data.last_name || ''}`.replace(/\s+/g, ' ').trim(),
+          
+          // Email
+          email: result.data.Email || result.data.email || '',
+          Email: result.data.Email || result.data.email || '',
+          
+          // Contact Number
+          contact_no: result.data.Contact_No || result.data.contact_no || '',
+          Contact_No: result.data.Contact_No || result.data.contact_no || '',
+          
+          // Address
+          address: result.data.Address || result.data.address || '',
+          Address: result.data.Address || result.data.address || '',
+          
+          // Grade Level
+          grade_level: result.data.Grade_level || result.data.grade_level || '',
+          Grade_level: result.data.Grade_level || result.data.grade_level || '',
+          
+          // Grade Display
+          grade_display: result.data.grade_display || 
+                        `Grade ${result.data.Grade_level || result.data.grade_level || ''}`,
+          
+          // Section
+          section: result.data.Section || result.data.section || '',
+          Section: result.data.Section || result.data.section || '',
+          
+          // School Year
+          School_Year: result.data.School_Year || result.data.school_year || '',
+          school_year: result.data.School_Year || result.data.school_year || '',
+          
+          // Active Status
+          is_Active: result.data.is_Active || result.data.is_active || 1,
+          is_active: result.data.is_Active || result.data.is_active || 1,
+          
+          // Timestamps
+          Created_At: result.data.Created_At || result.data.created_at || '',
+          Updated_At: result.data.Updated_At || result.data.updated_at || ''
+        };
 
-  const updateNotificationBadge = useCallback((count) => {
-    const notificationBtn = document.querySelector('.action-btn[title="Notifications"]');
-    if (!notificationBtn) return;
-    
-    let badge = notificationBtn.querySelector('.notification-badge');
-    if (!badge) {
-      badge = document.createElement('span');
-      badge.className = 'notification-badge';
-      badge.style.cssText = `
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #e74c3c;
-        color: white;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        font-size: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      `;
-      notificationBtn.style.position = 'relative';
-      notificationBtn.appendChild(badge);
-    }
-    
-    badge.textContent = count > 9 ? '9+' : count;
-    badge.style.display = count > 0 ? 'flex' : 'none';
-  }, []);
-
-  const getReadNotifications = useCallback(() => {
-    try {
-      return JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    } catch (error) {
-      console.error('Error reading read notifications from localStorage:', error);
-      return [];
-    }
-  }, []);
-
-  const saveReadNotification = useCallback((notificationId) => {
-    try {
-      const readNotifications = getReadNotifications();
-      if (!readNotifications.includes(notificationId)) {
-        readNotifications.push(notificationId);
-        localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
-      }
-    } catch (error) {
-      console.error('Error saving read notification to localStorage:', error);
-    }
-  }, [getReadNotifications]);
-
-  const updateWelcomeMessages = useCallback((data) => {
-    console.log('Updating welcome messages with data:', data);
-    
-    // Backend returns: First_Name, full_name
-    const firstName = data.First_Name || data.first_name || 'Student';
-    
-    console.log('Using first name:', firstName);
-    
-    const welcomeName = document.getElementById('welcomeName');
-    if (welcomeName) {
-      welcomeName.textContent = firstName;
-      console.log('✓ Updated welcomeName element');
-    }
-    
-    const welcomeMessage = document.querySelector('.welcome-message h2');
-    if (welcomeMessage) {
-      welcomeMessage.innerHTML = `Welcome back, <span id="welcomeName">${firstName}</span>!`;
-      console.log('✓ Updated welcome message');
-    }
-    
-    // Backend returns: full_name (already concatenated in SQL)
-    const accountName = document.getElementById('accountName');
-    const fullName = data.full_name || 'N/A';
-    if (accountName) {
-      accountName.textContent = fullName;
-      console.log('✓ Updated account name:', fullName);
-    }
-    
-    const welcomeDate = document.getElementById('welcomeDate');
-    if (welcomeDate) {
-      const today = new Date();
-      const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      };
-      welcomeDate.textContent = today.toLocaleDateString('en-US', options);
-      console.log('✓ Updated welcome date');
-    }
-  }, []);
-
-  const updateAccountPage = useCallback((data) => {
-    console.log('=== Updating account page ===');
-    console.log('Data received:', data);
-    
-    // Update account name (full_name comes from backend CONCAT)
-    const accountName = document.getElementById('accountName');
-    const fullName = data.full_name || 'N/A';
-    
-    if (accountName) {
-      accountName.textContent = fullName;
-      console.log('✓ Account name:', fullName);
-    }
-    
-    // Update student number (Student_ID from backend)
-    const studentNoElement = document.querySelector('.student-no');
-    const studentId = data.Student_ID || data.student_id || 'undefined';
-    
-    if (studentNoElement) {
-      studentNoElement.textContent = `Student No: ${studentId}`;
-      console.log('✓ Student number:', studentId);
-    }
-    
-    // Field mappings based on your backend response
-    const fieldMappings = {
-      'address': data.Address || data.address || '',
-      'contact': data.Contact_No || data.contact_no || '',
-      'email': data.Email || data.email || '',
-      'grade': (() => {
-        // Backend returns: grade_display (e.g., "Grade 10"), Section
-        const gradeDisplay = data.grade_display || '';
-        const section = data.Section || data.section || '';
+        console.log('🔄 Normalized student data:', normalizedData);
+        console.log('📋 Key values:');
+        console.log('  - Student ID:', normalizedData.student_id);
+        console.log('  - Full Name:', normalizedData.full_name);
+        console.log('  - Email:', normalizedData.email);
+        console.log('  - Contact:', normalizedData.contact_no);
+        console.log('  - Grade:', normalizedData.grade_display);
+        console.log('  - Section:', normalizedData.section);
         
-        if (gradeDisplay && section) {
-          return `${gradeDisplay} - ${section}`;
-        } else if (gradeDisplay) {
-          return gradeDisplay;
-        } else if (section) {
-          return `Section ${section}`;
-        }
-        return 'Not assigned';
-      })()
+        setStudentData(normalizedData);
+        window.studentData = normalizedData;
+        
+        // Update page displays
+        updatePageDisplays(normalizedData);
+        
+        console.log('✅ Student data loaded and stored successfully');
+      } else {
+        console.error('❌ Failed to load student data:', result.message);
+        alert('Failed to load student data. Please refresh the page.');
+      }
+    } catch (error) {
+      console.error('❌ Error loading student data:', error);
+      alert('Error connecting to server. Please check your connection and try again.');
+    }
+  }, []);
+
+  const updatePageDisplays = useCallback((data) => {
+    if (!data) {
+      console.warn('⚠️ No data provided to updatePageDisplays');
+      return;
+    }
+
+    console.log('🖼️ Updating page displays...');
+
+    // Update sidebar student name
+    const studentNameEl = document.getElementById('studentName');
+    if (studentNameEl) {
+      studentNameEl.textContent = data.full_name;
+      console.log('✓ Updated sidebar name:', data.full_name);
+    }
+
+    // Update welcome name
+    const welcomeNameEl = document.getElementById('welcomeName');
+    if (welcomeNameEl) {
+      welcomeNameEl.textContent = data.first_name || data.First_Name;
+      console.log('✓ Updated welcome name:', data.first_name || data.First_Name);
+    }
+
+    // Update account page
+    const accountNameEl = document.getElementById('accountName');
+    if (accountNameEl) {
+      accountNameEl.textContent = data.full_name;
+      console.log('✓ Updated account name:', data.full_name);
+    }
+
+    const studentNoEl = document.querySelector('.student-no');
+    if (studentNoEl) {
+      studentNoEl.textContent = `Student No: ${data.student_id || data.Student_ID || 'undefined'}`;
+      console.log('✓ Updated student number');
+    }
+
+    // Update account form fields
+    const addressField = document.getElementById('address');
+    if (addressField) {
+      addressField.value = data.address || data.Address || '';
+      console.log('✓ Updated address field');
+    }
+
+    const contactField = document.getElementById('contact');
+    if (contactField) {
+      contactField.value = data.contact_no || data.Contact_No || '';
+      console.log('✓ Updated contact field');
+    }
+
+    const emailField = document.getElementById('email');
+    if (emailField) {
+      emailField.value = data.email || data.Email || '';
+      console.log('✓ Updated email field');
+    }
+
+    const gradeField = document.getElementById('grade');
+    if (gradeField) {
+      const gradeDisplay = data.grade_display || `Grade ${data.grade_level || data.Grade_level}`;
+      const section = data.section || data.Section || '';
+      gradeField.value = section ? `${gradeDisplay} - ${section}` : gradeDisplay;
+      console.log('✓ Updated grade field:', gradeField.value);
+    }
+
+    console.log('✅ Page displays updated');
+  }, []);
+
+  const populateModalForm = useCallback(() => {
+    if (!window.studentData) {
+      console.error('❌ No student data available to populate modal form');
+      alert('Student data not loaded. Please refresh the page.');
+      return;
+    }
+
+    console.log('═══════════════════════════════════');
+    console.log('📝 POPULATING MODAL FORM');
+    console.log('═══════════════════════════════════');
+    console.log('Using student data:', window.studentData);
+
+    // ✅ FIX: Updated field mapping to handle both uppercase and lowercase
+    const fieldMapping = {
+      'studentNumber': window.studentData.student_id || window.studentData.Student_ID || '',
+      'emailField': window.studentData.email || window.studentData.Email || '',
+      'contactNo': window.studentData.contact_no || window.studentData.Contact_No || '',
+      'surname': window.studentData.last_name || window.studentData.Last_Name || '',
+      'firstname': window.studentData.first_name || window.studentData.First_Name || '',
+      'middlename': window.studentData.middle_name || window.studentData.Middle_Name || '',
+      'gradeField': window.studentData.grade_display || `Grade ${window.studentData.grade_level || window.studentData.Grade_level || ''}`,
+      'section': window.studentData.section || window.studentData.Section || ''
     };
-    
-    console.log('Field mappings:', fieldMappings);
-    
-    // Update each field
-    Object.keys(fieldMappings).forEach(fieldId => {
+
+    console.log('📋 Field mapping prepared:');
+    Object.entries(fieldMapping).forEach(([key, value]) => {
+      console.log(`  ${key}: "${value}"`);
+    });
+
+    // Populate and lock all student fields
+    let successCount = 0;
+    let failCount = 0;
+
+    Object.entries(fieldMapping).forEach(([fieldId, value]) => {
       const element = document.getElementById(fieldId);
       if (element) {
-        element.value = fieldMappings[fieldId];
+        element.value = value || '';
         element.readOnly = true;
+        element.style.backgroundColor = '#f5f5f5';
         element.style.cursor = 'not-allowed';
-        element.style.backgroundColor = '#f8f9fa';
-        console.log(`✓ Updated ${fieldId}:`, fieldMappings[fieldId]);
+        console.log(`  ✓ ${fieldId}: "${value}"`);
+        successCount++;
       } else {
-        console.warn(`✗ Element not found: ${fieldId}`);
+        console.error(`  ❌ Element not found: ${fieldId}`);
+        failCount++;
       }
     });
-    
-    console.log('=== Account page update complete ===');
-  }, []);
 
-  const updateAllUserInterfaces = useCallback((data) => {
-    console.log('=== Updating all UI elements ===');
-    console.log('Data:', data);
-    
-    // Update sidebar name
-    const sidebarName = document.getElementById('studentName');
-    const fullName = data.full_name || 'Student';
-    
-    if (sidebarName) {
-      sidebarName.textContent = fullName;
-      console.log('✓ Sidebar name:', fullName);
-    }
-    
-    // Update welcome messages
-    updateWelcomeMessages(data);
-    
-    // If on account page, update it
-    if (activePage === 'account') {
-      console.log('On account page, updating...');
-      updateAccountPage(data);
-    }
-    
-    console.log('=== UI update complete ===');
-  }, [updateWelcomeMessages, updateAccountPage, activePage]);
-
-  const loadUserData = useCallback(() => {
-    if (isLoadingUserData) {
-      console.log('Already loading user data, skipping...');
-      return;
-    }
-    
-    console.log('=== Loading user data ===');
-    setIsLoadingUserData(true);
-    
-    fetch(`${API_BASE_URL}?action=getStudentData`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        console.log('=== API Response ===');
-        console.log('Full response:', data);
-        
-        if (data.status === 'success' && data.data) {
-          console.log('Student data:', data.data);
-          console.log('Keys in data:', Object.keys(data.data));
-          
-          // Store the data
-          setStudentData(data.data);
-          setIsAuthenticated(true);
-          window.studentData = data.data;
-          
-          // Immediately update UI
-          updateAllUserInterfaces(data.data);
-          
-          // Load announcement and transaction
-          setTimeout(() => {
-            loadAnnouncement();
-            loadTransaction();
-          }, 300);
-          
-          console.log('✓ User data loaded successfully');
-        } else {
-          console.error('Failed to load student data:', data.message);
-          setIsAuthenticated(false);
-          showMessage('Failed to load student data: ' + data.message, 'error');
-        }
-      })
-      .catch(error => {
-        console.error('Error loading user data:', error);
-        setIsAuthenticated(false);
-        showMessage('Error loading student data', 'error');
-      })
-      .finally(() => {
-        setIsLoadingUserData(false);
-      });
-  }, [isLoadingUserData, showMessage, loadAnnouncement, loadTransaction, updateAllUserInterfaces]);
-
-  const updateDashboard = useCallback((data) => {
-    if (studentData) {
-      updateWelcomeMessages(studentData);
-    }
-    
-    const announcementCard = document.querySelector('.info-card h3');
-    if (announcementCard && announcementCard.textContent === 'Announcement') {
-      const announcementContent = announcementCard.nextElementSibling;
-      if (announcementContent && data.announcement) {
-        announcementContent.textContent = data.announcement;
-      }
-    }
-    
-    const transactionCard = document.querySelectorAll('.info-card h3')[1];
-    if (transactionCard && transactionCard.textContent === 'Transaction Days') {
-      const transactionContent = transactionCard.nextElementSibling;
-      if (transactionContent && data.transaction_hours) {
-        transactionContent.textContent = data.transaction_hours;
-      }
-    }
-  }, [studentData, updateWelcomeMessages]);
-
-  const loadDashboardData = useCallback(() => {
-    fetch(`${API_BASE_URL}?action=getDashboardData`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          setDashboardData(data.data);
-          updateDashboard(data.data);
-        }
-      })
-      .catch(error => {
-        console.error('Error loading dashboard data:', error);
-      });
-  }, [updateDashboard]);
-
-  const fetchNotifications = useCallback(() => {
-    fetch(`${API_BASE_URL}?action=getNotifications`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          const readNotifications = getReadNotifications();
-          const filteredNotifications = data.notifications?.filter(notif => 
-            !readNotifications.includes(notif.id)
-          ) || [];
-          
-          setNotifications(filteredNotifications);
-          setUnreadCount(filteredNotifications.length);
-          window.studentNotifications = filteredNotifications;
-          updateNotificationBadge(filteredNotifications.length);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching notifications:', error);
-      });
-  }, [updateNotificationBadge, getReadNotifications]);
-
-  const toggleNotificationDropdown = useCallback(() => {
-    setShowNotificationDropdown(prev => !prev);
-  }, []);
-
-  // ✅ FIXED: Function to populate feedback modal email field
-  const populateFeedbackEmail = useCallback(() => {
-    console.log('📧 Populating feedback modal email...');
-    
-    if (!studentData && !window.studentData) {
-      console.warn('⚠️ No student data available for feedback email');
-      return;
-    }
-    
-    // Get email from studentData or window.studentData (handle both uppercase and lowercase)
-    const data = studentData || window.studentData;
-    const userEmail = data.Email || data.email || '';
-    
-    console.log('User email found:', userEmail);
-    console.log('Student data being used:', data);
-    
-    // Try multiple selectors to find the email input in feedback modal
-    let feedbackEmailInput = document.querySelector('#feedbackModal input[type="email"]');
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('.feedback-modal input[type="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[placeholder*="email" i]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('input[name="email"]');
-    }
-    
-    if (!feedbackEmailInput) {
-      feedbackEmailInput = document.querySelector('[id*="email" i]');
-    }
-    
-    if (feedbackEmailInput) {
-      feedbackEmailInput.value = userEmail;
-      feedbackEmailInput.readOnly = true;
-      feedbackEmailInput.style.backgroundColor = '#f5f5f5';
-      feedbackEmailInput.style.cursor = 'not-allowed';
-      console.log('✓ Feedback email field populated and locked:', userEmail);
-      console.log('✓ Email input element:', feedbackEmailInput);
+    // Lock the date field and set to today
+    const dateField = document.getElementById('date');
+    if (dateField) {
+      const today = new Date().toISOString().split('T')[0];
+      dateField.value = today;
+      dateField.readOnly = true;
+      dateField.style.backgroundColor = '#f5f5f5';
+      dateField.style.cursor = 'not-allowed';
+      console.log(`  ✓ date: "${today}"`);
+      successCount++;
     } else {
-      console.error('❌ Feedback email input not found with any selector!');
-      console.log('Available inputs:', document.querySelectorAll('input'));
+      console.error('  ❌ Date field not found');
+      failCount++;
     }
-  }, [studentData]);
 
-  const openFeedbackModal = useCallback(() => {
-    console.log('🔓 Opening feedback modal...');
-    setShowFeedbackModal(true);
-    // Populate email after modal opens with longer delay to ensure DOM is ready
-    setTimeout(() => {
-      console.log('Attempting to populate email after delay...');
-      populateFeedbackEmail();
-    }, 300);
-  }, [populateFeedbackModal]);
-
-  const closeFeedbackModal = useCallback(() => {
-    setShowFeedbackModal(false);
-    setFeedback('');
+    console.log('═══════════════════════════════════');
+    console.log(`✅ Modal populated: ${successCount} fields successful, ${failCount} failed`);
+    console.log('═══════════════════════════════════');
   }, []);
 
-  const handleFeedbackSubmit = useCallback(async (e) => {
-    e.preventDefault();
+  const setTodayDate = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const dateField = document.getElementById('date');
+    if (dateField) {
+      dateField.value = today;
+      console.log('✓ Set today\'s date:', today);
+    }
+  }, []);
+
+  const resetForm = useCallback(() => {
+    console.log('🔄 Resetting form...');
     
-    if (!feedback || !feedback.trim()) {
-      showMessage('Please provide a feedback message', 'error');
-      return;
-    }
+    const form = document.getElementById('documentRequestForm');
+    if (form) form.reset();
 
-    const email = studentData?.Email || studentData?.email;
-    if (!email) {
-      showMessage('Email not found. Please try again.', 'error');
-      return;
-    }
+    document.querySelectorAll('.document-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.dropdown-controls select').forEach(sel => sel.selectedIndex = 0);
 
-    setIsSubmitting(true);
+    const totalEl = document.getElementById('totalAmount');
+    if (totalEl) totalEl.textContent = '₱ 0.00';
+
+    setTodayDate();
+
+    // Re-populate student data after reset
+    if (window.studentData) {
+      console.log('Re-populating form after reset...');
+      setTimeout(() => populateModalForm(), 100);
+    }
     
-    try {
-      const response = await fetch(`${FEEDBACK_API_URL}?action=submitFeedback`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          feedback_type: 'General',
-          message: feedback
-        })
-      });
+    console.log('✓ Form reset complete');
+  }, [setTodayDate, populateModalForm]);
 
-      const result = await response.json();
-      
-      if (result.success) {
-        showMessage(result.message || 'Feedback submitted successfully!', 'success');
-        setFeedback('');
-        closeFeedbackModal();
-      } else {
-        showMessage(result.message || 'Failed to submit feedback', 'error');
-      }
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      showMessage('Error submitting feedback. Please try again.', 'error');
-    } finally {
-      setIsSubmitting(false);
+  const closeModal = useCallback(() => {
+    console.log('🔒 Closing modal...');
+    const modal = document.getElementById('documentModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    resetForm();
+    console.log('✓ Modal closed');
+  }, [resetForm]);
+
+  const updateTotal = useCallback(() => {
+    let total = 0;
+    const checkboxes = document.querySelectorAll('.document-checkbox:checked');
+    
+    console.log('💰 Updating total...');
+    console.log(`Found ${checkboxes.length} checked checkbox(es)`);
+    
+    checkboxes.forEach((cb, index) => {
+      const price = parseFloat(cb.dataset.price || 0);
+      console.log(`  ${index + 1}. ${cb.id}: ₱${price}`);
+      total += price;
+    });
+    
+    console.log(`Total calculated: ₱${total.toFixed(2)}`);
+    
+    const totalEl = document.getElementById('totalAmount');
+    if (totalEl) {
+      totalEl.textContent = '₱ ' + total.toFixed(2);
+      console.log('✓ Total display updated');
+    } else {
+      console.error('❌ Total amount element not found!');
     }
-  }, [feedback, studentData, showMessage, closeFeedbackModal]);
+  }, []);
 
-  const markNotificationAsRead = useCallback(async (notificationId) => {
-    try {
-      saveReadNotification(notificationId);
-      
-      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      updateNotificationBadge(Math.max(0, unreadCount - 1));
-      
-      if (window.studentNotifications) {
-        window.studentNotifications = window.studentNotifications.filter(
-          notif => notif.id !== notificationId
-        );
-      }
+  const handleCheckboxChange = useCallback((e) => {
+    if (e.target.classList.contains('document-checkbox')) {
+      console.log('Checkbox changed via delegation:', e.target.id, 'Checked:', e.target.checked);
+      updateTotal();
+    }
+  }, [updateTotal]);
 
-      const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ notification_id: notificationId })
-      });
-
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        console.log('Notification marked as read');
-        return true;
-      } else {
-        console.warn('Failed to mark notification as read:', result.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+  const validateForm = useCallback(() => {
+    console.log('🔍 Validating form...');
+    
+    // Check if at least one document is selected
+    if (!document.querySelector('.document-checkbox:checked')) {
+      alert('Please select at least one document.');
+      console.log('❌ No documents selected');
       return false;
     }
-  }, [unreadCount, updateNotificationBadge, saveReadNotification]);
 
-  const handleNotificationClick = useCallback(async (notificationId) => {
-    await markNotificationAsRead(notificationId);
-  }, [markNotificationAsRead]);
-
-  const updatePageTitle = useCallback((pageName) => {
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-      const titles = {
-        'dashboard': 'Dashboard',
-        'documents': 'Documents',
-        'request-history': 'Request History',
-        'account': 'Account'
-      };
-      pageTitle.textContent = titles[pageName] || pageName.charAt(0).toUpperCase() + pageName.slice(1);
-    }
-  }, []);
-
-  const updateActiveNav = useCallback((pageName) => {
-    const navItems = document.querySelectorAll('.nav-link');
-    navItems.forEach(item => {
-      item.classList.remove('active');
-      const itemPage = item.getAttribute('data-page');
-      if (itemPage === pageName) {
-        item.classList.add('active');
+    // Check required fields
+    const required = ['studentNumber', 'emailField', 'contactNo', 'surname', 'firstname', 'gradeField', 'section'];
+    for (let id of required) {
+      const el = document.getElementById(id);
+      if (!el || !el.value.trim()) {
+        alert(`Please fill in all required fields. Missing: ${id}`);
+        el?.focus();
+        console.log(`❌ Required field missing: ${id}`);
+        return false;
       }
-    });
+    }
+
+    // Check payment method
+    if (!document.querySelector('input[name="payment"]:checked')) {
+      alert('Please select a payment method.');
+      console.log('❌ No payment method selected');
+      return false;
+    }
+
+    console.log('✅ Form validation passed');
+    return true;
   }, []);
 
-  const showPage = useCallback((pageName) => {
-    console.log('Showing page:', pageName);
-    setActivePage(pageName);
+  const collectFormData = useCallback(() => {
+    console.log('📦 Collecting form data...');
     
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-      page.classList.remove('active');
-      page.style.display = 'none';
+    const student = {};
+    const fieldMapping = {
+      'studentNumber': 'studentNumber',
+      'emailField': 'email',
+      'contactNo': 'contactNo',
+      'surname': 'surname',
+      'firstname': 'firstname',
+      'middlename': 'middlename',
+      'gradeField': 'grade',
+      'section': 'section',
+      'date': 'date'
+    };
+
+    Object.entries(fieldMapping).forEach(([elementId, dbField]) => {
+      const el = document.getElementById(elementId);
+      student[dbField] = el?.value || '';
     });
-    
-    const activePageEl = document.getElementById(pageName);
-    if (activePageEl) {
-      activePageEl.classList.add('active');
-      activePageEl.style.display = 'block';
+
+    console.log('Student info collected:', student);
+
+    const selectedDocs = [];
+    document.querySelectorAll('.document-checkbox:checked').forEach(cb => {
+      const documentId = cb.dataset.id;
+
+      if (!documentId) {
+        console.error('Missing data-id for checkbox:', cb.id);
+        return;
+      }
+
+      const doc = {
+        id: parseInt(documentId),
+        document: cb.nextElementSibling?.textContent || '',
+        quantity: 1,
+        price: parseFloat(cb.dataset.price || 0),
+        assessment: document.getElementById(cb.id + '-assessment')?.value || '',
+        semester: document.getElementById(cb.id + '-semester')?.value || ''
+      };
+      
+      selectedDocs.push(doc);
+      console.log('Document added:', doc);
+    });
+
+    const payment = document.querySelector('input[name="payment"]:checked')?.value || '';
+    const total = selectedDocs.reduce((sum, d) => sum + d.price * d.quantity, 0);
+
+    const formData = {
+      studentInfo: student,
+      selectedDocs: selectedDocs,
+      paymentMethod: payment,
+      total: total,
+      submissionDate: new Date().toISOString()
+    };
+
+    console.log('📦 Complete form data:', formData);
+    return formData;
+  }, []);
+
+  const submitForm = useCallback(async (data) => {
+    const btn = document.querySelector('.submit-btn');
+    if (!btn) {
+      console.error('❌ Submit button not found');
+      return;
     }
-    
-    updateActiveNav(pageName);
-    updatePageTitle(pageName);
-  }, [updateActiveNav, updatePageTitle]);
 
-  const setupNavigationHandlers = useCallback(() => {
-    const navItems = document.querySelectorAll('[data-page], nav a');
-    navItems.forEach(item => {
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-        const pageName = this.getAttribute('data-page') || 
-                       this.getAttribute('href')?.replace('#', '');
-        if (pageName) {
-          showPage(pageName);
-        }
+    console.log('🚀 Submitting form to server...');
+
+    // Set submitting state to prevent duplicates
+    setIsSubmitting(true);
+    const originalText = btn.textContent;
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      console.log('📡 Sending request to:', `${API_BASE_URL}/document_request.php`);
+      console.log('📤 Request payload:', JSON.stringify(data, null, 2));
+
+      const res = await fetch(`${API_BASE_URL}/document_request.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
       });
-    });
-  }, [showPage]);
 
-  const setupMenuToggleHandler = useCallback(() => {
-    const menuToggle = document.getElementById('menuToggle');
+      console.log('📥 Response status:', res.status);
+      console.log('📥 Response OK:', res.ok);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const text = await res.text();
+      console.log('📥 Raw server response:', text);
+
+      if (!text || text.trim().length === 0) {
+        throw new Error('Server returned empty response');
+      }
+
+      const trimmed = text.trim();
+      if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+        console.error('❌ Non-JSON response:', trimmed.substring(0, 200));
+        throw new Error('Server returned non-JSON response');
+      }
+
+      let json;
+      try {
+        json = JSON.parse(text);
+        console.log('✅ Parsed JSON response:', json);
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        throw new Error('Invalid JSON response from server');
+      }
+
+      if (json.success) {
+        console.log('✅ Request submitted successfully!');
+        
+        const grandTotal = parseFloat(json.grand_total) || 0;
+        const totalDisplay = json.grand_total ? `\nTotal: ₱${grandTotal.toFixed(2)}` : '';
+
+        if (json.payment_redirect && json.checkout_url) {
+          // Online payment (GCash/Maya)
+          const paymentMethodName = json.payment_method === 'gcash' ? 'GCash' :
+            json.payment_method === 'maya' ? 'Maya' : 'Payment';
+
+          const paymentData = {
+            session_id: json.paymongo_session_id,
+            student_name: json.student_name,
+            amount: grandTotal.toFixed(2),
+            payment_method: paymentMethodName,
+            timestamp: Date.now()
+          };
+
+          localStorage.setItem('pending_payment', JSON.stringify(paymentData));
+          console.log('💾 Payment data stored:', paymentData);
+
+          alert(`✅ ${json.message}${totalDisplay}\n\nRedirecting to ${paymentMethodName} payment...`);
+
+          setTimeout(() => {
+            console.log('🔀 Redirecting to:', json.checkout_url);
+            window.location.href = json.checkout_url;
+          }, 1500);
+        } else {
+          // Cash payment
+          console.log('💵 Cash payment selected');
+          alert(`✅ ${json.message}${totalDisplay}`);
+          closeModal();
+          
+          if (json.request_id) {
+            setTimeout(() => {
+              const successUrl = `/Pay_Success?success=1&request_id=${json.request_id}&amount=${grandTotal.toFixed(2)}&payment_method=Cash&student_name=${encodeURIComponent(json.student_name || '')}`;
+              console.log('🔀 Redirecting to:', successUrl);
+              window.location.href = successUrl;
+            }, 1000);
+          }
+        }
+      } else {
+        console.error('❌ Server returned error:', json.message);
+        alert(`❌ ${json.message || 'Unknown error occurred'}`);
+      }
+
+    } catch (err) {
+      console.error('❌ Submit error:', err);
+      alert('⚠️ Server error: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+      btn.textContent = originalText;
+      btn.disabled = false;
+      console.log('🔓 Submit button re-enabled');
+    }
+  }, [closeModal]);
+
+  const handleFormSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    
+    console.log('📤 Form submission triggered');
+    
+    // DOUBLE SUBMISSION PREVENTION
+    if (isSubmitting) {
+      console.log('⚠️ Already submitting, ignoring duplicate request');
+      return;
+    }
+
+    if (!validateForm()) {
+      console.log('❌ Form validation failed');
+      return;
+    }
+
+    const formData = collectFormData();
+    await submitForm(formData);
+  }, [isSubmitting, validateForm, collectFormData, submitForm]);
+
+  const setupModal = useCallback(() => {
+    const modal = document.getElementById('documentModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    if (!modal || !openBtn || !closeBtn) {
+      console.error('❌ Modal elements not found');
+      return;
+    }
+
+    console.log('🎭 Setting up modal...');
+
+    // CRITICAL: Ensure modal is hidden initially
+    modal.style.display = 'none';
+
+    // Add open modal event
+    openBtn.onclick = () => {
+      console.log('🔓 Opening modal...');
+      modal.style.display = 'flex';
+      
+      setTimeout(() => {
+        if (window.studentData) {
+          console.log('Student data available, populating form...');
+          populateModalForm();
+        } else {
+          console.error('❌ Student data not loaded yet - cannot populate form');
+          alert('Loading student data... Please try again in a moment.');
+        }
+      }, 100);
+    };
+    
+    // Add close modal events
+    closeBtn.onclick = closeModal;
+    
+    modal.onclick = (e) => { 
+      if (e.target === modal) {
+        console.log('Clicked outside modal, closing...');
+        closeModal();
+      }
+    };
+    
+    document.onkeydown = (e) => { 
+      if (e.key === 'Escape' && modal.style.display === 'flex') {
+        console.log('ESC pressed, closing modal...');
+        closeModal();
+      }
+    };
+    
+    console.log('✓ Modal setup complete');
+  }, [populateModalForm, closeModal]);
+
+  const setupDocumentHandlers = useCallback(() => {
+    console.log('📄 Setting up document handlers...');
+    
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+      modal.addEventListener('change', handleCheckboxChange);
+      console.log('✓ Event delegation listener added to modal');
+    }
+
+    const checkboxes = document.querySelectorAll('.document-checkbox');
+    console.log(`Found ${checkboxes.length} checkboxes`);
+    
+    console.log('✓ Document handlers setup complete');
+    
+    // Initial total calculation
+    updateTotal();
+  }, [handleCheckboxChange, updateTotal]);
+
+  const setupFormHandler = useCallback(() => {
+    console.log('📋 Setting up form handler...');
+    
+    const form = document.getElementById('documentRequestForm');
+    if (!form) {
+      console.error('❌ Form not found');
+      return;
+    }
+
+    // Use onsubmit instead of addEventListener to prevent duplication
+    form.onsubmit = handleFormSubmit;
+    
+    console.log('✓ Form handler setup complete');
+  }, [handleFormSubmit]);
+
+  const setupNavigation = useCallback(() => {
+    console.log('🧭 Setting up navigation...');
+    
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.onclick = (e) => {
+        e.preventDefault();
+        const targetPage = link.dataset.page;
+        console.log('Navigation to:', targetPage);
+        
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(targetPage);
+        target?.classList.add('active');
+      };
+    });
+    
+    console.log('✓ Navigation setup complete');
+  }, []);
+
+  const setupMobileMenu = useCallback(() => {
+    console.log('📱 Setting up mobile menu...');
+    
+    const menu = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     
-    if (menuToggle && sidebar) {
-      // Remove any existing listeners
-      const newMenuToggle = menuToggle.cloneNode(true);
-      menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-      
-      newMenuToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Menu toggle clicked');
-        
-        if (window.innerWidth <= 900) {
-          sidebar.classList.toggle('mobile-open');
-          console.log('Sidebar mobile-open toggled:', sidebar.classList.contains('mobile-open'));
-        } else {
-          sidebar.classList.toggle('collapsed');
-          console.log('Sidebar collapsed toggled:', sidebar.classList.contains('collapsed'));
-        }
-      });
+    if (!menu || !sidebar) {
+      console.warn('⚠️ Mobile menu or sidebar not found');
+      return;
     }
-  }, []);
 
-  const setupLogoutHandler = useCallback(() => {
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.confirm('Are you sure you want to logout?')) {
-          window.location.href = 'https://mediumaquamarine-heron-545485.hostingersite.com/index.html';
-        }
-      });
-    }
-  }, []);
-
-  const loadInitialData = useCallback(() => {
-    const activePageEl = document.querySelector('.page.active');
-    if (activePageEl && activePageEl.id === 'dashboard') {
-      loadDashboardData();
-    }
-  }, [loadDashboardData]);
-
-  // Set up global functions
-  useEffect(() => {
-    window.openFeedbackModal = () => {
-      console.log('🔓 Global openFeedbackModal called');
-      setShowFeedbackModal(true);
-      setTimeout(() => {
-        console.log('Populating email via global function...');
-        populateFeedbackEmail();
-      }, 300);
-    };
-    window.closeFeedbackModal = () => {
-      setShowFeedbackModal(false);
-      setFeedback('');
+    menu.onclick = () => {
+      sidebar.classList.toggle('mobile-open');
+      console.log('Mobile menu toggled');
     };
     
-    // Also set up event listener for feedback button
-    const feedbackBtn = document.querySelector('.action-btn[title="Feedback"]');
-    if (feedbackBtn) {
-      feedbackBtn.addEventListener('click', () => {
-        console.log('📧 Feedback button clicked');
-        setShowFeedbackModal(true);
-        setTimeout(() => {
-          console.log('Populating email via button click...');
-          populateFeedbackEmail();
-        }, 300);
-      });
-      console.log('✓ Feedback button listener added');
-    }
-  }, [populateFeedbackEmail]);
-
-  // Load initial data on mount
-  useEffect(() => {
-    console.log('=== Component mounted ===');
-    loadUserData();
-    fetchNotifications();
-    loadInitialData();
-    setupNavigationHandlers();
-    setupMenuToggleHandler();
-    setupLogoutHandler();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    console.log('✓ Mobile menu setup complete');
   }, []);
 
-  // Update UI when student data changes
-  useEffect(() => {
-    if (studentData) {
-      console.log('=== Student data changed ===');
-      console.log('Current data:', studentData);
-      console.log('Email in data:', studentData.Email || studentData.email);
-      updateAllUserInterfaces(studentData);
-    }
-  }, [studentData, updateAllUserInterfaces]);
+  const initDocumentRequestSystem = useCallback(() => {
+    console.log('⚙️ Initializing document request system...');
+    setTodayDate();
+    setupModal();
+    setupDocumentHandlers();
+    setupFormHandler();
+    setupNavigation();
+    setupMobileMenu();
+    console.log('✅ Document request system initialized');
+  }, [setTodayDate, setupModal, setupDocumentHandlers, setupFormHandler, setupNavigation, setupMobileMenu]);
 
-  // Handle page changes
+  // Initialize on mount
   useEffect(() => {
-    console.log('=== Page changed to:', activePage, '===');
+    console.log('🚀 useDocumentRequest hook mounted');
     
-    if (activePage === 'dashboard') {
-      loadDashboardData();
-      if (isAuthenticated) {
-        loadAnnouncement();
-        loadTransaction();
-      }
-    } else if (activePage === 'account') {
-      if (studentData) {
-        setTimeout(() => {
-          updateAccountPage(studentData);
-        }, 100);
-      }
-    } else if (activePage === 'request-history') {
-      if (typeof window.RequestHistoryTable === 'function') {
-        setTimeout(window.RequestHistoryTable, 100);
-      }
+    // CRITICAL: Hide modal immediately on mount before anything else
+    const modal = document.getElementById('documentModal');
+    if (modal) {
+      modal.style.display = 'none';
+      console.log('✓ Modal hidden on mount');
     }
-    
-    // Re-populate feedback email when switching pages (in case modal state persists)
-    if (showFeedbackModal && studentData) {
-      setTimeout(() => {
-        populateFeedbackEmail();
-      }, 200);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage, isAuthenticated, studentData, showFeedbackModal]);
+
+    initDocumentRequestSystem();
+    loadStudentData();
+  }, [initDocumentRequestSystem, loadStudentData]);
 
   return {
     studentData,
-    activePage,
-    notifications,
-    unreadCount,
-    showNotificationDropdown,
-    showFeedbackModal,
-    dashboardData,
-    feedback,
-    isSubmitting,
-    announcement,
-    transactionDays,
-    announcementLoading,
-    transactionLoading,
-    isAuthenticated,
-    setFeedback,
-    openFeedbackModal,
-    closeFeedbackModal,
-    toggleNotificationDropdown,
-    handleFeedbackSubmit,
-    handleNotificationClick,
-    markNotificationAsRead,
-    populateFeedbackEmail
+    loadStudentData
   };
 };
 
-export default useStudentPortal;
+export default useDocumentRequest;
