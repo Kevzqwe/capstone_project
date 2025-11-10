@@ -197,9 +197,11 @@ export const useAdminDashboard = () => {
             const data = await response.json();
             console.log('📋 Session check response:', data);
             
-            // Accept multiple possible session indicators
+            // FIXED: Accept both 'admin' and 'Admin' (case-insensitive)
+            const roleValid = data.role && String(data.role).toLowerCase() === 'admin';
             const sessionValid = (data.logged_in || data.authenticated || data.session_exists) && 
-                                (data.role === 'admin' || (data.role && String(data.role).toLowerCase() === 'admin'));
+                                roleValid &&
+                                data.email;
             
             if (sessionValid) {
                 console.log('✅ Valid admin session found');
@@ -208,7 +210,12 @@ export const useAdminDashboard = () => {
                 sessionCheckInProgress.current = false;
                 return true;
             } else {
-                console.warn('❌ No valid session found:', data);
+                console.warn('❌ No valid session found:', {
+                    logged_in: data.logged_in,
+                    role: data.role,
+                    roleValid: roleValid,
+                    email: data.email
+                });
                 sessionCheckInProgress.current = false;
                 handleAuthenticationError('No valid session');
                 return false;
@@ -669,15 +676,15 @@ export const useAdminDashboard = () => {
         try {
             // Load admin data first
             await loadAdminData();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             // Then load notifications
             await fetchNotifications();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             // Then load mails
             await fetchMails();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             // Finally load dashboard if needed
             if (activeSection === 'dashboard') {
@@ -716,7 +723,7 @@ export const useAdminDashboard = () => {
                 // Wait longer to ensure session is fully established
                 setTimeout(() => {
                     loadAllData();
-                }, 1000);
+                }, 1500);
             }
         };
         
@@ -741,7 +748,7 @@ export const useAdminDashboard = () => {
         const interval = setInterval(() => {
             console.log('🔄 Periodic notification refresh');
             fetchNotifications();
-        }, 120000); // Every 2 minutes instead of 1
+        }, 120000); // Every 2 minutes
         
         return () => clearInterval(interval);
     }, [sessionChecked, fetchNotifications]);
