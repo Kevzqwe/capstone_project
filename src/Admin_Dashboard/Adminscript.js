@@ -187,15 +187,17 @@ export const useAdminDashboard = () => {
     const updateNotificationBadge = useCallback((count) => {
         // Try to find notification button using multiple selectors
         const notificationBtn = document.querySelector('.notification-btn') || 
-                               document.querySelector('[data-type="notification"]') ||
-                               document.querySelector('.action-btn[title="Notifications"]');
+                               document.querySelector('[data-notification-btn]') ||
+                               document.querySelector('.icon-wrapper.notification-wrapper') ||
+                               document.querySelector('.header-icon[alt="Notifications"]')?.parentElement;
         
         if (!notificationBtn) {
             console.warn('Notification button not found for badge update');
             return;
         }
         
-        let badge = notificationBtn.querySelector('.notification-badge');
+        let badge = notificationBtn.querySelector('.notification-badge') || 
+                    notificationBtn.querySelector('.badge');
         if (!badge) {
             badge = document.createElement('span');
             badge.className = 'notification-badge';
