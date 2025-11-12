@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 
 // API base URLs for your PHP backend - PRODUCTION
@@ -33,6 +32,7 @@ export const useAdminDashboard = () => {
     const [allNotifications, setAllNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+    const [readNotifications, setReadNotifications] = useState(new Set());
 
     // Mail states
     const [mails, setMails] = useState([]);
@@ -158,6 +158,30 @@ export const useAdminDashboard = () => {
         return normalized;
     }, []);
 
+    // ==================== NOTIFICATION LOCALSTORAGE FUNCTIONS ====================
+
+    const getReadNotifications = useCallback(() => {
+        try {
+            return JSON.parse(localStorage.getItem('adminReadNotifications') || '[]');
+        } catch (error) {
+            console.error('Error reading read notifications from localStorage:', error);
+            return [];
+        }
+    }, []);
+
+    const saveReadNotification = useCallback((notificationId) => {
+        try {
+            const readNotifs = getReadNotifications();
+            if (!readNotifs.includes(notificationId)) {
+                readNotifs.push(notificationId);
+                localStorage.setItem('adminReadNotifications', JSON.stringify(readNotifs));
+                console.log('✓ Saved notification as read:', notificationId);
+            }
+        } catch (error) {
+            console.error('Error saving read notification to localStorage:', error);
+        }
+    }, [getReadNotifications]);
+
     // ==================== NOTIFICATION FUNCTIONS ====================
 
     const updateNotificationBadge = useCallback((count) => {
@@ -223,17 +247,29 @@ export const useAdminDashboard = () => {
                     
                     console.log('✓ Success - Processing', allNotifs.length, 'notifications');
                     
-                    setAllNotifications(allNotifs);
-                    setNotifications(allNotifs);
+                    // Get read notifications from localStorage
+                    const readNotifIds = getReadNotifications();
+                    console.log('Read notification IDs from localStorage:', readNotifIds);
                     
-                    const unreadNotifications = allNotifs.filter(notif => 
+                    // Mark notifications as read based on localStorage
+                    const processedNotifs = allNotifs.map(notif => ({
+                        ...notif,
+                        is_read: readNotifIds.includes(notif.id) ? 1 : (notif.is_read || 0)
+                    }));
+                    
+                    setAllNotifications(processedNotifs);
+                    setNotifications(processedNotifs);
+                    
+                    // Calculate unread count based on processed notifications
+                    const unreadNotifications = processedNotifs.filter(notif => 
                         notif.is_read === 0 || notif.is_read === '0'
                     );
                     
                     console.log('✓ Unread count calculated:', unreadNotifications.length);
                     
                     setUnreadCount(unreadNotifications.length);
-                    window.adminNotifications = allNotifs;
+                    setReadNotifications(new Set(readNotifIds));
+                    window.adminNotifications = processedNotifs;
                     updateNotificationBadge(unreadNotifications.length);
                 } else if (data.status === 'success' && (!data.notifications || data.notifications.length === 0)) {
                     console.warn('⚠ API returned success but notifications array is empty or missing');
@@ -251,12 +287,42 @@ export const useAdminDashboard = () => {
             .catch(error => {
                 console.error('✗ Fetch error:', error);
             });
-    }, [updateNotificationBadge]);
+    }, [updateNotificationBadge, getReadNotifications]);
 
     const markNotificationAsRead = useCallback(async (notificationId) => {
         try {
             console.log('Marking notification as read:', notificationId);
             
+            // Save to localStorage first (instant UI update)
+            saveReadNotification(notificationId);
+            
+            // Update state immediately
+            setAllNotifications(prev => {
+                const updated = prev.map(notif => 
+                    notif.id === notificationId 
+                        ? { ...notif, is_read: 1 } 
+                        : notif
+                );
+                
+                const newUnreadCount = updated.filter(notif => 
+                    notif.is_read === 0 || notif.is_read === '0'
+                ).length;
+                
+                setUnreadCount(newUnreadCount);
+                updateNotificationBadge(newUnreadCount);
+                
+                return updated;
+            });
+            
+            setNotifications(prev => prev.map(notif => 
+                notif.id === notificationId 
+                    ? { ...notif, is_read: 1 } 
+                    : notif
+            ));
+            
+            setReadNotifications(prev => new Set(prev.add(notificationId)));
+            
+            // Then sync with backend (optional, for database record)
             const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
                 method: 'POST',
                 credentials: 'include',
@@ -272,40 +338,16 @@ export const useAdminDashboard = () => {
             
             if (result.status === 'success') {
                 console.log('✓ Notification marked as read in database:', notificationId);
-                
-                setAllNotifications(prev => {
-                    const updated = prev.map(notif => 
-                        notif.id === notificationId 
-                            ? { ...notif, is_read: 1 } 
-                            : notif
-                    );
-                    
-                    const newUnreadCount = updated.filter(notif => 
-                        notif.is_read === 0 || notif.is_read === '0'
-                    ).length;
-                    
-                    setUnreadCount(newUnreadCount);
-                    updateNotificationBadge(newUnreadCount);
-                    
-                    return updated;
-                });
-                
-                setNotifications(prev => prev.map(notif => 
-                    notif.id === notificationId 
-                        ? { ...notif, is_read: 1 } 
-                        : notif
-                ));
-                
                 return true;
             } else {
-                console.warn('✗ Failed to mark notification as read:', result.message);
+                console.warn('✗ Failed to mark notification as read in database:', result.message);
                 return false;
             }
         } catch (error) {
             console.error('✗ Error marking notification as read:', error);
             return false;
         }
-    }, [updateNotificationBadge]);
+    }, [updateNotificationBadge, saveReadNotification]);
 
     // ==================== NOTIFICATION MODAL FUNCTIONS ====================
 
@@ -389,6 +431,7 @@ export const useAdminDashboard = () => {
             
             console.log('Found notification:', notification);
             
+            // Mark as read immediately
             await markNotificationAsRead(notificationId);
             
             const requestId = extractRequestIdFromNotification(notification);
@@ -598,7 +641,6 @@ export const useAdminDashboard = () => {
             
             if (data.status === 'success' && data.data) {
                 setAnnouncements(data.data);
-                // Load the first announcement for editing if available
                 if (data.data.length > 0) {
                     const firstAnnouncement = data.data[0];
                     setAnnouncementData({
@@ -622,7 +664,6 @@ export const useAdminDashboard = () => {
 
     const handleAnnouncementEdit = useCallback((announcement = null) => {
         if (announcement) {
-            // Load specific announcement for editing
             setAnnouncementData({
                 Announcement_ID: announcement.Announcement_ID || announcement.id,
                 Title: announcement.Title || announcement.title || '',
@@ -632,7 +673,6 @@ export const useAdminDashboard = () => {
                 End_Date: announcement.End_Date || announcement.end_date || ''
             });
         } else {
-            // Start new announcement
             setAnnouncementData({
                 Announcement_ID: null,
                 Title: '',
@@ -650,17 +690,14 @@ export const useAdminDashboard = () => {
             console.log('Saving announcement...');
             setAnnouncementLoading(true);
             
-            // Validate input
             if (!announcementData.Title || !announcementData.Content) {
                 showMessage('Please fill in both title and content', 'error');
                 setAnnouncementLoading(false);
                 return;
             }
             
-            // Determine if we're creating or updating
             const isUpdate = announcementData.Announcement_ID !== null;
             
-            // Backend expects PascalCase keys: Title, Content, Is_Active, Start_Date, End_Date
             const payload = {
                 Title: announcementData.Title,
                 Content: announcementData.Content,
@@ -669,9 +706,7 @@ export const useAdminDashboard = () => {
                 End_Date: announcementData.End_Date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
             };
             
-            // Add ID for updates
             if (isUpdate) {
-                // If updating, include Announcement_ID (backend create handler may ignore it but it's harmless)
                 payload.Announcement_ID = announcementData.Announcement_ID;
             }
             
@@ -696,7 +731,6 @@ export const useAdminDashboard = () => {
                     'success'
                 );
                 
-                // Reload announcements to get fresh data
                 await loadAnnouncements();
                 
                 setIsEditingAnnouncement(false);
@@ -720,7 +754,6 @@ export const useAdminDashboard = () => {
 
     const cancelAnnouncementEdit = useCallback(() => {
         setIsEditingAnnouncement(false);
-        // Reset to first announcement or empty
         if (announcements.length > 0) {
             const firstAnnouncement = announcements[0];
             setAnnouncementData({
@@ -761,7 +794,6 @@ export const useAdminDashboard = () => {
             
             if (data.status === 'success' && data.data) {
                 setTransactions(data.data);
-                // Load the first transaction for editing if available
                 if (data.data.length > 0) {
                     const firstTransaction = data.data[0];
                     setTransactionData({
@@ -782,14 +814,12 @@ export const useAdminDashboard = () => {
 
     const handleTransactionEdit = useCallback((transaction = null) => {
         if (transaction) {
-            // Load specific transaction for editing
             setTransactionData({
                 Transaction_Sched_ID: transaction.Transaction_Sched_ID || transaction.id,
                 Description: transaction.Description || transaction.description || '',
                 Is_Active: transaction.Is_Active || transaction.is_active || false
             });
         } else {
-            // Start new transaction
             setTransactionData({
                 Transaction_Sched_ID: null,
                 Description: '',
@@ -804,25 +834,20 @@ export const useAdminDashboard = () => {
             console.log('Saving transaction hours...');
             setTransactionLoading(true);
             
-            // Validate input
             if (!transactionData.Description) {
                 showMessage('Please fill in the transaction hours description', 'error');
                 setTransactionLoading(false);
                 return;
             }
             
-            // Determine if we're creating or updating
             const isUpdate = transactionData.Transaction_Sched_ID !== null;
             
-            // Backend expects PascalCase keys: Description, Is_Active
             const payload = {
                 Description: transactionData.Description,
                 Is_Active: transactionData.Is_Active
             };
             
-            // Add ID for updates
             if (isUpdate) {
-                // If updating, include Transaction_Sched_ID (backend create handler may ignore it)
                 payload.Transaction_Sched_ID = transactionData.Transaction_Sched_ID;
             }
             
@@ -847,7 +872,6 @@ export const useAdminDashboard = () => {
                     'success'
                 );
                 
-                // Reload transactions to get fresh data
                 await loadTransactions();
                 
                 setIsEditingTransaction(false);
@@ -871,7 +895,6 @@ export const useAdminDashboard = () => {
 
     const cancelTransactionEdit = useCallback(() => {
         setIsEditingTransaction(false);
-        // Reset to first transaction or empty
         if (transactions.length > 0) {
             const firstTransaction = transactions[0];
             setTransactionData({
@@ -943,7 +966,6 @@ export const useAdminDashboard = () => {
             setIsFiltering(true);
             setError(null);
             
-            // Validate dates
             if (!startDate || !endDate) {
                 showMessage('Please select both start and end dates', 'error');
                 setIsFiltering(false);
@@ -956,7 +978,6 @@ export const useAdminDashboard = () => {
                 return;
             }
             
-            // Store the filter range
             setDateFilterRange({ startDate, endDate });
             
             const url = `${API_FILTERED_DATE_URL}?action=filterByDateRange&start_date=${startDate}&end_date=${endDate}`;
@@ -981,7 +1002,6 @@ export const useAdminDashboard = () => {
                 const analyticsData = data.data?.analytics || {};
                 const requestsData = data.data?.requests || [];
                 
-                // Update filtered data for analytics with safe defaults
                 setFilteredData({
                     pending_requests: analyticsData.pending_requests || 0,
                     ongoing_requests: analyticsData.ongoing_requests || 0,
@@ -990,7 +1010,6 @@ export const useAdminDashboard = () => {
                     total_requests: analyticsData.total_requests || 0
                 });
                 
-                // Update document requests list with filtered data
                 setDocumentRequests(requestsData);
                 
                 showMessage(
@@ -1018,7 +1037,6 @@ export const useAdminDashboard = () => {
             setIsFiltering(true);
             setError(null);
             
-            // Reset the filter range
             setDateFilterRange({ startDate: '', endDate: '' });
             
             const response = await fetch(
@@ -1040,13 +1058,11 @@ export const useAdminDashboard = () => {
             console.log('Reset filter response:', data);
             
             if (data.status === 'success') {
-                // Reset to show all data
                 setFilteredData(null);
                 
                 const analyticsData = data.data?.analytics || {};
                 const requestsData = data.data?.requests || [];
                 
-                // Reload dashboard data with safe defaults
                 setDashboardData({
                     pending_requests: analyticsData.pending_requests || 0,
                     ongoing_requests: analyticsData.ongoing_requests || 0,
@@ -1055,7 +1071,6 @@ export const useAdminDashboard = () => {
                     total_requests: analyticsData.total_requests || 0
                 });
                 
-                // Reload document requests list with all data
                 setDocumentRequests(requestsData);
                 
                 showMessage('Filter reset. Showing all requests.', 'success');
@@ -1233,7 +1248,6 @@ export const useAdminDashboard = () => {
         console.log('Navigating to:', section);
         setActiveSection(section);
         
-        // Load section-specific data
         if (section === 'announcements') {
             loadAnnouncements();
         } else if (section === 'transaction-hours') {
@@ -1304,8 +1318,6 @@ export const useAdminDashboard = () => {
         setSelectedRequest(null);
     }, []);
 
-    // ==================== SAVE REQUEST FUNCTION ====================
-    
     const handleSaveRequest = useCallback(async (request) => {
         try {
             console.log('Saving request:', request);
@@ -1347,7 +1359,6 @@ export const useAdminDashboard = () => {
 
     // ==================== EFFECTS ====================
 
-    // Poll notifications every 30 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             fetchNotifications();
@@ -1356,7 +1367,6 @@ export const useAdminDashboard = () => {
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
-    // Initialize on mount - only run once
     useEffect(() => {
         updateDate();
         loadAdminData();
@@ -1367,32 +1377,27 @@ export const useAdminDashboard = () => {
             loadDashboardData();
         }
         
-        // Only load document requests if needed initially
         if (activeSection === 'document-requests') {
             loadDocumentRequests();
         }
         
-        // Load announcements and transactions if those sections are active
         if (activeSection === 'announcements') {
             loadAnnouncements();
         } else if (activeSection === 'transaction-hours') {
             loadTransactions();
         }
-    }, []); // Empty dependency array - runs only once on mount
+    }, []);
 
-    // FIXED: Load section-specific data when section changes
     useEffect(() => {
         console.log('Active section changed to:', activeSection);
         
         if (activeSection === 'dashboard') {
             loadDashboardData();
         } else if (activeSection === 'document-requests') {
-            // If there's an active filter, re-apply it
             if (dateFilterRange.startDate && dateFilterRange.endDate) {
                 console.log('Re-applying date filter:', dateFilterRange);
                 filterRequestsByDateRange(dateFilterRange.startDate, dateFilterRange.endDate);
             } else {
-                // No filter active, load all requests
                 loadDocumentRequests();
             }
         } else if (activeSection === 'announcements') {
@@ -1402,7 +1407,6 @@ export const useAdminDashboard = () => {
         }
     }, [activeSection, dateFilterRange.startDate, dateFilterRange.endDate, loadDashboardData, loadDocumentRequests, filterRequestsByDateRange, loadAnnouncements, loadTransactions]);
 
-    // Calculate actual unread mail count
     const actualUnreadMailCount = mails.filter(mail => !getReadMails().includes(mail.id)).length;
 
     // ==================== RETURN ====================
@@ -1418,17 +1422,14 @@ export const useAdminDashboard = () => {
         error,
         selectedRequest,
         showModal,
-        // Notification states and functions
         notifications,
         unreadCount,
         showNotificationDropdown,
         toggleNotificationDropdown,
         handleNotificationClick,
         closeNotificationModal,
-        // Notification modal states and functions
         showNotificationModal,
         notificationRequestData,
-        // Mail states and functions
         mails,
         unreadMailCount: actualUnreadMailCount,
         showMailDropdown,
@@ -1437,7 +1438,6 @@ export const useAdminDashboard = () => {
         toggleMailDropdown,
         handleMailClick,
         closeMailModal,
-        // Announcement states and functions
         announcementData,
         announcements,
         isEditingAnnouncement,
@@ -1447,7 +1447,6 @@ export const useAdminDashboard = () => {
         handleAnnouncementChange,
         cancelAnnouncementEdit,
         loadAnnouncements,
-        // Transaction states and functions
         transactionData,
         transactions,
         isEditingTransaction,
@@ -1457,14 +1456,12 @@ export const useAdminDashboard = () => {
         handleTransactionChange,
         cancelTransactionEdit,
         loadTransactions,
-        // Date filter functions and states
         filterRequestsByDateRange,
         resetDateFilter,
         applyCurrentDateFilter,
         filteredData,
         isFiltering,
         dateFilterRange,
-        // Core functions
         handleNavigation,
         handleLogout,
         handleStatusChange,
