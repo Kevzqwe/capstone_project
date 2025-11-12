@@ -68,6 +68,9 @@ const AdminDashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
     
+    // Mobile menu state
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    
     // Date filter states
     const [startDate, setStartDate] = useState('2020-01-01');
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
@@ -120,6 +123,16 @@ const AdminDashboard = () => {
         return date.toLocaleDateString();
     };
 
+    // Mobile menu functions
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const handleMobileNavigation = (section) => {
+        handleNavigation(section);
+        setIsMobileMenuOpen(false);
+    };
+
     // Handle date filter
     const handleApplyFilter = async () => {
         await filterRequestsByDateRange(startDate, endDate);
@@ -159,26 +172,21 @@ const AdminDashboard = () => {
     };
 
     const handleAnnouncementSaveClick = async () => {
-        // Validate form - only show errors for empty fields when user tries to save
         const errors = {};
         
-        // Check if title is empty or only whitespace
         if (!announcementData.Title || !announcementData.Title.trim()) {
             errors.Title = 'Please enter a title for the announcement';
         }
         
-        // Check if content is empty or only whitespace
         if (!announcementData.Content || !announcementData.Content.trim()) {
             errors.Content = 'Please enter content for the announcement';
         }
 
-        // If there are errors, show them and prevent saving
         if (Object.keys(errors).length > 0) {
             setAnnouncementErrors(errors);
             return;
         }
 
-        // Clear errors and save
         setAnnouncementErrors({});
         await handleAnnouncementSave();
     };
@@ -195,7 +203,6 @@ const AdminDashboard = () => {
     };
 
     const handleTransactionSaveClick = async () => {
-        // Validate form - only show error for empty description when user tries to save
         if (!transactionData.Description || !transactionData.Description.trim()) {
             setTransactionErrors({ Description: 'Please enter transaction hours information' });
             return;
@@ -249,7 +256,26 @@ const AdminDashboard = () => {
 
     return (
         <div className="container">
-            <aside className="sidebar">
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+                <div 
+                    className="mobile-menu-overlay" 
+                    onClick={toggleMobileMenu}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 999,
+                        display: window.innerWidth <= 768 ? 'block' : 'none'
+                    }}
+                />
+            )}
+
+            {/* Sidebar with Mobile Menu */}
+            <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                 <div className="school-info">
                     <div className="logo">
                         <img src={PCSlogo} alt="School Logo" />
@@ -273,7 +299,7 @@ const AdminDashboard = () => {
                         <button 
                             className={`nav-btn ${activeSection === 'dashboard' ? 'active' : ''}`}
                             data-section="dashboard"
-                            onClick={() => handleNavigation('dashboard')}
+                            onClick={() => handleMobileNavigation('dashboard')}
                         >
                             <i className="fas fa-home"></i>
                             <span>Dashboard</span>
@@ -281,7 +307,7 @@ const AdminDashboard = () => {
                         <button 
                             className={`nav-btn ${activeSection === 'document-requests' ? 'active' : ''}`}
                             data-section="document-requests"
-                            onClick={() => handleNavigation('document-requests')}
+                            onClick={() => handleMobileNavigation('document-requests')}
                         >
                             <i className="fas fa-file-alt"></i>
                             <span>Document Requests</span>
@@ -289,7 +315,7 @@ const AdminDashboard = () => {
                         <button 
                             className={`nav-btn ${activeSection === 'analytics' ? 'active' : ''}`}
                             data-section="analytics"
-                            onClick={() => handleNavigation('analytics')}
+                            onClick={() => handleMobileNavigation('analytics')}
                         >
                             <i className="fas fa-chart-pie"></i>
                             <span>Analytics</span>
@@ -297,7 +323,7 @@ const AdminDashboard = () => {
                         <button 
                             className={`nav-btn ${activeSection === 'account' ? 'active' : ''}`}
                             data-section="account"
-                            onClick={() => handleNavigation('account')}
+                            onClick={() => handleMobileNavigation('account')}
                         >
                             <i className="fas fa-user-cog"></i>
                             <span>Account</span>
@@ -313,6 +339,22 @@ const AdminDashboard = () => {
 
             <main className="main-content">
                 <header className="header">
+                    {/* Hamburger Button - Mobile Only */}
+                    <button 
+                        className="mobile-menu-btn" 
+                        onClick={toggleMobileMenu}
+                        style={{
+                            display: 'none',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '8px',
+                            marginRight: '10px'
+                        }}
+                    >
+                        <img src={burger} alt="Menu" style={{ width: '24px', height: '24px' }} />
+                    </button>
+
                     <nav className="breadcrumb">Pateros Catholic School Document Request</nav>
                     <div className="header-icons">
                         {/* Mail Icon */}
@@ -856,7 +898,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="bottom-cards">
-                            {/* Announcement Card - FIXED VALIDATION */}
+                            {/* Announcement Card */}
                             <div className="announcement-card">
                                 <div className="card-header">
                                     <h3>Announcement</h3>
@@ -927,7 +969,7 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Transaction Card - FIXED VALIDATION */}
+                            {/* Transaction Card */}
                             <div className="transaction-card">
                                 <div className="card-header">
                                     <h3>Transaction Hours</h3>
@@ -1250,14 +1292,13 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Right Side - Date Filter with Today Button */}
+                            {/* Right Side - Date Filter */}
                             <div className="analytics-right">
                                 <div className="filter-header">
                                     <h3>Filter by Date Range</h3>
                                     <p>Select a date range to analyze requests</p>
                                 </div>
 
-                                {/* Date Inputs Row - Side by Side */}
                                 <div className="date-filter-row">
                                     <div className="date-filter-group">
                                         <label htmlFor="start-date">Start Date</label>
@@ -1385,6 +1426,52 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Mobile-Only Styles */}
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .mobile-menu-btn {
+                        display: block !important;
+                    }
+
+                    .sidebar {
+                        position: fixed;
+                        left: -300px;
+                        top: 0;
+                        height: 100vh;
+                        width: 280px;
+                        z-index: 1000;
+                        transition: left 0.3s ease;
+                        overflow-y: auto;
+                    }
+
+                    .sidebar.mobile-open {
+                        left: 0;
+                    }
+
+                    .main-content {
+                        margin-left: 0 !important;
+                    }
+
+                    .dropdown-menu {
+                        position: fixed;
+                        right: 10px;
+                        top: 60px;
+                        max-width: calc(100vw - 20px);
+                        width: 320px;
+                    }
+                }
+
+                @media (min-width: 769px) {
+                    .mobile-menu-btn {
+                        display: none !important;
+                    }
+
+                    .mobile-menu-overlay {
+                        display: none !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
