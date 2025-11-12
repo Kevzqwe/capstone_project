@@ -185,8 +185,15 @@ export const useAdminDashboard = () => {
     // ==================== NOTIFICATION FUNCTIONS ====================
 
     const updateNotificationBadge = useCallback((count) => {
-        const notificationBtn = document.querySelector('.action-btn[title="Notifications"]');
-        if (!notificationBtn) return;
+        // Try to find notification button using multiple selectors
+        const notificationBtn = document.querySelector('.notification-btn') || 
+                               document.querySelector('[data-type="notification"]') ||
+                               document.querySelector('.action-btn[title="Notifications"]');
+        
+        if (!notificationBtn) {
+            console.warn('Notification button not found for badge update');
+            return;
+        }
         
         let badge = notificationBtn.querySelector('.notification-badge');
         if (!badge) {
@@ -199,13 +206,15 @@ export const useAdminDashboard = () => {
                 background: #e74c3c;
                 color: white;
                 border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
+                width: 20px;
+                height: 20px;
+                font-size: 11px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: bold;
+                z-index: 10;
+                pointer-events: none;
             `;
             notificationBtn.style.position = 'relative';
             notificationBtn.appendChild(badge);
@@ -215,8 +224,21 @@ export const useAdminDashboard = () => {
         badge.style.display = count > 0 ? 'flex' : 'none';
     }, []);
 
-    const toggleNotificationDropdown = useCallback(() => {
-        setShowNotificationDropdown(prev => !prev);
+    const toggleNotificationDropdown = useCallback((e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        console.log('Toggle notification dropdown');
+        setShowNotificationDropdown(prev => {
+            const newState = !prev;
+            console.log('Notification dropdown state:', newState);
+            // Close mail dropdown if open
+            if (newState) {
+                setShowMailDropdown(false);
+            }
+            return newState;
+        });
     }, []);
 
     const fetchNotifications = useCallback(() => {
@@ -390,7 +412,7 @@ export const useAdminDashboard = () => {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
-                    }
+                }
             });
 
             const paymentData = await paymentResponse.json();
@@ -417,7 +439,11 @@ export const useAdminDashboard = () => {
         }
     }, [normalizeRequestData]);
 
-    const handleNotificationClick = useCallback(async (notificationId) => {
+    const handleNotificationClick = useCallback(async (notificationId, e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         console.log('Notification clicked:', notificationId);
         
         try {
@@ -491,10 +517,18 @@ export const useAdminDashboard = () => {
     // ==================== MAIL FUNCTIONS ====================
 
     const updateMailBadge = useCallback((count) => {
-        const mailBtn = document.querySelector('img[src*="mail"], .action-btn[title="Mail"]');
-        if (!mailBtn) return;
+        // Try to find mail button using multiple selectors
+        const mailBtn = document.querySelector('.mail-btn') || 
+                       document.querySelector('[data-type="mail"]') ||
+                       document.querySelector('.action-btn[title="Mail"]') ||
+                       document.querySelector('img[src*="mail"]')?.parentElement;
         
-        let badge = mailBtn.querySelector?.('.mail-badge') || mailBtn.parentElement?.querySelector('.mail-badge');
+        if (!mailBtn) {
+            console.warn('Mail button not found for badge update');
+            return;
+        }
+        
+        let badge = mailBtn.querySelector('.mail-badge');
         if (!badge) {
             badge = document.createElement('span');
             badge.className = 'mail-badge';
@@ -505,18 +539,18 @@ export const useAdminDashboard = () => {
                 background: #e74c3c;
                 color: white;
                 border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
+                width: 20px;
+                height: 20px;
+                font-size: 11px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: bold;
+                z-index: 10;
+                pointer-events: none;
             `;
-            if (mailBtn.parentElement) {
-                mailBtn.parentElement.style.position = 'relative';
-                mailBtn.parentElement.appendChild(badge);
-            }
+            mailBtn.style.position = 'relative';
+            mailBtn.appendChild(badge);
         }
         
         badge.textContent = count > 9 ? '9+' : count;
@@ -544,8 +578,21 @@ export const useAdminDashboard = () => {
         }
     }, [getReadMails]);
 
-    const toggleMailDropdown = useCallback(() => {
-        setShowMailDropdown(prev => !prev);
+    const toggleMailDropdown = useCallback((e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        console.log('Toggle mail dropdown');
+        setShowMailDropdown(prev => {
+            const newState = !prev;
+            console.log('Mail dropdown state:', newState);
+            // Close notification dropdown if open
+            if (newState) {
+                setShowNotificationDropdown(false);
+            }
+            return newState;
+        });
     }, []);
 
     const fetchMails = useCallback(() => {
@@ -579,6 +626,7 @@ export const useAdminDashboard = () => {
     const openMailModal = useCallback((mail) => {
         setSelectedMail(mail);
         setShowMailModal(true);
+        setShowMailDropdown(false);
     }, []);
 
     const closeMailModal = useCallback(() => {
@@ -617,7 +665,11 @@ export const useAdminDashboard = () => {
         }
     }, [mails, updateMailBadge, saveReadMail, getReadMails]);
 
-    const handleMailClick = useCallback((mail) => {
+    const handleMailClick = useCallback((mail, e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         console.log('Mail clicked:', mail.id);
         openMailModal(mail);
         markMailAsRead(mail.id);
@@ -1357,15 +1409,56 @@ export const useAdminDashboard = () => {
         }
     }, [showMessage, loadDashboardData]);
 
+    // ==================== CLOSE DROPDOWNS ON OUTSIDE CLICK ====================
+    
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Check if click is outside notification dropdown
+            const notificationDropdown = document.querySelector('.notification-dropdown');
+            const notificationBtn = document.querySelector('.notification-btn') || 
+                                   document.querySelector('[data-type="notification"]');
+            
+            if (showNotificationDropdown && 
+                notificationDropdown && 
+                !notificationDropdown.contains(event.target) &&
+                notificationBtn &&
+                !notificationBtn.contains(event.target)) {
+                setShowNotificationDropdown(false);
+            }
+            
+            // Check if click is outside mail dropdown
+            const mailDropdown = document.querySelector('.mail-dropdown');
+            const mailBtn = document.querySelector('.mail-btn') || 
+                          document.querySelector('[data-type="mail"]');
+            
+            if (showMailDropdown && 
+                mailDropdown && 
+                !mailDropdown.contains(event.target) &&
+                mailBtn &&
+                !mailBtn.contains(event.target)) {
+                setShowMailDropdown(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [showNotificationDropdown, showMailDropdown]);
+
     // ==================== EFFECTS ====================
 
     useEffect(() => {
         const interval = setInterval(() => {
             fetchNotifications();
+            fetchMails();
         }, 30000);
         
         return () => clearInterval(interval);
-    }, [fetchNotifications]);
+    }, [fetchNotifications, fetchMails]);
 
     useEffect(() => {
         updateDate();
