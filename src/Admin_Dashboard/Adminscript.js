@@ -46,7 +46,7 @@ export const useAdminDashboard = () => {
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [notificationRequestData, setNotificationRequestData] = useState(null);
 
-    // Announcement states - Enhanced for create and edit
+    // Announcement states
     const [announcementData, setAnnouncementData] = useState({
         Announcement_ID: null,
         Title: '',
@@ -59,7 +59,7 @@ export const useAdminDashboard = () => {
     const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
     const [announcementLoading, setAnnouncementLoading] = useState(false);
 
-    // Transaction states - Enhanced for create and edit
+    // Transaction states
     const [transactionData, setTransactionData] = useState({
         Transaction_Sched_ID: null,
         Description: '',
@@ -134,8 +134,6 @@ export const useAdminDashboard = () => {
     // ==================== FIELD NORMALIZATION ====================
     
     const normalizeRequestData = useCallback((data) => {
-        console.log('Normalizing request data:', data);
-        
         const normalized = {
             request_id: data.Request_ID || data.request_id || 'N/A',
             student_name: data.Student_Name || data.student_name || 'N/A',
@@ -154,7 +152,6 @@ export const useAdminDashboard = () => {
             paymongo_session_id: data.paymongo_session_id || null
         };
         
-        console.log('Normalized data:', normalized);
         return normalized;
     }, []);
 
@@ -175,7 +172,6 @@ export const useAdminDashboard = () => {
             if (!readNotifs.includes(notificationId)) {
                 readNotifs.push(notificationId);
                 localStorage.setItem('adminReadNotifications', JSON.stringify(readNotifs));
-                console.log('✓ Saved notification as read:', notificationId);
             }
         } catch (error) {
             console.error('Error saving read notification to localStorage:', error);
@@ -184,58 +180,13 @@ export const useAdminDashboard = () => {
 
     // ==================== NOTIFICATION FUNCTIONS ====================
 
-    const updateNotificationBadge = useCallback((count) => {
-        // Try to find notification button using multiple selectors
-        const notificationBtn = document.querySelector('.notification-btn') || 
-                               document.querySelector('[data-notification-btn]') ||
-                               document.querySelector('.icon-wrapper.notification-wrapper') ||
-                               document.querySelector('.header-icon[alt="Notifications"]')?.parentElement;
-        
-        if (!notificationBtn) {
-            console.warn('Notification button not found for badge update');
-            return;
-        }
-        
-        let badge = notificationBtn.querySelector('.notification-badge') || 
-                    notificationBtn.querySelector('.badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'notification-badge';
-            badge.style.cssText = `
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #e74c3c;
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                font-size: 11px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                z-index: 10;
-                pointer-events: none;
-            `;
-            notificationBtn.style.position = 'relative';
-            notificationBtn.appendChild(badge);
-        }
-        
-        badge.textContent = count > 9 ? '9+' : count;
-        badge.style.display = count > 0 ? 'flex' : 'none';
-    }, []);
-
     const toggleNotificationDropdown = useCallback((e) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        console.log('Toggle notification dropdown');
         setShowNotificationDropdown(prev => {
             const newState = !prev;
-            console.log('Notification dropdown state:', newState);
-            // Close mail dropdown if open
             if (newState) {
                 setShowMailDropdown(false);
             }
@@ -245,7 +196,6 @@ export const useAdminDashboard = () => {
 
     const fetchNotifications = useCallback(() => {
         const url = `${API_BASE_URL}?action=getNotifications`;
-        console.log('Fetching notifications from:', url);
         
         fetch(url, {
             method: 'GET',
@@ -255,27 +205,12 @@ export const useAdminDashboard = () => {
                 'Cache-Control': 'no-cache'
             }
         })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('===== FULL NOTIFICATIONS API RESPONSE =====');
-                console.log('Full response object:', data);
-                
                 if (data.status === 'success' && Array.isArray(data.notifications)) {
                     const allNotifs = data.notifications;
-                    
-                    console.log('✓ Success - Processing', allNotifs.length, 'notifications');
-                    
-                    // Get read notifications from localStorage
                     const readNotifIds = getReadNotifications();
-                    console.log('Read notification IDs from localStorage:', readNotifIds);
                     
-                    // Mark notifications as read based on localStorage
                     const processedNotifs = allNotifs.map(notif => ({
                         ...notif,
                         is_read: readNotifIds.includes(notif.id) ? 1 : (notif.is_read || 0)
@@ -284,43 +219,27 @@ export const useAdminDashboard = () => {
                     setAllNotifications(processedNotifs);
                     setNotifications(processedNotifs);
                     
-                    // Calculate unread count based on processed notifications
                     const unreadNotifications = processedNotifs.filter(notif => 
                         notif.is_read === 0 || notif.is_read === '0'
                     );
                     
-                    console.log('✓ Unread count calculated:', unreadNotifications.length);
-                    
                     setUnreadCount(unreadNotifications.length);
                     setReadNotifications(new Set(readNotifIds));
-                    window.adminNotifications = processedNotifs;
-                    updateNotificationBadge(unreadNotifications.length);
-                } else if (data.status === 'success' && (!data.notifications || data.notifications.length === 0)) {
-                    console.warn('⚠ API returned success but notifications array is empty or missing');
-                    setAllNotifications([]);
-                    setNotifications([]);
-                    setUnreadCount(0);
-                    updateNotificationBadge(0);
                 } else {
-                    console.error('✗ API Error:', data.message);
                     setAllNotifications([]);
                     setNotifications([]);
                     setUnreadCount(0);
                 }
             })
             .catch(error => {
-                console.error('✗ Fetch error:', error);
+                console.error('Fetch error:', error);
             });
-    }, [updateNotificationBadge, getReadNotifications]);
+    }, [getReadNotifications]);
 
     const markNotificationAsRead = useCallback(async (notificationId) => {
         try {
-            console.log('Marking notification as read:', notificationId);
-            
-            // Save to localStorage first (instant UI update)
             saveReadNotification(notificationId);
             
-            // Update state immediately
             setAllNotifications(prev => {
                 const updated = prev.map(notif => 
                     notif.id === notificationId 
@@ -333,7 +252,6 @@ export const useAdminDashboard = () => {
                 ).length;
                 
                 setUnreadCount(newUnreadCount);
-                updateNotificationBadge(newUnreadCount);
                 
                 return updated;
             });
@@ -346,7 +264,6 @@ export const useAdminDashboard = () => {
             
             setReadNotifications(prev => new Set(prev.add(notificationId)));
             
-            // Then sync with backend (optional, for database record)
             const response = await fetch(`${API_BASE_URL}?action=markNotificationRead`, {
                 method: 'POST',
                 credentials: 'include',
@@ -358,20 +275,12 @@ export const useAdminDashboard = () => {
             });
 
             const result = await response.json();
-            console.log('Mark as read response:', result);
-            
-            if (result.status === 'success') {
-                console.log('✓ Notification marked as read in database:', notificationId);
-                return true;
-            } else {
-                console.warn('✗ Failed to mark notification as read in database:', result.message);
-                return false;
-            }
+            return result.status === 'success';
         } catch (error) {
-            console.error('✗ Error marking notification as read:', error);
+            console.error('Error marking notification as read:', error);
             return false;
         }
-    }, [updateNotificationBadge, saveReadNotification]);
+    }, [saveReadNotification]);
 
     // ==================== NOTIFICATION MODAL FUNCTIONS ====================
 
@@ -391,8 +300,6 @@ export const useAdminDashboard = () => {
 
     const fetchRequestDetailsForNotification = useCallback(async (requestId) => {
         try {
-            console.log('Fetching request details for notification:', requestId);
-            
             const requestResponse = await fetch(`${API_RH_URL}?action=viewRequest&request_id=${requestId}`, {
                 method: 'GET',
                 credentials: 'include',
@@ -402,10 +309,8 @@ export const useAdminDashboard = () => {
             });
 
             const requestData = await requestResponse.json();
-            console.log('Raw request data from API:', requestData);
             
             if (requestData.status !== 'success') {
-                console.error('Failed to fetch request details:', requestData.message);
                 return null;
             }
 
@@ -418,7 +323,6 @@ export const useAdminDashboard = () => {
             });
 
             const paymentData = await paymentResponse.json();
-            console.log('Raw payment data from API:', paymentData);
             
             const combinedData = {
                 ...requestData.data,
@@ -427,12 +331,8 @@ export const useAdminDashboard = () => {
                 payment_amount: paymentData.payment_amount || paymentData.Total_Amount || 0,
                 paymongo_session_id: paymentData.paymongo_session_id || null
             };
-
-            console.log('Combined request and payment data (before normalization):', combinedData);
             
             const normalizedData = normalizeRequestData(combinedData);
-            console.log('Final normalized data:', normalizedData);
-            
             return normalizedData;
 
         } catch (error) {
@@ -446,41 +346,30 @@ export const useAdminDashboard = () => {
             e.preventDefault();
             e.stopPropagation();
         }
-        console.log('Notification clicked:', notificationId);
         
         try {
             const notification = allNotifications.find(notif => notif.id === notificationId);
             
             if (!notification) {
-                console.warn('Notification not found:', notificationId);
                 showMessage('Notification not found', 'error');
                 return;
             }
             
-            console.log('Found notification:', notification);
-            
-            // Mark as read immediately
             await markNotificationAsRead(notificationId);
             
             const requestId = extractRequestIdFromNotification(notification);
             
             if (requestId) {
-                console.log('Opening request from notification:', requestId);
-                
                 const requestData = await fetchRequestDetailsForNotification(requestId);
                 
                 if (requestData) {
-                    console.log('Setting notification request data:', requestData);
                     setNotificationRequestData(requestData);
                     setShowNotificationModal(true);
                     setShowNotificationDropdown(false);
                 } else {
-                    console.warn('Failed to fetch request details for:', requestId);
                     showMessage('Failed to load request details', 'error');
                 }
             } else {
-                console.log('Notification has no request ID, showing basic notification modal');
-                
                 const basicNotificationData = {
                     request_id: 'N/A',
                     student_name: 'N/A',
@@ -518,47 +407,6 @@ export const useAdminDashboard = () => {
 
     // ==================== MAIL FUNCTIONS ====================
 
-    const updateMailBadge = useCallback((count) => {
-        // Try to find mail button using multiple selectors
-        const mailBtn = document.querySelector('.mail-btn') || 
-                       document.querySelector('[data-type="mail"]') ||
-                       document.querySelector('.action-btn[title="Mail"]') ||
-                       document.querySelector('img[src*="mail"]')?.parentElement;
-        
-        if (!mailBtn) {
-            console.warn('Mail button not found for badge update');
-            return;
-        }
-        
-        let badge = mailBtn.querySelector('.mail-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'mail-badge';
-            badge.style.cssText = `
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #e74c3c;
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                font-size: 11px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                z-index: 10;
-                pointer-events: none;
-            `;
-            mailBtn.style.position = 'relative';
-            mailBtn.appendChild(badge);
-        }
-        
-        badge.textContent = count > 9 ? '9+' : count;
-        badge.style.display = count > 0 ? 'flex' : 'none';
-    }, []);
-
     const getReadMails = useCallback(() => {
         try {
             return JSON.parse(localStorage.getItem('adminReadMails') || '[]');
@@ -585,11 +433,8 @@ export const useAdminDashboard = () => {
             e.preventDefault();
             e.stopPropagation();
         }
-        console.log('Toggle mail dropdown');
         setShowMailDropdown(prev => {
             const newState = !prev;
-            console.log('Mail dropdown state:', newState);
-            // Close notification dropdown if open
             if (newState) {
                 setShowNotificationDropdown(false);
             }
@@ -616,14 +461,12 @@ export const useAdminDashboard = () => {
                     ).length || 0;
                     
                     setUnreadMailCount(unreadCount);
-                    window.adminMails = data.mails || [];
-                    updateMailBadge(unreadCount);
                 }
             })
             .catch(error => {
                 console.error('Error fetching mails:', error);
             });
-    }, [updateMailBadge, getReadMails]);
+    }, [getReadMails]);
 
     const openMailModal = useCallback((mail) => {
         setSelectedMail(mail);
@@ -647,7 +490,6 @@ export const useAdminDashboard = () => {
             ).length;
             
             setUnreadMailCount(unreadCount);
-            updateMailBadge(unreadCount);
 
             const response = await fetch(`${API_BASE_URL}?action=markMailRead`, {
                 method: 'POST',
@@ -665,14 +507,13 @@ export const useAdminDashboard = () => {
             console.error('Error marking mail as read:', error);
             return false;
         }
-    }, [mails, updateMailBadge, saveReadMail, getReadMails]);
+    }, [mails, saveReadMail, getReadMails]);
 
     const handleMailClick = useCallback((mail, e) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        console.log('Mail clicked:', mail.id);
         openMailModal(mail);
         markMailAsRead(mail.id);
     }, [openMailModal, markMailAsRead]);
@@ -681,7 +522,6 @@ export const useAdminDashboard = () => {
 
     const loadAnnouncements = useCallback(async () => {
         try {
-            console.log('Loading announcements...');
             const response = await fetch(`${API_BASE_URL}?action=getAnnouncements`, {
                 method: 'GET',
                 credentials: 'include',
@@ -691,7 +531,6 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Announcements response:', data);
             
             if (data.status === 'success' && data.data) {
                 setAnnouncements(data.data);
@@ -707,7 +546,6 @@ export const useAdminDashboard = () => {
                     });
                 }
             } else {
-                console.warn('No announcements found or error:', data.message);
                 setAnnouncements([]);
             }
         } catch (error) {
@@ -741,7 +579,6 @@ export const useAdminDashboard = () => {
 
     const handleAnnouncementSave = useCallback(async () => {
         try {
-            console.log('Saving announcement...');
             setAnnouncementLoading(true);
             
             if (!announcementData.Title || !announcementData.Content) {
@@ -764,8 +601,6 @@ export const useAdminDashboard = () => {
                 payload.Announcement_ID = announcementData.Announcement_ID;
             }
             
-            console.log('Sending payload:', payload);
-            
             const response = await fetch(API_CREATE_ANNOUNCEMENT_URL, {
                 method: 'POST',
                 credentials: 'include',
@@ -777,7 +612,6 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Save announcement response:', data);
             
             if (data.status === 'success') {
                 showMessage(
@@ -786,7 +620,6 @@ export const useAdminDashboard = () => {
                 );
                 
                 await loadAnnouncements();
-                
                 setIsEditingAnnouncement(false);
             } else {
                 showMessage(data.message || 'Failed to save announcement', 'error');
@@ -834,7 +667,6 @@ export const useAdminDashboard = () => {
 
     const loadTransactions = useCallback(async () => {
         try {
-            console.log('Loading transactions...');
             const response = await fetch(`${API_BASE_URL}?action=getTransactions`, {
                 method: 'GET',
                 credentials: 'include',
@@ -844,7 +676,6 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Transactions response:', data);
             
             if (data.status === 'success' && data.data) {
                 setTransactions(data.data);
@@ -857,7 +688,6 @@ export const useAdminDashboard = () => {
                     });
                 }
             } else {
-                console.warn('No transactions found or error:', data.message);
                 setTransactions([]);
             }
         } catch (error) {
@@ -885,7 +715,6 @@ export const useAdminDashboard = () => {
 
     const handleTransactionSave = useCallback(async () => {
         try {
-            console.log('Saving transaction hours...');
             setTransactionLoading(true);
             
             if (!transactionData.Description) {
@@ -905,8 +734,6 @@ export const useAdminDashboard = () => {
                 payload.Transaction_Sched_ID = transactionData.Transaction_Sched_ID;
             }
             
-            console.log('Sending payload:', payload);
-            
             const response = await fetch(API_CREATE_TRANSACTION_URL, {
                 method: 'POST',
                 credentials: 'include',
@@ -918,7 +745,6 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Save transaction response:', data);
             
             if (data.status === 'success') {
                 showMessage(
@@ -927,7 +753,6 @@ export const useAdminDashboard = () => {
                 );
                 
                 await loadTransactions();
-                
                 setIsEditingTransaction(false);
             } else {
                 showMessage(data.message || 'Failed to save transaction hours', 'error');
@@ -969,8 +794,6 @@ export const useAdminDashboard = () => {
 
     const fetchPaymentStatus = useCallback(async (requestId) => {
         try {
-            console.log('Fetching payment status for request:', requestId);
-            
             const response = await fetch(
                 `${API_BASE_URL}?action=getPaymentStatus&request_id=${requestId}`,
                 {
@@ -985,7 +808,6 @@ export const useAdminDashboard = () => {
             const paymentData = await response.json();
             
             if (paymentData.status === 'success') {
-                console.log('Payment status fetched:', paymentData);
                 return {
                     payment_status_display: paymentData.payment_status_display || 'Unpaid',
                     payment_method: paymentData.payment_method || paymentData.Payment_Method || 'N/A',
@@ -993,7 +815,6 @@ export const useAdminDashboard = () => {
                     paymongo_session_id: paymentData.paymongo_session_id || null
                 };
             } else {
-                console.warn('Failed to fetch payment status:', paymentData.message);
                 return {
                     payment_status_display: 'Unpaid',
                     payment_method: 'N/A',
@@ -1016,7 +837,6 @@ export const useAdminDashboard = () => {
 
     const filterRequestsByDateRange = useCallback(async (startDate, endDate) => {
         try {
-            console.log(`Filtering requests from ${startDate} to ${endDate}`);
             setIsFiltering(true);
             setError(null);
             
@@ -1035,7 +855,6 @@ export const useAdminDashboard = () => {
             setDateFilterRange({ startDate, endDate });
             
             const url = `${API_FILTERED_DATE_URL}?action=filterByDateRange&start_date=${startDate}&end_date=${endDate}`;
-            console.log('Fetching from URL:', url);
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -1050,7 +869,6 @@ export const useAdminDashboard = () => {
             }
 
             const data = await response.json();
-            console.log('Date filter response:', data);
             
             if (data.status === 'success') {
                 const analyticsData = data.data?.analytics || {};
@@ -1071,8 +889,6 @@ export const useAdminDashboard = () => {
                     'success'
                 );
             } else {
-                const errorMsg = data.message || 'Unknown error';
-                console.error('Filter error:', errorMsg);
                 showMessage('Failed to filter requests', 'error');
                 setFilteredData(null);
             }
@@ -1087,7 +903,6 @@ export const useAdminDashboard = () => {
 
     const resetDateFilter = useCallback(async () => {
         try {
-            console.log('Resetting date filter...');
             setIsFiltering(true);
             setError(null);
             
@@ -1109,7 +924,6 @@ export const useAdminDashboard = () => {
             }
 
             const data = await response.json();
-            console.log('Reset filter response:', data);
             
             if (data.status === 'success') {
                 setFilteredData(null);
@@ -1148,8 +962,6 @@ export const useAdminDashboard = () => {
     // ==================== ADMIN DATA FUNCTIONS ====================
 
     const displayAdminData = useCallback((adminDataResponse) => {
-        console.log('Admin data received:', adminDataResponse);
-        
         const formattedEmail = formatEmailForDisplay(adminDataResponse.Email);
         const adminName = getNameFromEmail(adminDataResponse.Email);
         
@@ -1176,7 +988,6 @@ export const useAdminDashboard = () => {
     }, []);
 
     const loadAdminData = useCallback(async () => {
-        console.log('Loading admin data from:', `${API_BASE_URL}?action=getAdminData`);
         setLoading(true);
         setError(null);
 
@@ -1188,25 +999,17 @@ export const useAdminDashboard = () => {
                     'Accept': 'application/json',
                 }
             });
-
-            console.log('Response status:', response.status);
             
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Response error:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Admin data response:', data);
 
             if (data.status === 'success' && data.data) {
                 displayAdminData(data.data);
-                window.adminData = data.data;
                 setError(null);
             } else {
-                console.error('Error loading admin data:', data.message);
-                
                 if (data.message === 'Not authenticated' || data.message === 'Email missing in session') {
                     setError('Session expired. Please login again.');
                     setTimeout(() => {
@@ -1220,17 +1023,7 @@ export const useAdminDashboard = () => {
             }
         } catch (error) {
             console.error('Error fetching admin data:', error);
-            
-            let errorMessage = 'Unable to connect to server';
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Unable to connect to server. Check if PHP server is running.';
-            } else if (error.message.includes('NetworkError')) {
-                errorMessage = 'Network error. Check CORS settings or file path.';
-            } else {
-                errorMessage = error.message || 'Unable to connect to server';
-            }
-            
-            setError(errorMessage);
+            setError('Unable to connect to server');
             displayFallbackAdminData();
         } finally {
             setLoading(false);
@@ -1241,7 +1034,6 @@ export const useAdminDashboard = () => {
 
     const loadDashboardData = useCallback(async () => {
         try {
-            console.log('Loading dashboard data...');
             const response = await fetch(`${API_BASE_URL}?action=getDashboardData`, {
                 method: 'GET',
                 credentials: 'include',
@@ -1251,12 +1043,10 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Dashboard data response:', data);
             
             if (data.status === 'success') {
                 setDashboardData(data.data || {});
             } else {
-                console.error('Error loading dashboard data:', data.message);
                 setDashboardData({});
             }
         } catch (error) {
@@ -1269,7 +1059,6 @@ export const useAdminDashboard = () => {
 
     const loadDocumentRequests = useCallback(async () => {
         try {
-            console.log('Loading document requests...');
             setLoading(true);
             
             const response = await fetch(`${API_RH_URL}?action=getRequests`, {
@@ -1281,13 +1070,11 @@ export const useAdminDashboard = () => {
             });
 
             const data = await response.json();
-            console.log('Document requests response:', data);
             
             if (data.status === 'success') {
                 setDocumentRequests(data.data || []);
                 setError(null);
             } else {
-                console.error('Error loading document requests:', data.message);
                 setError(data.message);
             }
         } catch (error) {
@@ -1299,7 +1086,6 @@ export const useAdminDashboard = () => {
     }, []);
 
     const handleNavigation = useCallback((section) => {
-        console.log('Navigating to:', section);
         setActiveSection(section);
         
         if (section === 'announcements') {
@@ -1334,8 +1120,6 @@ export const useAdminDashboard = () => {
 
     const handleViewRequest = useCallback(async (request) => {
         try {
-            console.log('Viewing request:', request);
-            
             const response = await fetch(`${API_RH_URL}?action=viewRequest&request_id=${request.request_id}`, {
                 method: 'GET',
                 credentials: 'include',
@@ -1374,8 +1158,6 @@ export const useAdminDashboard = () => {
 
     const handleSaveRequest = useCallback(async (request) => {
         try {
-            console.log('Saving request:', request);
-            
             const response = await fetch(`${API_UPDATE_URL}?action=updateRequest`, {
                 method: 'POST',
                 credentials: 'include',
@@ -1392,7 +1174,6 @@ export const useAdminDashboard = () => {
             });
 
             const result = await response.json();
-            console.log('Save request response:', result);
             
             if (result.status === 'success') {
                 setDocumentRequests(prev => prev.map(req => 
@@ -1415,29 +1196,24 @@ export const useAdminDashboard = () => {
     
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // Check if click is outside notification dropdown
-            const notificationDropdown = document.querySelector('.notification-dropdown');
-            const notificationBtn = document.querySelector('.notification-btn') || 
-                                   document.querySelector('[data-type="notification"]');
+            const dropdowns = document.querySelectorAll('.dropdown-menu');
+            const icons = document.querySelectorAll('.header-icon');
             
-            if (showNotificationDropdown && 
-                notificationDropdown && 
-                !notificationDropdown.contains(event.target) &&
-                notificationBtn &&
-                !notificationBtn.contains(event.target)) {
+            let clickedInside = false;
+            dropdowns.forEach(dropdown => {
+                if (dropdown.contains(event.target)) {
+                    clickedInside = true;
+                }
+            });
+            
+            icons.forEach(icon => {
+                if (icon.contains(event.target)) {
+                    clickedInside = true;
+                }
+            });
+            
+            if (!clickedInside) {
                 setShowNotificationDropdown(false);
-            }
-            
-            // Check if click is outside mail dropdown
-            const mailDropdown = document.querySelector('.mail-dropdown');
-            const mailBtn = document.querySelector('.mail-btn') || 
-                          document.querySelector('[data-type="mail"]');
-            
-            if (showMailDropdown && 
-                mailDropdown && 
-                !mailDropdown.contains(event.target) &&
-                mailBtn &&
-                !mailBtn.contains(event.target)) {
                 setShowMailDropdown(false);
             }
         };
@@ -1449,7 +1225,7 @@ export const useAdminDashboard = () => {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('touchstart', handleClickOutside);
         };
-    }, [showNotificationDropdown, showMailDropdown]);
+    }, []);
 
     // ==================== EFFECTS ====================
 
@@ -1484,13 +1260,10 @@ export const useAdminDashboard = () => {
     }, []);
 
     useEffect(() => {
-        console.log('Active section changed to:', activeSection);
-        
         if (activeSection === 'dashboard') {
             loadDashboardData();
         } else if (activeSection === 'document-requests') {
             if (dateFilterRange.startDate && dateFilterRange.endDate) {
-                console.log('Re-applying date filter:', dateFilterRange);
                 filterRequestsByDateRange(dateFilterRange.startDate, dateFilterRange.endDate);
             } else {
                 loadDocumentRequests();
