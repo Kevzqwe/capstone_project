@@ -23,7 +23,6 @@ const AdminDashboard = () => {
         showModal,
         handleNavigation,
         handleLogout,
-        handleViewRequest,
         handleCloseModal,
         reloadAdminData,
         notifications,
@@ -43,7 +42,6 @@ const AdminDashboard = () => {
         notificationRequestData,
         closeNotificationModal,
         announcementData,
-        announcements,
         isEditingAnnouncement,
         announcementLoading,
         handleAnnouncementEdit,
@@ -51,7 +49,6 @@ const AdminDashboard = () => {
         handleAnnouncementChange,
         cancelAnnouncementEdit,
         transactionData,
-        transactions,
         isEditingTransaction,
         transactionLoading,
         handleTransactionEdit,
@@ -67,19 +64,11 @@ const AdminDashboard = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
-    
-    // Mobile menu state
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    
-    // Date filter states
     const [startDate, setStartDate] = useState('2020-01-01');
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
     const [isFiltered, setIsFiltered] = useState(false);
-
-    // Local state for rescheduled pickup dates
     const [rescheduledPickups, setRescheduledPickups] = useState({});
-
-    // Local state for form validation
     const [announcementErrors, setAnnouncementErrors] = useState({});
     const [transactionErrors, setTransactionErrors] = useState({});
 
@@ -91,22 +80,6 @@ const AdminDashboard = () => {
     const totalPages = Math.ceil(totalRows / rowsPerPage);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const currentRows = documentRequests?.slice(startIndex, startIndex + rowsPerPage) || [];
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
 
     const timeAgo = (dateString) => {
         const date = new Date(dateString);
@@ -123,17 +96,12 @@ const AdminDashboard = () => {
         return date.toLocaleDateString();
     };
 
-    // Mobile menu functions
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
-
+    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
     const handleMobileNavigation = (section) => {
         handleNavigation(section);
         setIsMobileMenuOpen(false);
     };
 
-    // Handle date filter
     const handleApplyFilter = async () => {
         await filterRequestsByDateRange(startDate, endDate);
         setIsFiltered(true);
@@ -147,7 +115,6 @@ const AdminDashboard = () => {
         setIsFiltered(false);
     };
 
-    // Handle Today button click
     const handleTodayClick = (isStartDate) => {
         const today = new Date().toISOString().split('T')[0];
         if (isStartDate) {
@@ -157,7 +124,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // Handle rescheduled pickup date change
     const handleRescheduledPickupChange = (requestId, newDate) => {
         setRescheduledPickups(prev => ({
             ...prev,
@@ -165,7 +131,6 @@ const AdminDashboard = () => {
         }));
     };
 
-    // Enhanced announcement handlers
     const handleAnnouncementEditClick = () => {
         setAnnouncementErrors({});
         handleAnnouncementEdit();
@@ -173,20 +138,16 @@ const AdminDashboard = () => {
 
     const handleAnnouncementSaveClick = async () => {
         const errors = {};
-        
         if (!announcementData.Title || !announcementData.Title.trim()) {
             errors.Title = 'Please enter a title for the announcement';
         }
-        
         if (!announcementData.Content || !announcementData.Content.trim()) {
             errors.Content = 'Please enter content for the announcement';
         }
-
         if (Object.keys(errors).length > 0) {
             setAnnouncementErrors(errors);
             return;
         }
-
         setAnnouncementErrors({});
         await handleAnnouncementSave();
     };
@@ -196,7 +157,6 @@ const AdminDashboard = () => {
         cancelAnnouncementEdit();
     };
 
-    // Enhanced transaction handlers
     const handleTransactionEditClick = () => {
         setTransactionErrors({});
         handleTransactionEdit();
@@ -207,7 +167,6 @@ const AdminDashboard = () => {
             setTransactionErrors({ Description: 'Please enter transaction hours information' });
             return;
         }
-
         setTransactionErrors({});
         await handleTransactionSave();
     };
@@ -217,7 +176,6 @@ const AdminDashboard = () => {
         cancelTransactionEdit();
     };
 
-    // Clear individual field errors when user starts typing
     const handleAnnouncementTitleChange = (value) => {
         if (announcementErrors.Title) {
             setAnnouncementErrors(prev => ({ ...prev, Title: '' }));
@@ -239,9 +197,7 @@ const AdminDashboard = () => {
         handleTransactionChange('Description', value);
     };
 
-    // Use filtered data if available, otherwise use dashboard data
     const displayData = filteredData || dashboardData;
-    
     const pendingCount = displayData?.pending_requests || 0;
     const ongoingCount = displayData?.ongoing_requests || 0;
     const readyCount = displayData?.ready_requests || 0;
@@ -256,7 +212,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="container">
-            {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
                 <div 
                     className="mobile-menu-overlay" 
@@ -274,7 +229,6 @@ const AdminDashboard = () => {
                 />
             )}
 
-            {/* Sidebar with Mobile Menu */}
             <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                 <div className="school-info">
                     <div className="logo">
@@ -298,7 +252,6 @@ const AdminDashboard = () => {
                     <ul>
                         <button 
                             className={`nav-btn ${activeSection === 'dashboard' ? 'active' : ''}`}
-                            data-section="dashboard"
                             onClick={() => handleMobileNavigation('dashboard')}
                         >
                             <i className="fas fa-home"></i>
@@ -306,7 +259,6 @@ const AdminDashboard = () => {
                         </button>
                         <button 
                             className={`nav-btn ${activeSection === 'document-requests' ? 'active' : ''}`}
-                            data-section="document-requests"
                             onClick={() => handleMobileNavigation('document-requests')}
                         >
                             <i className="fas fa-file-alt"></i>
@@ -314,7 +266,6 @@ const AdminDashboard = () => {
                         </button>
                         <button 
                             className={`nav-btn ${activeSection === 'analytics' ? 'active' : ''}`}
-                            data-section="analytics"
                             onClick={() => handleMobileNavigation('analytics')}
                         >
                             <i className="fas fa-chart-pie"></i>
@@ -322,7 +273,6 @@ const AdminDashboard = () => {
                         </button>
                         <button 
                             className={`nav-btn ${activeSection === 'account' ? 'active' : ''}`}
-                            data-section="account"
                             onClick={() => handleMobileNavigation('account')}
                         >
                             <i className="fas fa-user-cog"></i>
@@ -339,7 +289,6 @@ const AdminDashboard = () => {
 
             <main className="main-content">
                 <header className="header">
-                    {/* Hamburger Button - Mobile Only */}
                     <button 
                         className="mobile-menu-btn" 
                         onClick={toggleMobileMenu}
@@ -356,17 +305,20 @@ const AdminDashboard = () => {
                     </button>
 
                     <nav className="breadcrumb">Pateros Catholic School Document Request</nav>
+                    
                     <div className="header-icons">
                         {/* Mail Icon */}
-                        <div className="icon-wrapper">
+                        <div className="icon-wrapper" style={{ position: 'relative' }}>
                             <img 
                                 src={mail} 
                                 alt="Mail" 
                                 className="header-icon" 
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     toggleMailDropdown();
-                                    if (showNotificationDropdown) toggleNotificationDropdown();
                                 }}
+                                style={{ cursor: 'pointer' }}
                             />
                             {unreadMailCount > 0 && (
                                 <span className="badge">
@@ -384,7 +336,11 @@ const AdminDashboard = () => {
                                         mails.map((mailItem) => (
                                             <div 
                                                 key={mailItem.id}
-                                                onClick={() => handleMailClick(mailItem)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleMailClick(mailItem, e);
+                                                }}
                                                 className="dropdown-item"
                                             >
                                                 <div className="dropdown-item-title">
@@ -408,12 +364,17 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Notification Icon */}
-                        <div className="icon-wrapper">
+                        <div className="icon-wrapper" style={{ position: 'relative' }}>
                             <img 
                                 src={bell} 
                                 alt="Notifications" 
                                 className="header-icon" 
-                                onClick={toggleNotificationDropdown}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleNotificationDropdown();
+                                }}
+                                style={{ cursor: 'pointer' }}
                             />
                             {unreadCount > 0 && (
                                 <span className="badge">
@@ -431,7 +392,11 @@ const AdminDashboard = () => {
                                         notifications.map((notification) => (
                                             <div 
                                                 key={notification.id}
-                                                onClick={() => handleNotificationClick(notification.id)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleNotificationClick(notification.id, e);
+                                                }}
                                                 className={`dropdown-item ${notification.is_read === 0 || notification.is_read === '0' ? 'unread' : ''}`}
                                             >
                                                 <div className="dropdown-item-title">
@@ -462,9 +427,7 @@ const AdminDashboard = () => {
                         <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
                                 <h3>{selectedMail.subject}</h3>
-                                <button onClick={closeMailModal} className="modal-close">
-                                    ×
-                                </button>
+                                <button onClick={closeMailModal} className="modal-close">×</button>
                             </div>
                             
                             <div className="modal-body">
@@ -492,14 +455,10 @@ const AdminDashboard = () => {
                 {showNotificationModal && notificationRequestData && (
                     <div className="modal-overlay" onClick={closeNotificationModal}>
                         <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
-                            
-                            {/* Modal Header */}
                             <div className="modal-header gradient-header">
                                 <div>
                                     <h2 className="modal-title">
-                                        {notificationRequestData.request_id !== 'N/A' 
-                                            ? 'Request Details' 
-                                            : 'Notification Details'}
+                                        {notificationRequestData.request_id !== 'N/A' ? 'Request Details' : 'Notification Details'}
                                     </h2>
                                     <p className="modal-subtitle">
                                         {notificationRequestData.request_id !== 'N/A' 
@@ -507,20 +466,13 @@ const AdminDashboard = () => {
                                             : 'General Notification'}
                                     </p>
                                 </div>
-                                <button onClick={closeNotificationModal} className="modal-close-gradient">
-                                    ×
-                                </button>
+                                <button onClick={closeNotificationModal} className="modal-close-gradient">×</button>
                             </div>
 
-                            {/* Modal Body */}
                             <div className="modal-body">
-                                
-                                {/* Notification Content for General Notifications */}
                                 {notificationRequestData.request_id === 'N/A' && (
                                     <div className="notification-content">
-                                        <h3 className="notification-title">
-                                            {notificationRequestData.title}
-                                        </h3>
+                                        <h3 className="notification-title">{notificationRequestData.title}</h3>
                                         <div className="notification-message-box">
                                             <p>{notificationRequestData.message}</p>
                                         </div>
@@ -530,10 +482,8 @@ const AdminDashboard = () => {
                                     </div>
                                 )}
 
-                                {/* Request Details for Request-based Notifications */}
                                 {notificationRequestData.request_id !== 'N/A' && (
                                     <>
-                                        {/* Status Badges */}
                                         <div className="status-badges">
                                             <div className="status-badge-item">
                                                 <span className="status-label">Request Status:</span>
@@ -541,7 +491,6 @@ const AdminDashboard = () => {
                                                     {notificationRequestData.status || 'N/A'}
                                                 </span>
                                             </div>
-
                                             <div className="status-badge-item">
                                                 <span className="status-label">Payment Status:</span>
                                                 <span className={`status-value ${notificationRequestData.payment_status_display === 'Paid' ? 'status-paid' : 'status-unpaid'}`}>
@@ -550,10 +499,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
 
-                                        {/* Information Grid */}
                                         <div className="info-grid">
-                                            
-                                            {/* Student Information */}
                                             <div className="info-section">
                                                 <h3 className="info-section-title">Student Information</h3>
                                                 <div className="info-fields">
@@ -576,7 +522,6 @@ const AdminDashboard = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Contact Information */}
                                             <div className="info-section">
                                                 <h3 className="info-section-title">Contact Information</h3>
                                                 <div className="info-fields">
@@ -592,10 +537,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
 
-                                        {/* Request & Payment Details */}
                                         <div className="info-grid">
-                                            
-                                            {/* Request Timeline */}
                                             <div className="info-section">
                                                 <h3 className="info-section-title">Request Timeline</h3>
                                                 <div className="info-fields">
@@ -604,11 +546,8 @@ const AdminDashboard = () => {
                                                         <p>
                                                             {notificationRequestData.date_requested 
                                                                 ? new Date(notificationRequestData.date_requested).toLocaleDateString('en-US', { 
-                                                                    year: 'numeric', 
-                                                                    month: 'short', 
-                                                                    day: 'numeric' 
-                                                                }) 
-                                                                : 'N/A'}
+                                                                    year: 'numeric', month: 'short', day: 'numeric' 
+                                                                }) : 'N/A'}
                                                         </p>
                                                     </div>
                                                     <div className="info-field">
@@ -616,11 +555,8 @@ const AdminDashboard = () => {
                                                         <p>
                                                             {notificationRequestData.scheduled_pick_up 
                                                                 ? new Date(notificationRequestData.scheduled_pick_up).toLocaleDateString('en-US', { 
-                                                                    year: 'numeric', 
-                                                                    month: 'short', 
-                                                                    day: 'numeric' 
-                                                                }) 
-                                                                : 'N/A'}
+                                                                    year: 'numeric', month: 'short', day: 'numeric' 
+                                                                }) : 'N/A'}
                                                         </p>
                                                     </div>
                                                     <div className="info-field">
@@ -628,17 +564,13 @@ const AdminDashboard = () => {
                                                         <p>
                                                             {notificationRequestData.rescheduled_pick_up 
                                                                 ? new Date(notificationRequestData.rescheduled_pick_up).toLocaleDateString('en-US', { 
-                                                                    year: 'numeric', 
-                                                                    month: 'short', 
-                                                                    day: 'numeric' 
-                                                                }) 
-                                                                : 'N/A'}
+                                                                    year: 'numeric', month: 'short', day: 'numeric' 
+                                                                }) : 'N/A'}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Payment Information */}
                                             <div className="info-section">
                                                 <h3 className="info-section-title">Payment Information</h3>
                                                 <div className="info-fields">
@@ -646,8 +578,8 @@ const AdminDashboard = () => {
                                                         <label>Payment Method</label>
                                                         <p>
                                                             {notificationRequestData.payment_method ? 
-                                                                notificationRequestData.payment_method.charAt(0).toUpperCase() + notificationRequestData.payment_method.slice(1) 
-                                                                : 'N/A'}
+                                                                notificationRequestData.payment_method.charAt(0).toUpperCase() + 
+                                                                notificationRequestData.payment_method.slice(1) : 'N/A'}
                                                         </p>
                                                     </div>
                                                     <div className="info-field">
@@ -667,36 +599,26 @@ const AdminDashboard = () => {
                                 )}
                             </div>
 
-                            {/* Modal Footer */}
                             <div className="modal-footer">
-                                <button onClick={closeNotificationModal} className="btn-modal-close">
-                                    Close
-                                </button>
+                                <button onClick={closeNotificationModal} className="btn-modal-close">Close</button>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* REQUEST DETAILS MODAL WITH PAYMENT STATUS AND SAVE BUTTON */}
+                {/* REQUEST DETAILS MODAL */}
                 {showModal && selectedRequest && (
                     <div className="modal-overlay" onClick={handleCloseModal}>
                         <div className="modal-container modal-large" onClick={(e) => e.stopPropagation()}>
-                            
-                            {/* Modal Header */}
                             <div className="modal-header gradient-header">
                                 <div>
                                     <h2 className="modal-title">Request Details</h2>
                                     <p className="modal-subtitle">Request ID: #{selectedRequest.request_id}</p>
                                 </div>
-                                <button onClick={handleCloseModal} className="modal-close-gradient">
-                                    ×
-                                </button>
+                                <button onClick={handleCloseModal} className="modal-close-gradient">×</button>
                             </div>
 
-                            {/* Modal Body */}
                             <div className="modal-body">
-                                
-                                {/* Status Badges */}
                                 <div className="status-badges">
                                     <div className="status-badge-item">
                                         <span className="status-label">Request Status:</span>
@@ -704,7 +626,6 @@ const AdminDashboard = () => {
                                             {selectedRequest.status || 'N/A'}
                                         </span>
                                     </div>
-
                                     <div className="status-badge-item">
                                         <span className="status-label">Payment Status:</span>
                                         <span className={`status-value ${selectedRequest.payment_status_display === 'Paid' ? 'status-paid' : 'status-unpaid'}`}>
@@ -713,10 +634,7 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
 
-                                {/* Information Grid */}
                                 <div className="info-grid">
-                                    
-                                    {/* Student Information */}
                                     <div className="info-section">
                                         <h3 className="info-section-title">Student Information</h3>
                                         <div className="info-fields">
@@ -739,7 +657,6 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
 
-                                    {/* Contact Information */}
                                     <div className="info-section">
                                         <h3 className="info-section-title">Contact Information</h3>
                                         <div className="info-fields">
@@ -755,10 +672,7 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
 
-                                {/* Request & Payment Details */}
                                 <div className="info-grid">
-                                    
-                                    {/* Request Timeline */}
                                     <div className="info-section">
                                         <h3 className="info-section-title">Request Timeline</h3>
                                         <div className="info-fields">
@@ -767,11 +681,8 @@ const AdminDashboard = () => {
                                                 <p>
                                                     {selectedRequest.date_requested 
                                                         ? new Date(selectedRequest.date_requested).toLocaleDateString('en-US', { 
-                                                            year: 'numeric', 
-                                                            month: 'short', 
-                                                            day: 'numeric' 
-                                                        }) 
-                                                        : 'N/A'}
+                                                            year: 'numeric', month: 'short', day: 'numeric' 
+                                                        }) : 'N/A'}
                                                 </p>
                                             </div>
                                             <div className="info-field">
@@ -779,11 +690,8 @@ const AdminDashboard = () => {
                                                 <p>
                                                     {selectedRequest.scheduled_pick_up 
                                                         ? new Date(selectedRequest.scheduled_pick_up).toLocaleDateString('en-US', { 
-                                                            year: 'numeric', 
-                                                            month: 'short', 
-                                                            day: 'numeric' 
-                                                        }) 
-                                                        : 'N/A'}
+                                                            year: 'numeric', month: 'short', day: 'numeric' 
+                                                        }) : 'N/A'}
                                                 </p>
                                             </div>
                                             <div className="info-field">
@@ -791,17 +699,13 @@ const AdminDashboard = () => {
                                                 <p>
                                                     {selectedRequest.rescheduled_pick_up 
                                                         ? new Date(selectedRequest.rescheduled_pick_up).toLocaleDateString('en-US', { 
-                                                            year: 'numeric', 
-                                                            month: 'short', 
-                                                            day: 'numeric' 
-                                                        }) 
-                                                        : 'N/A'}
+                                                            year: 'numeric', month: 'short', day: 'numeric' 
+                                                        }) : 'N/A'}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Payment Information */}
                                     <div className="info-section">
                                         <h3 className="info-section-title">Payment Information</h3>
                                         <div className="info-fields">
@@ -809,8 +713,8 @@ const AdminDashboard = () => {
                                                 <label>Payment Method</label>
                                                 <p>
                                                     {selectedRequest.payment_method ? 
-                                                        selectedRequest.payment_method.charAt(0).toUpperCase() + selectedRequest.payment_method.slice(1) 
-                                                        : 'N/A'}
+                                                        selectedRequest.payment_method.charAt(0).toUpperCase() + 
+                                                        selectedRequest.payment_method.slice(1) : 'N/A'}
                                                 </p>
                                             </div>
                                             <div className="info-field">
@@ -828,7 +732,6 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Modal Footer with Save Button */}
                             <div className="modal-footer">
                                 <button 
                                     onClick={() => {
@@ -839,9 +742,7 @@ const AdminDashboard = () => {
                                 >
                                     Save
                                 </button>
-                                <button onClick={handleCloseModal} className="btn-modal-close">
-                                    Close
-                                </button>
+                                <button onClick={handleCloseModal} className="btn-modal-close">Close</button>
                             </div>
                         </div>
                     </div>
@@ -898,7 +799,6 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="bottom-cards">
-                            {/* Announcement Card */}
                             <div className="announcement-card">
                                 <div className="card-header">
                                     <h3>Announcement</h3>
@@ -936,10 +836,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <div className="announcement-actions">
                                         {!isEditingAnnouncement ? (
-                                            <button 
-                                                className="btn-edit"
-                                                onClick={handleAnnouncementEditClick}
-                                            >
+                                            <button className="btn-edit" onClick={handleAnnouncementEditClick}>
                                                 {announcementData.Announcement_ID ? 'Edit' : 'Create New'}
                                             </button>
                                         ) : (
@@ -962,14 +859,11 @@ const AdminDashboard = () => {
                                         )}
                                     </div>
                                     {announcementData.Is_Active && (
-                                        <div className="published-badge">
-                                            ✓ Published
-                                        </div>
+                                        <div className="published-badge">✓ Published</div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Transaction Card */}
                             <div className="transaction-card">
                                 <div className="card-header">
                                     <h3>Transaction Hours</h3>
@@ -992,10 +886,7 @@ const AdminDashboard = () => {
                                     )}
                                     <div className="transaction-actions">
                                         {!isEditingTransaction ? (
-                                            <button 
-                                                className="btn-edit"
-                                                onClick={handleTransactionEditClick}
-                                            >
+                                            <button className="btn-edit" onClick={handleTransactionEditClick}>
                                                 {transactionData.Transaction_Sched_ID ? 'Edit' : 'Create New'}
                                             </button>
                                         ) : (
@@ -1018,9 +909,7 @@ const AdminDashboard = () => {
                                         )}
                                     </div>
                                     {transactionData.Is_Active && (
-                                        <div className="published-badge">
-                                            ✓ Published
-                                        </div>
+                                        <div className="published-badge">✓ Published</div>
                                     )}
                                 </div>
                             </div>
@@ -1086,9 +975,7 @@ const AdminDashboard = () => {
                                                 <td>
                                                     {request.date_requested ? 
                                                         new Date(request.date_requested).toLocaleDateString('en-US', { 
-                                                            year: 'numeric', 
-                                                            month: 'short', 
-                                                            day: 'numeric' 
+                                                            year: 'numeric', month: 'short', day: 'numeric' 
                                                         }) : 'N/A'}
                                                 </td>
                                                 <td>
@@ -1151,7 +1038,6 @@ const AdminDashboard = () => {
                             </table>
                         </div>
 
-                        {/* Pagination */}
                         {totalRows > 0 && (
                             <div className="pagination-controls">
                                 <div className="pagination-info">
@@ -1160,7 +1046,7 @@ const AdminDashboard = () => {
                                 
                                 <div className="pagination-buttons">
                                     <button 
-                                        onClick={handlePrevPage}
+                                        onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                                         disabled={currentPage === 1}
                                         className="pagination-btn"
                                     >
@@ -1170,7 +1056,7 @@ const AdminDashboard = () => {
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                         <button
                                             key={page}
-                                            onClick={() => handlePageChange(page)}
+                                            onClick={() => setCurrentPage(page)}
                                             className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
                                         >
                                             {page}
@@ -1178,7 +1064,7 @@ const AdminDashboard = () => {
                                     ))}
                                     
                                     <button 
-                                        onClick={handleNextPage}
+                                        onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
                                         disabled={currentPage === totalPages}
                                         className="pagination-btn"
                                     >
@@ -1196,27 +1082,14 @@ const AdminDashboard = () => {
                         <h2 className="section-title">Document Requests Analytics</h2>
                         
                         <div className="analytics-container">
-                            {/* Left Side - Chart and Legend */}
                             <div className="analytics-left">
                                 <div className="circle-chart-container">
                                     <svg width="450" height="450" viewBox="0 0 450 450">
-                                        <circle 
-                                            cx="225" 
-                                            cy="225" 
-                                            r="180" 
-                                            fill="none" 
-                                            stroke="#f0f0f0" 
-                                            strokeWidth="45"
-                                        />
+                                        <circle cx="225" cy="225" r="180" fill="none" stroke="#f0f0f0" strokeWidth="45" />
                                         
                                         {pendingCount > 0 && (
                                             <circle 
-                                                cx="225" 
-                                                cy="225" 
-                                                r="180" 
-                                                fill="none" 
-                                                stroke="#ef5350" 
-                                                strokeWidth="45"
+                                                cx="225" cy="225" r="180" fill="none" stroke="#ef5350" strokeWidth="45"
                                                 strokeDasharray={`${pendingDash} ${circumference}`}
                                                 strokeDashoffset="0"
                                                 transform="rotate(-90 225 225)"
@@ -1225,12 +1098,7 @@ const AdminDashboard = () => {
                                         
                                         {ongoingCount > 0 && (
                                             <circle 
-                                                cx="225" 
-                                                cy="225" 
-                                                r="180" 
-                                                fill="none" 
-                                                stroke="#ffc107" 
-                                                strokeWidth="45"
+                                                cx="225" cy="225" r="180" fill="none" stroke="#ffc107" strokeWidth="45"
                                                 strokeDasharray={`${ongoingDash} ${circumference}`}
                                                 strokeDashoffset={`${-pendingDash}`}
                                                 transform="rotate(-90 225 225)"
@@ -1239,12 +1107,7 @@ const AdminDashboard = () => {
                                         
                                         {readyCount > 0 && (
                                             <circle 
-                                                cx="225" 
-                                                cy="225" 
-                                                r="180" 
-                                                fill="none" 
-                                                stroke="#ff9800" 
-                                                strokeWidth="45"
+                                                cx="225" cy="225" r="180" fill="none" stroke="#ff9800" strokeWidth="45"
                                                 strokeDasharray={`${readyDash} ${circumference}`}
                                                 strokeDashoffset={`${-(pendingDash + ongoingDash)}`}
                                                 transform="rotate(-90 225 225)"
@@ -1253,12 +1116,7 @@ const AdminDashboard = () => {
                                         
                                         {completedCount > 0 && (
                                             <circle 
-                                                cx="225" 
-                                                cy="225" 
-                                                r="180" 
-                                                fill="none" 
-                                                stroke="#66bb6a" 
-                                                strokeWidth="45"
+                                                cx="225" cy="225" r="180" fill="none" stroke="#66bb6a" strokeWidth="45"
                                                 strokeDasharray={`${completedDash} ${circumference}`}
                                                 strokeDashoffset={`${-(pendingDash + ongoingDash + readyDash)}`}
                                                 transform="rotate(-90 225 225)"
@@ -1292,7 +1150,6 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Right Side - Date Filter */}
                             <div className="analytics-right">
                                 <div className="filter-header">
                                     <h3>Filter by Date Range</h3>
@@ -1340,19 +1197,11 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <div className="filter-actions">
-                                    <button 
-                                        className="btn-filter btn-apply-filter"
-                                        onClick={handleApplyFilter}
-                                    >
-                                        <i className="fas fa-check"></i>
-                                        Apply
+                                    <button className="btn-filter btn-apply-filter" onClick={handleApplyFilter}>
+                                        <i className="fas fa-check"></i> Apply
                                     </button>
-                                    <button 
-                                        className="btn-filter btn-reset-filter"
-                                        onClick={handleResetFilter}
-                                    >
-                                        <i className="fas fa-redo"></i>
-                                        Reset
+                                    <button className="btn-filter btn-reset-filter" onClick={handleResetFilter}>
+                                        <i className="fas fa-redo"></i> Reset
                                     </button>
                                 </div>
 
@@ -1431,3 +1280,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
