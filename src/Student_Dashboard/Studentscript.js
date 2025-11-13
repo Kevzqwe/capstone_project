@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/student_data.php';
 const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
@@ -16,7 +16,7 @@ export const useStudentPortal = () => {
   const [isLoadingUserData, setIsLoadingUserData] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
-  const [feedbackType, setFeedbackType] = useState('Select type'); // Default to 'Select type'
+  const [feedbackType, setFeedbackType] = useState('');
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [announcement, setAnnouncement] = useState('Welcome to Pateros Catholic School Document Request System');
@@ -24,6 +24,11 @@ export const useStudentPortal = () => {
   const [announcementLoading, setAnnouncementLoading] = useState(false);
   const [transactionLoading, setTransactionLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Use refs to track if data has been loaded
+  const announcementLoadedRef = useRef(false);
+  const transactionLoadedRef = useRef(false);
+  const userDataLoadedRef = useRef(false);
 
   const showMessage = useCallback((message, type) => {
     const existing = document.querySelector('.status-message');
@@ -50,6 +55,12 @@ export const useStudentPortal = () => {
   }, []);
 
   const loadAnnouncement = useCallback(async () => {
+    // Only load if not already loaded
+    if (announcementLoadedRef.current) {
+      console.log('Announcement already loaded, skipping...');
+      return;
+    }
+
     try {
       console.log('Loading announcement...');
       setAnnouncementLoading(true);
@@ -76,6 +87,8 @@ export const useStudentPortal = () => {
                                 'Welcome to Pateros Catholic School Document Request System';
         
         setAnnouncement(announcementText);
+        announcementLoadedRef.current = true; // Mark as loaded
+        console.log('✓ Announcement loaded successfully');
       }
     } catch (error) {
       console.error('Error fetching announcement:', error);
@@ -85,6 +98,12 @@ export const useStudentPortal = () => {
   }, []);
 
   const loadTransaction = useCallback(async () => {
+    // Only load if not already loaded
+    if (transactionLoadedRef.current) {
+      console.log('Transaction already loaded, skipping...');
+      return;
+    }
+
     try {
       console.log('Loading transaction hours...');
       setTransactionLoading(true);
@@ -111,6 +130,8 @@ export const useStudentPortal = () => {
                                'Monday to Friday, 8:00 AM - 5:00 PM';
         
         setTransactionDays(transactionText);
+        transactionLoadedRef.current = true; // Mark as loaded
+        console.log('✓ Transaction loaded successfully');
       }
     } catch (error) {
       console.error('Error fetching transaction:', error);
@@ -291,8 +312,9 @@ export const useStudentPortal = () => {
   }, [updateWelcomeMessages, updateAccountPage, activePage]);
 
   const loadUserData = useCallback(() => {
-    if (isLoadingUserData) {
-      console.log('Already loading user data, skipping...');
+    // Only load if not already loaded
+    if (isLoadingUserData || userDataLoadedRef.current) {
+      console.log('User data already loading or loaded, skipping...');
       return;
     }
     
@@ -323,9 +345,11 @@ export const useStudentPortal = () => {
           setStudentData(data.data);
           setIsAuthenticated(true);
           window.studentData = data.data;
+          userDataLoadedRef.current = true; // Mark as loaded
           
           updateAllUserInterfaces(data.data);
           
+          // Load announcement and transaction only once
           setTimeout(() => {
             loadAnnouncement();
             loadTransaction();
@@ -428,15 +452,17 @@ export const useStudentPortal = () => {
     const data = studentData || window.studentData;
     const userEmail = data?.Email || data?.email || '';
     setFeedbackEmail(userEmail);
-    // REMOVED: setFeedbackType('General'); - Don't reset the type when opening modal
-    // Keep whatever type is currently selected or default to 'Bug Report'
-  }, [studentData]);
+    // Set default type to Bug Report if empty
+    if (!feedbackType) {
+      setFeedbackType('Bug Report');
+    }
+  }, [studentData, feedbackType]);
 
   const closeFeedbackModal = useCallback(() => {
     setShowFeedbackModal(false);
     setFeedback('');
     setFeedbackEmail('');
-    setFeedbackType('Bug Report'); // Reset to Bug Report when closing
+    setFeedbackType('');
     setFeedbackSuccess(false);
   }, []);
 
@@ -446,7 +472,7 @@ export const useStudentPortal = () => {
     console.log('=== Submitting Feedback ===');
     console.log('Feedback message:', feedback);
     console.log('Email:', feedbackEmail);
-    console.log('Type BEFORE submit:', feedbackType);
+    console.log('Type:', feedbackType);
     
     // Validation
     if (!feedback || !feedback.trim()) {
@@ -459,14 +485,18 @@ export const useStudentPortal = () => {
       return;
     }
 
+    if (!feedbackType || feedbackType === 'Select type') {
+      showMessage('Please select a feedback type', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // Create FormData
       const formData = new FormData();
       formData.append('action', 'submitFeedback');
       formData.append('email', feedbackEmail.trim());
-      formData.append('feedback_type', feedbackType); // Use the state value directly
+      formData.append('feedback_type', feedbackType);
       formData.append('message', feedback.trim());
 
       console.log('=== FormData being sent ===');
@@ -474,7 +504,6 @@ export const useStudentPortal = () => {
         console.log(pair[0] + ': ' + pair[1]);
       }
 
-      // Send request with proper error handling
       const response = await fetch(FEEDBACK_API_URL, {
         method: 'POST',
         body: formData,
@@ -482,24 +511,20 @@ export const useStudentPortal = () => {
       });
 
       console.log('Response status:', response.status);
-      console.log('Response content-type:', response.headers.get('content-type'));
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Get response text first for debugging
       const responseText = await response.text();
       console.log('Raw response:', responseText);
 
-      // Try to parse as JSON
       let result;
       try {
         result = JSON.parse(responseText);
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
-        console.error('Response was:', responseText);
-        throw new Error('Server returned invalid JSON. Please check server logs.');
+        throw new Error('Server returned invalid JSON');
       }
 
       console.log('Parsed result:', result);
@@ -508,10 +533,9 @@ export const useStudentPortal = () => {
         setFeedbackSuccess(true);
         showMessage(result.message || 'Feedback submitted successfully!', 'success');
         
-        // Clear form and close modal after 2 seconds
         setTimeout(() => {
           setFeedback('');
-          setFeedbackType('Bug Report'); // Reset to Bug Report after successful submit
+          setFeedbackType('');
           closeFeedbackModal();
         }, 2000);
       } else {
@@ -676,17 +700,20 @@ export const useStudentPortal = () => {
       const data = studentData || window.studentData;
       const userEmail = data?.Email || data?.email || '';
       setFeedbackEmail(userEmail);
-      // REMOVED: setFeedbackType('General'); - Don't reset when opening
+      if (!feedbackType) {
+        setFeedbackType('Bug Report');
+      }
     };
     window.closeFeedbackModal = () => {
       setShowFeedbackModal(false);
       setFeedback('');
       setFeedbackEmail('');
-      setFeedbackType('Bug Report'); // Reset to Bug Report when closing
+      setFeedbackType('');
       setFeedbackSuccess(false);
     };
-  }, [studentData]);
+  }, [studentData, feedbackType]);
 
+  // Initial load - only runs once
   useEffect(() => {
     console.log('=== Component mounted ===');
     loadUserData();
@@ -698,24 +725,20 @@ export const useStudentPortal = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update UI when student data changes
   useEffect(() => {
-    if (studentData) {
+    if (studentData && userDataLoadedRef.current) {
       console.log('=== Student data changed ===');
       console.log('Current data:', studentData);
       updateAllUserInterfaces(studentData);
     }
   }, [studentData, updateAllUserInterfaces]);
 
+  // Handle page changes - WITHOUT reloading announcement/transaction
   useEffect(() => {
     console.log('=== Page changed to:', activePage, '===');
     
-    if (activePage === 'dashboard') {
-      loadDashboardData();
-      if (isAuthenticated) {
-        loadAnnouncement();
-        loadTransaction();
-      }
-    } else if (activePage === 'account') {
+    if (activePage === 'account') {
       if (studentData) {
         setTimeout(() => {
           updateAccountPage(studentData);
@@ -726,8 +749,9 @@ export const useStudentPortal = () => {
         setTimeout(window.RequestHistoryTable, 100);
       }
     }
+    // Removed the announcement/transaction reload on dashboard page change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage, isAuthenticated, studentData]);
+  }, [activePage, studentData]);
 
   return {
     studentData,
