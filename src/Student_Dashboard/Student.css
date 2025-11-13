@@ -1,4 +1,4 @@
-/* Reset */
+* Reset */
 * {
     margin: 0;
     padding: 0;
@@ -22,8 +22,6 @@ body {
     height: 100%;
     width: 100%;
     position: relative;
-    margin: 0;
-    padding: 0;
 }
 
 #root {
@@ -37,15 +35,11 @@ body {
     height: 100%;
     width: 100%;
     position: relative;
-    margin: 0;
-    padding: 0;
 }
 
 /* Sidebar */
 .sidebar {
-    width: 18%;
-    max-width: 280px;
-    min-width: 220px;
+    width: 320px;
     background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%);
     padding: 20px 15px;
     position: fixed;
@@ -58,8 +52,6 @@ body {
     flex-direction: column;
     top: 0;
     left: 0;
-    margin: 0;
-    border: none;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -74,16 +66,16 @@ body {
 .school-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     margin-bottom: 30px;
-    padding: 15px;
+    padding: 20px;
     border-radius: 12px;
     backdrop-filter: blur(10px);
 }
 
 .school-logo {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     overflow: hidden;
     background: #ffffff;
@@ -100,9 +92,9 @@ body {
 .school-name {
     font-weight: 700;
     color: #2c3e50;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.3;
-    max-width: 140px;
+    max-width: 200px;
     word-wrap: break-word;
 }
 
@@ -258,21 +250,19 @@ body {
 /* Main Content */
 .main-content {
     flex: 1;
-    margin-left: 18%;
+    margin-left: 320px;
     background: transparent;
     min-height: 100vh;
-    width: calc(100% - 18%);
+    width: calc(100% - 320px);
     display: flex;
     flex-direction: column;
-    margin-top: 0;
-    padding: 0;
 }
 
 /* Header */
 .header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    padding: 0 40px;
+    padding: 25px 40px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
@@ -281,16 +271,11 @@ body {
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    height: 80px;
     min-height: 80px;
-    margin: 0;
-    border-top: none;
-    border-left: none;
-    border-right: none;
 }
 
 .header-title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     color: #2A3663;
     line-height: 1.2;
@@ -363,8 +348,6 @@ body {
     justify-content: center;
     font-size: 20px;
     transition: all 0.3s ease;
-    position: absolute;
-    left: 20px;
 }
 
 .menu-toggle:hover {
@@ -387,7 +370,6 @@ body {
     flex: 1;
     min-height: calc(100vh - 80px);
     background: transparent;
-    margin: 0;
 }
 
 .page {
@@ -423,10 +405,9 @@ body {
 
 .welcome-date {
     font-size: 14px;
-    opacity: 1;
+    opacity: 0.9;
     margin-bottom: 10px;
-    color: #ffffff;
-    font-weight: 500;
+    color: white;
 }
 
 .welcome-message h2 {
@@ -1049,8 +1030,7 @@ body {
 @media (max-width: 900px) {
     .sidebar {
         transform: translateX(-100%) !important;
-        width: 280px !important;
-        max-width: 280px !important;
+        width: 280px;
         position: fixed !important;
         z-index: 2000 !important;
     }
