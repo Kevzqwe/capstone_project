@@ -39,7 +39,9 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 320px;
+    width: 18%;
+    max-width: 280px;
+    min-width: 220px;
     background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%);
     padding: 20px 15px;
     position: fixed;
@@ -250,10 +252,10 @@ body {
 /* Main Content */
 .main-content {
     flex: 1;
-    margin-left: 320px;
+    margin-left: 18%;
     background: transparent;
     min-height: 100vh;
-    width: calc(100% - 320px);
+    width: calc(100% - 18%);
     display: flex;
     flex-direction: column;
 }
@@ -405,9 +407,10 @@ body {
 
 .welcome-date {
     font-size: 14px;
-    opacity: 0.9;
+    opacity: 1;
     margin-bottom: 10px;
-    color: white;
+    color: #ffffff;
+    font-weight: 500;
 }
 
 .welcome-message h2 {
@@ -1030,7 +1033,8 @@ body {
 @media (max-width: 900px) {
     .sidebar {
         transform: translateX(-100%) !important;
-        width: 280px;
+        width: 280px !important;
+        max-width: 280px !important;
         position: fixed !important;
         z-index: 2000 !important;
     }
