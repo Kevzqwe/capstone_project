@@ -1,2075 +1,644 @@
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    height: 100%;
-    width: 100%;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #ffffff 0%, #f4e4bc 100%);
-    background-attachment: fixed;
-    overflow-x: hidden;
-    color: #2c3e50;
-    min-height: 100vh;
-    height: 100%;
-    width: 100%;
-    position: relative;
-    margin: 0;
-    padding: 0;
-}
-
-#root {
-    min-height: 100vh;
-    height: 100%;
-}
-
-.container {
-    display: flex;
-    min-height: 100vh;
-    height: 100%;
-    width: 100%;
-    position: relative;
-    margin: 0;
-    padding: 0;
-}
-
-/* Sidebar */
-.sidebar {
-    width: 18%;
-    max-width: 280px;
-    min-width: 220px;
-    background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%);
-    padding: 20px 15px;
-    position: fixed;
-    height: 100vh;
-    overflow-y: auto;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    top: 0;
-    left: 0;
-    margin: 0;
-    border: none;
-}
-
-.sidebar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-}
-
-.school-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 30px;
-    padding: 15px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-}
-
-.school-logo {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-}
-
-.school-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.school-name {
-    font-weight: 700;
-    color: #2c3e50;
-    font-size: 15px;
-    line-height: 1.3;
-    max-width: 140px;
-    word-wrap: break-word;
-}
-
-.student-profile {
-    text-align: center;
-    margin-bottom: 30px;
-    padding: 20px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-}
-
-.student-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    margin: 0 auto 15px;
-    border: 4px solid #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.student-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.student-name {
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 16px;
-}
-
-.student-badge {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
-}
-
-.nav-menu {
-    flex: 1;
-    margin-top: 20px;
-}
-
-.nav-menu ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 0;
-}
-
-.nav-item {
-    margin-bottom: 0;
-    list-style: none;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    color: #2c3e50;
-    text-decoration: none;
-    border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    background: transparent;
-    width: 100%;
-    text-align: left;
-    position: relative;
-    overflow: hidden;
-    font-family: inherit;
-}
-
-.nav-link::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: #2A3663;
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
-}
-
-.nav-link:hover,
-.nav-link.active {
-    background: rgba(255, 255, 255, 0.7);
-    color: #2A3663;
-    transform: translateX(5px);
-}
-
-.nav-link:hover::before,
-.nav-link.active::before {
-    transform: scaleY(1);
-}
-
-.nav-link i {
-    font-size: 18px;
-    width: 20px;
-    text-align: center;
-}
-
-.logout-btn {
-    margin-top: 30px;
-    background: linear-gradient(135deg, #2c3e50, #1a1a1a);
-    color: white;
-    border: none;
-    padding: 14px 24px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.logout-btn:hover {
-    background: linear-gradient(135deg, #1a1a1a, #000000);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.logout-btn:active {
-    transform: translateY(0);
-}
-
-.logout-btn i {
-    font-size: 16px;
-}
-
-/* Main Content */
-.main-content {
-    flex: 1;
-    margin-left: 18%;
-    background: transparent;
-    min-height: 100vh;
-    width: calc(100% - 18%);
-    display: flex;
-    flex-direction: column;
-    margin-top: 0;
-    padding: 0;
-}
-
-/* Header */
-.header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    padding: 0 40px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    height: 80px;
-    min-height: 80px;
-    margin: 0;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    position: relative;
-}
-
-.header-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #2A3663;
-    line-height: 1.2;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-}
-
-.action-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: none;
-    background: #f8f9fa;
-    color: #2c3e50;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    padding: 8px;
-}
-
-.action-btn:hover {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.3);
-}
-
-.action-btn img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-}
-
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #e74c3c;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.menu-toggle {
-    display: none;
-    background: #f8f9fa;
-    border: none;
-    color: #2c3e50;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    transition: all 0.3s ease;
-    position: absolute;
-    left: 20px;
-}
-
-.menu-toggle:hover {
-    background: #e9ecef;
-}
-
-.menu-toggle:active {
-    transform: scale(0.95);
-}
-
-.burger-icon {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-}
-
-/* Content Pages */
-.page-content {
-    padding: 40px;
-    flex: 1;
-    min-height: calc(100vh - 80px);
-    background: transparent;
-    margin: 0;
-}
-
-.page {
-    display: none;
-    animation: fadeIn 0.4s ease;
-    min-height: 100%;
-}
-
-.page.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Dashboard */
-.welcome-card {
-    background: linear-gradient(135deg, #2A3663 0%, #4a5568 100%);
-    color: white;
-    padding: 40px;
-    border-radius: 16px;
-    margin-bottom: 35px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.welcome-date {
-    font-size: 14px;
-    opacity: 1;
-    margin-bottom: 10px;
-    color: #ffffff;
-    font-weight: 500;
-}
-
-.welcome-message h2 {
-    font-size: 32px;
-    font-weight: 700;
-    color: white;
-}
-
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.info-card {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-top: 3px solid #2A3663;
-    transition: all 0.3s ease;
-}
-
-.info-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
-}
-
-.info-card h3 {
-    color: #2A3663;
-    margin-bottom: 15px;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.info-card p {
-    color: #555555;
-    line-height: 1.6;
-    font-size: 14px;
-}
-
-.request-btn,
-.feedback-btn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: white;
-    border: none;
-    padding: 14px 35px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    margin: 20px auto 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-}
-
-.request-btn:hover,
-.feedback-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-}
-
-/* Documents */
-.documents-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.document-card {
-    background: white;
-    padding: 25px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    aspect-ratio: 1 / 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.document-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    border-color: #2A3663;
-}
-
-.document-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.document-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.document-title {
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 16px;
-}
-
-.document-subtitle {
-    color: #888888;
-    font-size: 13px;
-}
-
-/* Account */
-.account-header {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    margin-bottom: 35px;
-    padding: 30px;
-    background: linear-gradient(135deg, #2A3663, #4a5568);
-    border-radius: 16px;
-    color: white;
-    box-shadow: 0 8px 25px rgba(42, 54, 99, 0.3);
-    max-width: 500px;
-}
-
-.account-avatar {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 4px solid white;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    flex-shrink: 0;
-}
-
-.account-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.account-info h2 {
-    margin-bottom: 8px;
-    font-weight: 700;
-    font-size: 20px;
-}
-
-.student-no {
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-.account-form {
-    background: white;
-    padding: 35px;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    max-width: 650px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.3s ease;
-    background: white;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #2A3663;
-    box-shadow: 0 0 0 3px rgba(42, 54, 99, 0.1);
-}
-
-.form-group input[readonly],
-.readonly-input {
-    background-color: #f8f9fa !important;
-    border: 1px solid #e9ecef !important;
-    color: #6c757d !important;
-    cursor: not-allowed !important;
-    opacity: 0.8;
-}
-
-.readonly-input:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: #e9ecef !important;
-}
-
-.feedback-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-/* Loading Message */
-.loading-message {
-    text-align: center;
-    padding: 60px 20px;
-    color: #888888;
-    font-size: 16px;
-}
-
-/* Modal */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 20px;
-}
-
-.modal-overlay.active {
-    display: flex;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 750px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    animation: slideUp 0.4s ease;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-    background: #2A3663;
-    border-radius: 10px;
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #4a5568, #2A3663);
-    color: white;
-    padding: 25px 30px;
-    border-radius: 16px 16px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.close-modal {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 28px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    line-height: 1;
-}
-
-.close-modal:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}
-
-.close-dropdown {
-    background: transparent;
-    border: none;
-    color: #2c3e50;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    line-height: 1;
-}
-
-.close-dropdown:hover {
-    color: #e74c3c;
-}
-
-.form-content {
-    padding: 30px;
-}
-
-.form-section {
-    margin-bottom: 30px;
-    background: #f8f9fa;
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid #e0e0e0;
-}
-
-.form-section h3 {
-    color: #2A3663;
-    margin-bottom: 20px;
-    font-size: 17px;
-    font-weight: 700;
-    border-bottom: 3px solid #2A3663;
-    padding-bottom: 10px;
-    display: inline-block;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-    margin-bottom: 18px;
-}
-
-/* Document Selection */
-.documents-section {
-    background: #f8f9fa;
-    padding: 25px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    border: 2px solid #e0e0e0;
-}
-
-.documents-section h3 {
-    color: #2A3663;
-    margin-bottom: 20px;
-    font-size: 18px;
-    font-weight: 700;
-    border-bottom: 3px solid #2A3663;
-    padding-bottom: 10px;
-    display: inline-block;
-}
-
-.document-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 15px;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-}
-
-.document-item:hover {
-    background: rgba(42, 54, 99, 0.05);
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.document-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.document-info input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-    accent-color: #2A3663;
-    cursor: pointer;
-}
-
-.document-info label {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-.document-price {
-    font-weight: 700;
-    color: #27ae60;
-    font-size: 16px;
-    min-width: 100px;
-    text-align: right;
-}
-
-.total-section {
-    background: linear-gradient(135deg, #2A3663, #4a5568);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 12px;
-    margin: 25px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 700;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(42, 54, 99, 0.3);
-}
-
-.total-section span:last-child {
-    color: #2ecc71;
-    font-size: 24px;
-    font-weight: 800;
-}
-
-/* Payment Options */
-.payment-options {
-    display: flex;
-    gap: 25px;
-    flex-wrap: wrap;
-}
-
-.payment-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.payment-option input[type="radio"] {
-    width: 20px;
-    height: 20px;
-    accent-color: #2A3663;
-    cursor: pointer;
-}
-
-.payment-option label {
-    font-size: 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    cursor: pointer;
-}
-
-.submit-btn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: white;
-    border: none;
-    padding: 16px 40px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    width: 100%;
-    transition: all 0.3s ease;
-    margin-top: 15px;
-    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
-}
-
-.submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
-}
-
-.submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Notification Dropdown */
-.notification-dropdown {
-    position: fixed;
-    top: 90px;
-    right: 30px;
-    width: 340px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-    z-index: 2000;
-    max-height: 450px;
-    overflow-y: auto;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 25px;
-    border-bottom: 2px solid #e0e0e0;
-    background: #f8f9fa;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-.notification-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #2c3e50;
-}
-
-.notification-list {
-    display: flex;
-    flex-direction: column;
-}
-
-.notification-item {
-    display: flex;
-    flex-direction: column;
-    padding: 18px 25px;
-    border-bottom: 1px solid #e0e0e0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.notification-item:hover {
-    background: #f8f9fa;
-}
-
-.notification-item.unread {
-    background: #eaf4ff;
-    border-left: 4px solid #3498db;
-}
-
-.notification-title {
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.notification-time {
-    font-size: 12px;
-    color: #7f8c8d;
-}
-
-.no-notifications {
-    text-align: center;
-    padding: 40px 20px;
-    color: #888888;
-    font-size: 14px;
-}
-
-/* Focus Visible for Accessibility */
-*:focus-visible {
-    outline: 3px solid #2A3663;
-    outline-offset: 2px;
-}
-
-/* Selection Style */
-::selection {
-    background: #2A3663;
-    color: white;
-}
-
-::-moz-selection {
-    background: #2A3663;
-    color: white;
-}
-
-/* ============================================
-   MOBILE RESPONSIVE STYLES
-   ============================================ */
-
-/* Tablet and below (900px) */
-@media (max-width: 900px) {
-    .sidebar {
-        transform: translateX(-100%) !important;
-        width: 280px !important;
-        max-width: 280px !important;
-        position: fixed !important;
-        z-index: 2000 !important;
-    }
-
-    .sidebar.mobile-open {
-        transform: translateX(0) !important;
-    }
-
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-
-    .menu-toggle {
-        display: flex !important;
-    }
-
-    .cards-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Mobile devices (768px and below) */
-@media (max-width: 768px) {
-    body {
-        font-size: 14px;
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-        background: linear-gradient(to right, #ffffff 0%, #f4e4bc 100%);
-        min-height: 100vh;
-    }
-
-    html {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-    }
-
-    .container {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-        min-height: 100vh;
-        background: transparent;
-    }
-
-    /* Sidebar - PROPERLY SIZED with full content visible */
-    .sidebar {
-        width: 260px !important;
-        max-width: 260px !important;
-        height: 100vh !important;
-        transform: translateX(-100%) !important;
-        background: linear-gradient(180deg, #f4e4bc 0%, #e8d5a3 50%, #d4c5a0 100%) !important;
-        padding: 20px 15px !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: 2001 !important;
-        overflow-y: auto !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    .sidebar.mobile-open {
-        transform: translateX(0) !important;
-    }
-
-    /* Sidebar internal elements */
-    .school-header {
-        padding: 15px !important;
-        margin-bottom: 20px !important;
-        gap: 12px !important;
-    }
-
-    .school-logo {
-        width: 50px !important;
-        height: 50px !important;
-    }
-
-    .school-name {
-        font-size: 14px !important;
-        max-width: 150px !important;
-    }
-
-    .student-profile {
-        padding: 15px !important;
-        margin-bottom: 20px !important;
-    }
-
-    .student-avatar {
-        width: 70px !important;
-        height: 70px !important;
-        margin-bottom: 12px !important;
-        border: 3px solid #ffffff !important;
-    }
-
-    .student-name {
-        font-size: 14px !important;
-        margin-bottom: 6px !important;
-        line-height: 1.3 !important;
-        word-wrap: break-word !important;
-    }
-
-    .student-badge {
-        padding: 5px 12px !important;
-        font-size: 11px !important;
-    }
-
-    .nav-menu {
-        flex: 1 !important;
-        margin-top: 15px !important;
-        overflow-y: visible !important;
-    }
-
-    .nav-menu ul {
-        gap: 5px !important;
-    }
-
-    .nav-link {
-        padding: 12px 15px !important;
-        font-size: 14px !important;
-        gap: 10px !important;
-    }
-
-    .nav-link i {
-        font-size: 16px !important;
-        width: 18px !important;
-    }
-
-    .logout-btn {
-        margin-top: 20px !important;
-        padding: 12px 20px !important;
-        font-size: 14px !important;
-        gap: 8px !important;
-        flex-shrink: 0 !important;
-    }
-
-    .logout-btn i {
-        font-size: 14px !important;
-    }
-
-    /* Header - Mobile Layout */
-    .header {
-        padding: 0 !important;
-        position: fixed !important;
-        width: 100% !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: 100 !important;
-        min-height: 64px;
-        height: 64px;
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(20px);
-        display: grid !important;
-        grid-template-columns: 64px 1fr 64px !important;
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        max-width: 100vw;
-        overflow: hidden;
-    }
-
-    .menu-toggle {
-        display: flex !important;
-        width: 64px !important;
-        height: 64px !important;
-        flex-shrink: 0;
-        background: transparent !important;
-        border-radius: 0 !important;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    .menu-toggle:hover {
-        background: rgba(0, 0, 0, 0.03) !important;
-    }
-
-    .menu-toggle:active {
-        background: rgba(0, 0, 0, 0.05) !important;
-        transform: none !important;
-    }
-
-    .burger-icon {
-        width: 28px !important;
-        height: 28px !important;
-        object-fit: contain;
-    }
-
-    .header-title {
-        flex: 1;
-        font-size: 18px;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 0 15px;
-        height: 64px;
-        min-width: 0;
-        grid-column: 2;
-    }
-
-    .header-actions {
-        display: flex !important;
-        gap: 0 !important;
-        flex-shrink: 0;
-        align-items: center;
-        padding: 0 !important;
-        height: 64px !important;
-        width: 64px !important;
-        justify-content: center;
-        border-left: 1px solid rgba(0, 0, 0, 0.05);
-        position: relative !important;
-        grid-column: 3;
-        margin: 0 !important;
-    }
-
-    .action-btn {
-        width: 64px !important;
-        height: 64px !important;
-        font-size: 22px !important;
-        border-radius: 0 !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        position: relative !important;
-        flex-shrink: 0 !important;
-    }
-
-    .action-btn:hover {
-        background: rgba(0, 0, 0, 0.03) !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
-
-    .action-btn:active {
-        background: rgba(0, 0, 0, 0.05) !important;
-    }
-
-    .action-btn img {
-        width: 28px !important;
-        height: 28px !important;
-        object-fit: contain;
-    }
-
-    .notification-badge {
-        position: absolute !important;
-        top: 8px !important;
-        right: 8px !important;
-        background: #e74c3c;
-        color: white;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        font-size: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        z-index: 10;
-    }
-
-    /* Main content area */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        background: transparent !important;
-        min-height: 100vh !important;
-    }
-
-    /* Page content with proper top spacing */
-    .page-content {
-        padding: 20px;
-        padding-top: 84px !important;
-        min-height: 100vh !important;
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-        box-sizing: border-box;
-        background: transparent !important;
-    }
-
-    /* Welcome card */
-    .welcome-card {
-        padding: 30px 20px;
-        margin-bottom: 25px;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    .welcome-date {
-        font-size: 12px;
-    }
-
-    .welcome-message h2 {
-        font-size: 24px;
-    }
-
-    /* Cards grid - side by side on mobile */
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-bottom: 25px;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .info-card {
-        padding: 20px 15px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .info-card h3 {
-        font-size: 15px;
-        margin-bottom: 10px;
-    }
-
-    .info-card p {
-        font-size: 13px;
-    }
-
-    /* Send Feedback button */
-    .request-btn,
-    .feedback-btn {
-        width: 100%;
-        max-width: 100%;
-        margin: 25px 0 0 0;
-        padding: 14px 25px;
-        box-sizing: border-box;
-    }
-
-    /* Documents grid - side by side on mobile */
-    .documents-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .document-card {
-        padding: 20px 15px;
-        width: 100%;
-        box-sizing: border-box;
-        aspect-ratio: 1 / 1;
-    }
-
-    .document-icon {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 15px;
-    }
-
-    .document-title {
-        font-size: 14px;
-    }
-
-    /* Account page - MATCH DESKTOP LAYOUT */
-    .account-header {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        text-align: left !important;
-        padding: 25px 20px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        gap: 20px !important;
-        margin-bottom: 25px !important;
-    }
-
-    .account-avatar {
-        width: 70px !important;
-        height: 70px !important;
-        flex-shrink: 0 !important;
-        border: 4px solid white !important;
-    }
-
-    .account-info {
-        flex: 1 !important;
-        text-align: left !important;
-    }
-
-    .account-info h2 {
-        font-size: 18px !important;
-        margin-bottom: 8px !important;
-        color: white !important;
-    }
-
-    .student-no {
-        font-size: 13px !important;
-        color: white !important;
-        opacity: 0.9 !important;
-    }
-
-    .account-form {
-        padding: 25px 20px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    .form-group {
-        margin-bottom: 18px !important;
-    }
-
-    .form-group label {
-        font-size: 14px !important;
-        margin-bottom: 6px !important;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        padding: 12px 14px !important;
-        font-size: 14px !important;
-    }
-
-    /* Modal */
-    .modal-overlay {
-        padding: 10px;
-    }
-
-    .modal-content {
-        max-height: 95vh;
-        width: 100%;
-        max-width: calc(100vw - 20px);
-    }
-
-    .modal-header {
-        padding: 20px;
-    }
-
-    .modal-header h2 {
-        font-size: 18px;
-    }
-
-    .form-content {
-        padding: 20px;
-    }
-
-    .form-section {
-        padding: 20px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    /* Document items in modal */
-    .document-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .document-info {
-        width: 100%;
-    }
-
-    .document-price {
-        width: 100%;
-        text-align: left;
-        margin-left: 30px;
-    }
-
-    /* Notification dropdown */
-    .notification-dropdown {
-        width: calc(100% - 30px);
-        right: 15px;
-        left: 15px;
-        top: 74px;
-        max-width: none;
-    }
-}
-
-/* Small mobile devices (480px and below) */
-@media (max-width: 480px) {
-    .sidebar {
-        width: 240px !important;
-        max-width: 240px !important;
-        padding: 18px 12px !important;
-    }
-
-    .school-header {
-        padding: 12px !important;
-        margin-bottom: 18px !important;
-    }
-
-    .school-logo {
-        width: 45px !important;
-        height: 45px !important;
-    }
-
-    .school-name {
-        font-size: 13px !important;
-    }
-
-    .student-profile {
-        padding: 12px !important;
-        margin-bottom: 18px !important;
-    }
-
-    .student-avatar {
-        width: 60px !important;
-        height: 60px !important;
-    }
-
-    .student-name {
-        font-size: 13px !important;
-    }
-
-    .student-badge {
-        font-size: 10px !important;
-        padding: 4px 10px !important;
-    }
-
-    .nav-link {
-        padding: 11px 12px !important;
-        font-size: 13px !important;
-    }
-
-    .nav-link i {
-        font-size: 15px !important;
-        width: 16px !important;
-    }
-
-    .logout-btn {
-        padding: 11px 18px !important;
-        font-size: 13px !important;
-        margin-top: 18px !important;
-    }
-
-    .header {
-        min-height: 60px;
-        height: 60px;
-        grid-template-columns: 60px 1fr 60px !important;
-    }
-
-    .menu-toggle {
-        width: 60px !important;
-        height: 60px !important;
-        font-size: 22px;
-    }
-
-    .burger-icon {
-        width: 26px !important;
-        height: 26px !important;
-    }
-
-    .header-title {
-        font-size: 16px;
-        padding: 0 12px;
-        height: 60px;
-    }
-
-    .header-actions {
-        padding: 0;
-        height: 60px !important;
-        width: 60px !important;
-    }
-
-    .action-btn {
-        width: 60px !important;
-        height: 60px !important;
-        font-size: 20px;
-    }
-
-    .action-btn img {
-        width: 26px !important;
-        height: 26px !important;
-    }
-
-    .notification-badge {
-        top: 6px !important;
-        right: 6px !important;
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
-
-    .page-content {
-        padding: 15px;
-        padding-top: 76px !important;
-    }
-
-    .welcome-card {
-        padding: 25px 18px;
-    }
-
-    .welcome-message h2 {
-        font-size: 20px;
-    }
-
-    .welcome-date {
-        font-size: 11px;
-    }
-
-    /* Keep cards side by side */
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
-    .info-card {
-        padding: 18px 12px;
-    }
-
-    .info-card h3 {
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .info-card p {
-        font-size: 12px;
-        line-height: 1.5;
-    }
-
-    .request-btn,
-    .feedback-btn {
-        padding: 12px 20px;
-        font-size: 14px;
-        margin-top: 20px;
-    }
-
-    /* Documents grid - keep side by side */
-    .documents-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
-    .document-card {
-        padding: 18px 12px;
-        aspect-ratio: 1 / 1;
-    }
-
-    .document-icon {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 12px;
-    }
-
-    .document-title {
-        font-size: 13px;
-    }
-
-    .document-subtitle {
-        font-size: 11px;
-    }
-
-    /* Account header - smaller */
-    .account-header {
-        padding: 20px 15px !important;
-        gap: 15px !important;
-    }
-
-    .account-avatar {
-        width: 60px !important;
-        height: 60px !important;
-        border: 3px solid white !important;
-    }
-
-    .account-info h2 {
-        font-size: 16px !important;
-    }
-
-    .student-no {
-        font-size: 12px !important;
-    }
-
-    .account-form {
-        padding: 20px 15px !important;
-    }
-
-    .form-group {
-        margin-bottom: 16px !important;
-    }
-
-    .form-group label {
-        font-size: 13px !important;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        padding: 11px 12px !important;
-        font-size: 13px !important;
-    }
-
-    .modal-overlay {
-        padding: 5px;
-    }
-
-    .modal-header {
-        padding: 15px;
-    }
-
-    .modal-header h2 {
-        font-size: 16px;
-    }
-
-    .form-content {
-        padding: 15px;
-    }
-
-    .form-section {
-        padding: 15px;
-    }
-
-    .document-item {
-        padding: 12px 10px;
-    }
-
-    .document-price {
-        font-size: 14px;
-        margin-left: 28px;
-    }
-
-    .total-section {
-        padding: 15px;
-        font-size: 14px;
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
-    }
-
-    .total-section span:last-child {
-        font-size: 18px;
-    }
-
-    .notification-dropdown {
-        top: 70px;
-    }
-}
-
-/* Extra small devices (360px and below) */
-@media (max-width: 360px) {
-    .sidebar {
-        width: 220px !important;
-        max-width: 220px !important;
-        padding: 16px 10px !important;
-    }
-
-    .school-logo {
-        width: 40px !important;
-        height: 40px !important;
-    }
-
-    .school-name {
-        font-size: 12px !important;
-    }
-
-    .student-avatar {
-        width: 55px !important;
-        height: 55px !important;
-    }
-
-    .student-name {
-        font-size: 12px !important;
-    }
-
-    .nav-link {
-        padding: 10px 10px !important;
-        font-size: 12px !important;
-    }
-
-    .logout-btn {
-        padding: 10px 16px !important;
-        font-size: 12px !important;
-    }
-
-    .header {
-        min-height: 56px;
-        height: 56px;
-        grid-template-columns: 56px 1fr 56px !important;
-    }
-
-    .menu-toggle {
-        width: 56px !important;
-        height: 56px !important;
-        font-size: 20px;
-    }
-
-    .burger-icon {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .header-title {
-        font-size: 15px;
-        padding: 0 10px;
-        height: 56px;
-    }
-
-    .header-actions {
-        padding: 0;
-        height: 56px !important;
-        width: 56px !important;
-    }
-
-    .action-btn {
-        width: 56px !important;
-        height: 56px !important;
-        font-size: 18px;
-    }
-
-    .action-btn img {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .notification-badge {
-        top: 5px !important;
-        right: 5px !important;
-        width: 18px;
-        height: 18px;
-        font-size: 9px;
-    }
-
-    .page-content {
-        padding-top: 72px !important;
-    }
-
-    .welcome-message h2 {
-        font-size: 18px;
-    }
-
-    .info-card h3 {
-        font-size: 13px;
-    }
-
-    .info-card p {
-        font-size: 11px;
-    }
-
-    /* Keep cards side by side even on smallest screens */
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .info-card {
-        padding: 15px 10px;
-    }
-
-    /* Documents grid */
-    .documents-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .document-card {
-        padding: 15px 10px;
-        aspect-ratio: 1 / 1;
-    }
-
-    .document-icon {
-        width: 45px;
-        height: 45px;
-        margin-bottom: 10px;
-    }
-
-    /* Account header */
-    .account-header {
-        padding: 18px 12px !important;
-        gap: 12px !important;
-    }
-
-    .account-avatar {
-        width: 55px !important;
-        height: 55px !important;
-    }
-
-    .account-info h2 {
-        font-size: 15px !important;
-    }
-
-    .student-no {
-        font-size: 11px !important;
-    }
-
-    .account-form {
-        padding: 18px 12px !important;
-    }
-
-    .notification-dropdown {
-        top: 66px;
-    }
-}
-
-/* Landscape orientation adjustments */
-@media (max-width: 900px) and (orientation: landscape) {
-    .sidebar {
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    .page-content {
-        padding-top: 80px !important;
-    }
-
-    .welcome-card {
-        padding: 20px;
-    }
-
-    .welcome-message h2 {
-        font-size: 22px;
-    }
-
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Touch-friendly improvements */
-@media (hover: none) and (pointer: coarse) {
-    .nav-link,
-    .action-btn,
-    .logout-btn,
-    .document-card,
-    .request-btn,
-    .submit-btn {
-        -webkit-tap-highlight-color: rgba(42, 54, 99, 0.1);
-    }
-
-    .nav-link {
-        min-height: 48px;
-    }
-
-    .action-btn,
-    .menu-toggle {
-        min-width: 48px;
-        min-height: 48px;
-    }
-}
-
-/* Safe area insets for notched devices */
-@supports (padding: max(0px)) {
-    .sidebar {
-        padding-left: max(25px, env(safe-area-inset-left));
-        padding-right: max(25px, env(safe-area-inset-right));
-    }
-
-    .header {
-        padding-left: max(0px, env(safe-area-inset-left));
-        padding-right: max(0px, env(safe-area-inset-right));
-        padding-top: max(0px, env(safe-area-inset-top));
-    }
-
-    .page-content {
-        padding-left: max(20px, env(safe-area-inset-left));
-        padding-right: max(20px, env(safe-area-inset-right));
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-    }
-
-    @media (max-width: 768px) {
-        .header {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            padding-top: max(0px, env(safe-area-inset-top)) !important;
-        }
-
-        .page-content {
-            padding-left: max(15px, env(safe-area-inset-left));
-            padding-right: max(15px, env(safe-area-inset-right));
-            padding-top: max(84px, calc(env(safe-area-inset-top) + 84px)) !important;
-        }
-
-        .sidebar {
-            padding-left: max(15px, env(safe-area-inset-left)) !important;
-            padding-right: max(15px, env(safe-area-inset-right)) !important;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .header {
-            padding-top: max(0px, env(safe-area-inset-top)) !important;
-        }
-
-        .page-content {
-            padding-top: max(76px, calc(env(safe-area-inset-top) + 76px)) !important;
-        }
-
-        .sidebar {
-            padding-left: max(12px, env(safe-area-inset-left)) !important;
-            padding-right: max(12px, env(safe-area-inset-right)) !important;
-        }
-    }
-
-    @media (max-width: 360px) {
-        .header {
-            padding-top: max(0px, env(safe-area-inset-top)) !important;
-        }
-
-        .page-content {
-            padding-top: max(72px, calc(env(safe-area-inset-top) + 72px)) !important;
-        }
-
-        .sidebar {
-            padding-left: max(10px, env(safe-area-inset-left)) !important;
-            padding-right: max(10px, env(safe-area-inset-right)) !important;
-        }
-    }
+import React, { useEffect, useState } from "react";
+import "./Student.css";
+import PCSlogo from "../Components/Assets/PCSlogo.png";
+import Icon from "../Components/Assets/Icon.png";
+import Docsimg from "../Components/Assets/Docsimg.png";
+import burger from "../Components/Assets/burger.png";
+import Bell from "../Components/Assets/bell.png";
+import useStudentPortal from "./Studentscript";
+import useDocumentRequest from "./request";
+import { RequestHistoryTable } from "./table.js";
+import InitializeChatbase from './Chatbase'; 
+
+export default function StudentDashboard() {
+  const {
+    studentData,
+    notifications,
+    unreadCount,
+    showNotificationDropdown,
+    showFeedbackModal,
+    feedback,
+    feedbackEmail,
+    feedbackType,
+    isSubmitting,
+    announcement,
+    transactionDays,
+    announcementLoading,
+    transactionLoading,
+    setFeedback,
+    setFeedbackEmail,
+    setFeedbackType,
+    openFeedbackModal,
+    closeFeedbackModal,
+    toggleNotificationDropdown,
+    handleFeedbackSubmit,
+    handleNotificationClick
+  } = useStudentPortal();
+
+  useDocumentRequest();
+
+  const [renderKey, setRenderKey] = useState(0);
+
+  useEffect(() => {
+    console.log('Initializing dashboard...');
+    
+    const dashboardPage = document.getElementById('dashboard');
+    if (dashboardPage) {
+      dashboardPage.classList.add('active');
+      dashboardPage.style.display = 'block';
+      console.log('Dashboard page shown');
+    }
+    
+    const firstNavLink = document.querySelector('.nav-link[data-page="dashboard"]');
+    if (firstNavLink) {
+      firstNavLink.classList.add('active');
+      console.log('Dashboard nav link activated');
+    }
+  }, []);
+
+  useEffect(() => {
+    const navLinks = document.querySelectorAll('.nav-link[data-page]');
+    
+    const handleNavClick = (e) => {
+      e.preventDefault();
+      const pageName = e.currentTarget.getAttribute('data-page');
+      console.log('Navigating to:', pageName);
+      
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none';
+      });
+      
+      const selectedPage = document.getElementById(pageName);
+      if (selectedPage) {
+        selectedPage.classList.add('active');
+        selectedPage.style.display = 'block';
+        console.log('Page shown:', pageName);
+      }
+      
+      navLinks.forEach(link => link.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      const titles = {
+        'dashboard': 'Dashboard',
+        'documents': 'Documents',
+        'request-history': 'Request History',
+        'account': 'Account'
+      };
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) {
+        pageTitle.textContent = titles[pageName] || 'Dashboard';
+      }
+      
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && window.innerWidth <= 900) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    navLinks.forEach(link => {
+      link.addEventListener('click', handleNavClick);
+    });
+    
+    return () => {
+      navLinks.forEach(link => {
+        link.removeEventListener('click', handleNavClick);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    const handleMenuToggle = (e) => {
+      e.stopPropagation();
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+        console.log('Sidebar toggled');
+      }
+    };
+    
+    if (menuToggle) {
+      menuToggle.addEventListener('click', handleMenuToggle);
+    }
+    
+    const handleClickOutside = (e) => {
+      if (window.innerWidth <= 900 && 
+          sidebar && 
+          sidebar.classList.contains('mobile-open') &&
+          !sidebar.contains(e.target) && 
+          e.target !== menuToggle &&
+          !menuToggle.contains(e.target)) {
+        sidebar.classList.remove('mobile-open');
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    
+    return () => {
+      if (menuToggle) {
+        menuToggle.removeEventListener('click', handleMenuToggle);
+      }
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const requestHistoryPage = document.getElementById('request-history');
+      if (requestHistoryPage?.classList.contains('active')) {
+        setTimeout(() => {
+          RequestHistoryTable();
+        }, 100);
+      }
+    });
+
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      observer.observe(mainContent, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    InitializeChatbase();
+  }, []);
+
+  useEffect(() => {
+    console.log('=== ANNOUNCEMENT DATA ===', announcement);
+    console.log('=== TRANSACTION DAYS DATA ===', transactionDays);
+    setRenderKey(prev => prev + 1);
+  }, [announcement, transactionDays]);
+
+  const handleFeedbackClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('=== FEEDBACK BUTTON CLICKED ===');
+    openFeedbackModal();
+  };
+
+  return (
+    <div className="container">
+      <nav className="sidebar" id="sidebar">
+        <div className="school-header">
+          <div className="school-logo">
+            <img src={PCSlogo} alt="School Logo" />
+          </div>
+          <div className="school-name">Pateros Catholic School</div>
+        </div>
+
+        <div className="student-profile">
+          <div className="student-avatar">
+            <img src={Icon} alt="Student Avatar" />
+          </div>
+          <div className="student-name">
+            <span id="studentName">John Doe</span>
+          </div>
+          <span className="student-badge">Student</span>
+        </div>
+
+        <ul className="nav-menu">
+          <li className="nav-item">
+            <button className="nav-link" data-page="dashboard">
+              <i className="fas fa-home"></i> Dashboard
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="documents">
+              <i className="fas fa-file-alt"></i> Documents
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="request-history">
+              <i className="fas fa-history"></i> Request History
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className="nav-link" data-page="account">
+              <i className="fas fa-user"></i> Account
+            </button>
+          </li>
+        </ul>
+
+        <button className="logout-btn" id="logoutBtn">
+          <i className="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </nav>
+
+      <main className="main-content">
+        <header className="header">
+          <button className="action-btn menu-toggle" id="menuToggle">
+            <img src={burger} alt="Menu" className="burger-icon" />
+          </button>
+          
+          <h1 className="header-title" id="pageTitle">
+            Dashboard
+          </h1>
+
+          <div className="header-actions">
+            <button 
+              className="action-btn notification-btn" 
+              title="Notifications"
+              onClick={toggleNotificationDropdown}
+            >
+              <img src={Bell} alt="Notifications" />
+              {unreadCount > 0 && (
+                <span className="notification-badge">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </header>
+
+        {showNotificationDropdown && (
+          <div className="notification-dropdown">
+            <div className="notification-header">
+              <h3>Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
+              <button onClick={toggleNotificationDropdown} className="close-dropdown">×</button>
+            </div>
+            <div className="notification-list">
+              {notifications.length === 0 ? (
+                <div className="no-notifications">No notifications</div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification.id)}
+                    className="notification-item"
+                  >
+                    <div className="notification-title">
+                      {notification.title}
+                    </div>
+                    <div className="notification-time">
+                      {notification.created_at}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="page" id="dashboard">
+          <div className="page-content">
+            <div className="welcome-card">
+              <div className="welcome-date" id="welcomeDate"></div>
+              <div className="welcome-message">
+                <h2>Welcome back, <span id="welcomeName"></span>!</h2>
+                <p></p>
+              </div>
+            </div>
+
+            <div className="cards-grid" key={renderKey}>
+              <div className="info-card">
+                <h3>Announcement</h3>
+                <p>{announcementLoading ? 'Loading...' : announcement}</p>
+              </div>
+              <div className="info-card">
+                <h3>Transaction Days</h3>
+                <p>{transactionLoading ? 'Loading...' : transactionDays}</p>
+              </div>
+            </div>
+
+            <button 
+              className="request-btn feedback-btn" 
+              onClick={handleFeedbackClick}
+            >
+              <i className="fas fa-paper-plane"></i> Send Feedback
+            </button>
+          </div>
+        </div>
+
+        <div className="page" id="documents">
+          <div className="page-content">
+            <h2>Available Documents</h2>
+            <div className="documents-grid">
+              <button className="document-card" data-modal="modal-grades">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="COG" />
+                </div>
+                <div className="document-title">Copy of Grades</div>
+                <div className="document-subtitle">(Form 138)</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-diploma">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Diploma" />
+                </div>
+                <div className="document-title">Diploma</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-coe">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="COE" />
+                </div>
+                <div className="document-title">Certificate of Enrollment</div>
+                <div className="document-subtitle">(COE)</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-form137">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Form 137" />
+                </div>
+                <div className="document-title">Form 137</div>
+              </button>
+
+              <button className="document-card" data-modal="modal-moral">
+                <div className="document-icon">
+                  <img src={Docsimg} alt="Good Moral" />
+                </div>
+                <div className="document-title">Good Moral Certificate</div>
+              </button>
+            </div>
+
+            <button className="request-btn" id="openModalBtn">
+              <i className="fas fa-paper-plane"></i> Request Documents
+            </button>
+          </div>
+        </div>
+
+        <div className="page" id="request-history">
+          <div className="page-content">
+            <h2>Request History</h2>
+            <div id="requestHistoryTableContainer"></div>
+          </div>
+        </div>
+
+        <div className="page" id="account">
+          <div className="page-content">
+            <div className="account-header">
+              <div className="account-avatar">
+                <img src={Icon} alt="Student Avatar" />
+              </div>
+              <div className="account-info">
+                <h2>
+                  <span id="accountName"></span>
+                </h2>
+                <p className="student-no"></p>
+              </div>
+            </div>
+
+            <div className="account-form">
+              <div className="form-group">
+                <label htmlFor="address">Address</label>
+                <input 
+                  type="text" 
+                  id="address" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contact">Contact No</label>
+                <input 
+                  type="tel" 
+                  id="contact" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="email">Email</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="grade">Grade Level and Section</label>
+                <input 
+                  type="text" 
+                  id="grade" 
+                  defaultValue="" 
+                  readOnly 
+                  className="readonly-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <div className="modal-overlay" id="documentModal">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Document Request Form</h2>
+            <button className="close-modal" id="closeModalBtn">×</button>
+          </div>
+
+          <div className="form-content">
+            <form id="documentRequestForm" onSubmit={(e) => e.preventDefault()}>
+              <div className="form-section">
+                <h3>Student Information</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="studentNumber">Student Number*</label>
+                    <input type="text" id="studentNumber" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="emailField">Email*</label>
+                    <input type="email" id="emailField" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="contactNo">Contact No.*</label>
+                    <input type="tel" id="contactNo" required />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="surname">Surname*</label>
+                    <input type="text" id="surname" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="firstname">Firstname*</label>
+                    <input type="text" id="firstname" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="middlename">Middlename</label>
+                    <input type="text" id="middlename" />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="gradeField">Grade*</label>
+                    <input type="text" id="gradeField" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="section">Section*</label>
+                    <input type="text" id="section" required />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="date">Date</label>
+                    <input type="date" id="date" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="documents-section">
+                <h3>Available Documents</h3>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="regForm" data-id="1" data-price="50" />
+                    <label htmlFor="regForm" className="document-name">Copy of Grades</label>
+                  </div>
+                  <div className="document-price">₱ 50.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="cog" data-id="2" data-price="100" />
+                    <label htmlFor="cog" className="document-name">Diploma</label>
+                  </div>
+                  <div className="document-price">₱ 100.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="coe" data-id="3" data-price="100" />
+                    <label htmlFor="coe" className="document-name">Certificate of Enrollment</label>
+                  </div>
+                  <div className="document-price">₱ 100.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="tor" data-id="4" data-price="150" />
+                    <label htmlFor="tor" className="document-name">Form 137</label>
+                  </div>
+                  <div className="document-price">₱ 150.00</div>
+                </div>
+
+                <div className="document-item">
+                  <div className="document-info">
+                    <input type="checkbox" className="document-checkbox" id="gmc" data-id="5" data-price="50" />
+                    <label htmlFor="gmc" className="document-name">Good Moral Certificate</label>
+                  </div>
+                  <div className="document-price">₱ 50.00</div>
+                </div>
+              </div>
+
+              <div className="total-section">
+                <span>Total:</span>
+                <span id="totalAmount">₱ 0.00</span>
+              </div>
+
+              <div className="form-section">
+                <h3>Payment Method</h3>
+                <div className="payment-options">
+                  <div className="payment-option">
+                    <input type="radio" id="cash" name="payment" value="cash" required />
+                    <label htmlFor="cash">Cash</label>
+                  </div>
+
+                  <div className="payment-option">
+                    <input type="radio" id="gcash" name="payment" value="gcash" />
+                    <label htmlFor="gcash">
+                      <span>G</span> Cash
+                    </label>
+                  </div>
+
+                  <div className="payment-option">
+                    <input type="radio" id="maya" name="payment" value="maya" />
+                    <label htmlFor="maya">maya</label>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="submit-btn">Submit Request</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {showFeedbackModal && (
+        <div 
+          className="modal-overlay feedback-modal-overlay"
+          style={{ display: 'flex', zIndex: 9999 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeFeedbackModal();
+            }
+          }}
+        >
+          <div className="modal-content feedback-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Send Feedback</h2>
+              <button className="close-modal" onClick={closeFeedbackModal}>×</button>
+            </div>
+            <div className="form-content">
+              <form onSubmit={handleFeedbackSubmit}>
+                <div className="form-group">
+                  <label htmlFor="feedbackEmail">Email</label>
+                  <input
+                    type="email"
+                    id="feedbackEmail"
+                    value={feedbackEmail}
+                    onChange={(e) => setFeedbackEmail(e.target.value)}
+                    readOnly
+                    style={{
+                      backgroundColor: '#f5f5f5',
+                      cursor: 'not-allowed'
+                    }}
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="feedbackType">Feedback Type</label>
+                  <select 
+                    id="feedbackType"
+                    value={feedbackType}
+                    onChange={(e) => setFeedbackType(e.target.value)}
+                    required
+                  >
+                    <option value="">Select type</option>
+                    <option value="Bug Report">Bug Report</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Improvement">Improvement</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="feedbackText">Message</label>
+                  <textarea
+                    id="feedbackText"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Please share your feedback..."
+                    required
+                    className="feedback-textarea"
+                  />
+                </div>
+                
+                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Sending...' : 'Send Feedback'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
