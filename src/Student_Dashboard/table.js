@@ -148,6 +148,29 @@ export async function RequestHistoryTable() {
       });
 
       allRequests = Object.values(grouped);
+      
+      // Sort by date_requested in descending order (most recent first)
+      allRequests.sort((a, b) => {
+        const dateA = new Date(a.date_requested);
+        const dateB = new Date(b.date_requested);
+        return dateB - dateA; // Descending order
+      });
+      
+      // Sort by request_id in descending order as secondary sort (highest ID first)
+      allRequests.sort((a, b) => {
+        const dateA = new Date(a.date_requested);
+        const dateB = new Date(b.date_requested);
+        
+        // If dates are equal, sort by ID
+        if (dateA.getTime() === dateB.getTime()) {
+          return b.request_id - a.request_id;
+        }
+        
+        return dateB - dateA;
+      });
+      
+      console.log('📅 Sorted requests (most recent first):', allRequests);
+      
       currentPage = 1;
       renderTable(container, allRequests);
     } else {
