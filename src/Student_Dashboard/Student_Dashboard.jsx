@@ -285,7 +285,7 @@ export default function StudentDashboard() {
         <div className="page" id="dashboard">
           <div className="page-content">
             <div className="welcome-card">
-              <div className="welcome-date" id="welcomeDate"></div>
+              <div className="welcome-date" id="welcomeDate" style={{ color: 'white' }}></div>
               <div className="welcome-message">
                 <h2>Welcome back, <span id="welcomeName"></span>!</h2>
                 <p></p>
@@ -428,6 +428,72 @@ export default function StudentDashboard() {
             </div>
           </div>
         </div>
+
+        {/* FOOTER */}
+        <footer className="footer">
+          <div className="footer-content">
+            <div className="footer-grid">
+              {/* School Info */}
+              <div className="footer-section">
+                <div className="footer-logo">
+                  <div className="footer-logo-icon">
+                    <img src={PCSlogo} alt="PCS Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  </div>
+                  <span className="footer-logo-text">Pateros Catholic School</span>
+                </div>
+                <p className="footer-description">
+                  Empowering students through quality education and values formation since 1947.
+                </p>
+              </div>
+
+              {/* Quick Links */}
+              <div className="footer-section">
+                <h3>Quick Links</h3>
+                <ul className="footer-links">
+                  <li><a href="#">About Us</a></li>
+                  <li><a href="#">Academic Programs</a></li>
+                  <li><a href="#">Admissions</a></li>
+                  <li><a href="#">Student Portal</a></li>
+                  <li><a href="#">Contact</a></li>
+                </ul>
+              </div>
+
+              {/* Contact Info */}
+              <div className="footer-section">
+                <h3>Contact Us</h3>
+                <div className="footer-contact-item">
+                  <span className="footer-icon">
+                    <i className="fas fa-map-marker-alt"></i>
+                  </span>
+                  <span>Pateros, Metro Manila, Philippines</span>
+                </div>
+                <div className="footer-contact-item">
+                  <span className="footer-icon">
+                    <i className="fas fa-phone"></i>
+                  </span>
+                  <span>(02) 8642-5555</span>
+                </div>
+                <div className="footer-contact-item">
+                  <span className="footer-icon">
+                    <i className="fas fa-envelope"></i>
+                  </span>
+                  <span>info@pateroscatholic.edu.ph</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="footer-bottom">
+              <p className="footer-copyright">
+                © {new Date().getFullYear()} Pateros Catholic School. All rights reserved.
+              </p>
+              <div className="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Help Center</a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </main>
 
       <div className="modal-overlay" id="documentModal">
