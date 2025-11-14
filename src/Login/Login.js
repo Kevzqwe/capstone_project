@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import PCSlogo from '../Components/Assets/PCSlogo.png';
-import { FaEye } from "react-icons/fa";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,9 +10,14 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const togglePassword = () => setShowPassword(!showPassword);
-  const showError = (msg) => alert(msg);
+
+  const showMessage = (msg, type = 'error') => {
+    setError(msg);
+    setTimeout(() => setError(''), 5000);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,11 +27,12 @@ const Login = () => {
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail || !trimmedPassword) {
-      showError('Please enter both email and password');
+      showMessage('Please enter both email and password');
       return;
     }
 
     setIsLoading(true);
+    setError('');
 
     try {
       const response = await fetch('https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/login.php', {
@@ -42,89 +48,112 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        showError(data.message || 'Invalid credentials.');
+        showMessage(data.message || 'Invalid credentials.');
         return;
       }
 
       if (data.status === 'success') {
         if (data.role === 'Admin') {
-          alert('Welcome Admin!');
           navigate('/admin-dashboard');
         } else if (data.role === 'Student') {
-          alert('Welcome Student!');
           navigate('/student-dashboard');
         } else {
-          showError('Unknown user role.');
+          showMessage('Unknown user role.');
         }
       } else {
-        showError(data.message || 'Login failed.');
+        showMessage(data.message || 'Login failed.');
       }
 
     } catch (err) {
       console.error('Login error:', err);
-      showError('Unable to connect to the server. Please try again.');
+      showMessage('Unable to connect to the server. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="left-panel">
-        <img src={PCSlogo} alt="School Logo" className="school-logo" />
-        <h2>Online Document Request System</h2>
-        <p>Pateros Catholic School</p>
-      </div>
+    <div className="login-wrapper">
+      <div className="container">
+        <div className="left-panel">
+          <div className="logo-container">
+            <img src={PCSlogo} alt="School Logo" className="school-logo" />
+          </div>
+          <div className="school-info">
+            <h2>Online Document Request System</h2>
+            <p>Pateros Catholic School</p>
+          </div>
+        </div>
 
-      <div className="right-panel">
-        <div className="login-box">
-          <h3>Login Your Account</h3>
+        <div className="right-panel">
+          <div className="login-box">
+            <h3>Login Your Account</h3>
 
-          <form onSubmit={handleLogin}>
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-            </div>
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
 
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="password">
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="email">Email</label>
                 <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="email"
                 />
-                <span
-                  className="pass-open"
-                  onClick={togglePassword}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <FaEye />
-                </span>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              className={`login-btn ${isLoading ? 'loading' : ''}`}
-              disabled={isLoading}
-            >
-              <span className="btn-text">{isLoading ? 'Logging in...' : 'Login'}</span>
-            </button>
-          </form>
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <div className="password">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    className="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <span
+                    className="pass-opeen"
+                    onClick={togglePassword}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        togglePassword();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className={`login-btn ${isLoading ? 'loading' : ''}`}
+                disabled={isLoading}
+              >
+                {isLoading && <span className="loader"></span>}
+                <span className="btn-text">
+                  {isLoading ? 'Logging in...' : 'Login'}
+                </span>
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
