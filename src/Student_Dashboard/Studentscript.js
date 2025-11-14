@@ -4,6 +4,7 @@ const API_BASE_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/ph
 const FEEDBACK_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/feedback.php';
 const ANNOUNCEMENT_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/announcement.php';
 const TRANSACTION_API_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/transaction.php';
+const API_LOGOUT_URL = 'https://mediumaquamarine-heron-545485.hostingersite.com/php-backend/logout.php';
 
 export const useStudentPortal = () => {
   const [studentData, setStudentData] = useState(null);
@@ -675,13 +676,41 @@ export const useStudentPortal = () => {
     }
   }, []);
 
+  const handleLogout = useCallback(async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      try {
+        await fetch(API_LOGOUT_URL, {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
+      }
+    }
+  }, []);
+
   const setupLogoutHandler = useCallback(() => {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', function(e) {
+      logoutBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         if (window.confirm('Are you sure you want to logout?')) {
-          window.location.href = 'https://mediumaquamarine-heron-545485.hostingersite.com/index.html';
+          try {
+            await fetch(API_LOGOUT_URL, {
+              method: 'POST',
+              credentials: 'include'
+            });
+          } catch (error) {
+            console.error('Logout error:', error);
+          } finally {
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 500);
+          }
         }
       });
     }
@@ -779,7 +808,8 @@ export const useStudentPortal = () => {
     toggleNotificationDropdown,
     handleFeedbackSubmit,
     handleNotificationClick,
-    markNotificationAsRead
+    markNotificationAsRead,
+    handleLogout
   };
 };
 
