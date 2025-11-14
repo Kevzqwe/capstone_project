@@ -82,10 +82,10 @@ const Login = () => {
             <img src={PCSlogo} alt="Pateros Catholic School Logo" className="school-logo" />
           </div>
           
-          {/* School Info - CORRECTED ORDER */}
+          {/* School Info - FIXED: Title first, then subtitle */}
           <div className="school-info">
-            <h2>Pateros Catholic School</h2>
-            <p>Online Document Request System</p>
+            <h2>Online Document Request System</h2>
+            <p>Pateros Catholic School</p>
           </div>
         </div>
 
