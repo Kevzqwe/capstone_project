@@ -1,6 +1,6 @@
 /* ===================================
    COMPLETE LOGIN.CSS FILE
-   FIXED TO MATCH DESIGN
+   ACCURATE FIX TO MATCH REFERENCE IMAGE
    =================================== */
 
 /* Reset and base styles */
@@ -50,8 +50,8 @@ body {
 }
 
 .school-logo {
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
     object-fit: contain;
     animation: fadeInScale 0.6s ease-out;
     filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.12));
@@ -85,7 +85,7 @@ body {
 }
 
 .left-panel h2 {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     line-height: 1.3;
@@ -94,7 +94,7 @@ body {
 }
 
 .left-panel p {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 400;
     margin-top: 0.25rem;
     color: #4a4a4a;
@@ -335,20 +335,20 @@ body {
     }
 
     .school-logo {
-        width: 180px;
-        height: 180px;
+        width: 160px;
+        height: 160px;
         filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
     }
 
     .school-info h2 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         margin-bottom: 0.5rem;
         font-weight: 600;
         line-height: 1.3;
     }
 
     .school-info p {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 400;
     }
 
@@ -390,7 +390,7 @@ body {
     }
 
     .login-box h3 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         margin-bottom: 1.5rem;
         text-align: center;
         color: #333;
@@ -442,17 +442,17 @@ body {
     }
 
     .school-logo {
-        width: 160px;
-        height: 160px;
+        width: 140px;
+        height: 140px;
     }
 
     .school-info h2 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         margin-bottom: 0.4rem;
     }
 
     .school-info p {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .right-panel {
@@ -467,7 +467,7 @@ body {
     }
 
     .login-box h3 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     .form-group input {
@@ -499,16 +499,16 @@ body {
     }
 
     .school-logo {
-        width: 180px;
-        height: 180px;
+        width: 170px;
+        height: 170px;
     }
 
     .left-panel h2 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .left-panel p {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .right-panel {
@@ -526,7 +526,7 @@ body {
     }
 
     .login-box h3 {
-        font-size: 1.8rem;
+        font-size: 1.7rem;
     }
 
     .form-group input {
@@ -563,16 +563,16 @@ body {
     }
 
     .school-logo {
-        width: 200px;
-        height: 200px;
+        width: 180px;
+        height: 180px;
     }
 
     .left-panel h2 {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
 
     .left-panel p {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .right-panel {
@@ -587,7 +587,7 @@ body {
     }
 
     .login-box h3 {
-        font-size: 1.9rem;
+        font-size: 1.85rem;
     }
 }
 
@@ -596,16 +596,16 @@ body {
    =================================== */
 @media (min-width: 1440px) {
     .school-logo {
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
     }
 
     .left-panel h2 {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
 
     .left-panel p {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     .login-box {
@@ -633,16 +633,16 @@ body {
    =================================== */
 @media (min-width: 1920px) {
     .school-logo {
-        width: 240px;
-        height: 240px;
+        width: 220px;
+        height: 220px;
     }
 
     .left-panel h2 {
-        font-size: 2.4rem;
+        font-size: 2.2rem;
     }
 
     .left-panel p {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     .login-box {
