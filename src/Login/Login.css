@@ -1,8 +1,3 @@
-/* ===================================
-   COMPLETE LOGIN.CSS FILE
-   Bigger Logo + Floating Mobile Form
-   =================================== */
-
 /* Reset and base styles */
 * {
     margin: 0;
@@ -50,10 +45,11 @@ body {
 }
 
 .school-logo {
-    width: 280px;
-    height: 280px;
+    width: 320px;
+    height: 320px;
     object-fit: contain;
     animation: fadeInScale 0.6s ease-out;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
 }
 
 @keyframes fadeInScale {
@@ -83,15 +79,16 @@ body {
 }
 
 .left-panel h2 {
-    font-size: 2rem;
+    font-size: 2.4rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     line-height: 1.3;
 }
 
 .left-panel p {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: 300;
+    margin-top: 0.5rem;
 }
 
 /* ===================================
@@ -314,33 +311,34 @@ body {
     .left-panel {
         order: 1;
         width: 100%;
-        min-height: 50vh;
+        min-height: 55vh;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 2rem 1.5rem;
+        padding: 3rem 1.5rem 2rem;
         background: linear-gradient(135deg, #fdf3e7 0%, #e1c28f 100%);
     }
 
     .logo-container {
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .school-logo {
-        width: 150px;
-        height: 150px;
-        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        width: 200px;
+        height: 200px;
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
     }
 
     .school-info h2 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
         font-weight: 700;
+        line-height: 1.2;
     }
 
     .school-info p {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
         font-weight: 400;
     }
 
@@ -352,10 +350,10 @@ body {
         align-items: flex-start;
         justify-content: center;
         padding: 0 1rem;
-        margin-top: -60px;
+        margin-top: -70px;
         position: relative;
         z-index: 10;
-        min-height: 50vh;
+        min-height: 45vh;
         padding-bottom: 3rem;
     }
 
@@ -425,25 +423,31 @@ body {
    =================================== */
 @media (max-width: 480px) {
     .left-panel {
-        padding: 1.5rem 1rem;
-        min-height: 45vh;
+        padding: 2.5rem 1rem 2rem;
+        min-height: 50vh;
+    }
+
+    .logo-container {
+        margin-bottom: 1.5rem;
     }
 
     .school-logo {
-        width: 120px;
-        height: 120px;
+        width: 160px;
+        height: 160px;
     }
 
     .school-info h2 {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.6rem;
     }
 
     .school-info p {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .right-panel {
-        margin-top: -50px;
+        margin-top: -60px;
+        padding-bottom: 2.5rem;
     }
 
     .login-box {
@@ -485,16 +489,16 @@ body {
     }
 
     .school-logo {
-        width: 180px;
-        height: 180px;
+        width: 220px;
+        height: 220px;
     }
 
     .left-panel h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
 
     .left-panel p {
-        font-size: 1.15rem;
+        font-size: 1.25rem;
     }
 
     .right-panel {
@@ -549,16 +553,16 @@ body {
     }
 
     .school-logo {
-        width: 220px;
-        height: 220px;
+        width: 280px;
+        height: 280px;
     }
 
     .left-panel h2 {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
     }
 
     .left-panel p {
-        font-size: 1.3rem;
+        font-size: 1.45rem;
     }
 
     .right-panel {
@@ -582,16 +586,16 @@ body {
    =================================== */
 @media (min-width: 1440px) {
     .school-logo {
-        width: 250px;
-        height: 250px;
+        width: 350px;
+        height: 350px;
     }
 
     .left-panel h2 {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
     }
 
     .left-panel p {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
     }
 
     .login-box {
@@ -611,6 +615,43 @@ body {
     .login-btn {
         padding: 1rem;
         font-size: 1.1rem;
+    }
+}
+
+/* ===================================
+   EXTRA LARGE DESKTOP (≥1920px)
+   =================================== */
+@media (min-width: 1920px) {
+    .school-logo {
+        width: 400px;
+        height: 400px;
+    }
+
+    .left-panel h2 {
+        font-size: 3.2rem;
+    }
+
+    .left-panel p {
+        font-size: 1.8rem;
+    }
+
+    .login-box {
+        max-width: 550px;
+        padding: 4rem;
+    }
+
+    .login-box h3 {
+        font-size: 2.2rem;
+    }
+
+    .form-group input {
+        padding: 1rem 1.2rem;
+        font-size: 1.05rem;
+    }
+
+    .login-btn {
+        padding: 1.1rem;
+        font-size: 1.15rem;
     }
 }
 
