@@ -75,41 +75,32 @@ const Login = () => {
   return (
     <div className="login-wrapper">
       <div className="container">
-        {/* LEFT PANEL - Logo and School Info */}
+        {/* Left Panel - Logo and School Info */}
         <div className="left-panel">
-          {/* IMPORTANT: Logo must be wrapped in logo-container div */}
+          {/* Logo Container */}
           <div className="logo-container">
-            <img 
-              src={PCSlogo} 
-              alt="Pateros Catholic School Logo" 
-              className="school-logo" 
-            />
+            <img src={PCSlogo} alt="Pateros Catholic School Logo" className="school-logo" />
           </div>
           
-          {/* IMPORTANT: Text must be wrapped in school-info div */}
+          {/* School Info - FIXED: Title first, then subtitle */}
           <div className="school-info">
-            {/* School name MUST be in h2 for larger size */}
-            <h2>Pateros Catholic School</h2>
-            {/* System name MUST be in p for smaller size */}
-            <p>Online Document Request System</p>
+            <h2>Online Document Request System</h2>
+            <p>Pateros Catholic School</p>
           </div>
         </div>
 
-        {/* RIGHT PANEL - Login Form */}
+        {/* Right Panel - Login Form */}
         <div className="right-panel">
           <div className="login-box">
             <h3>Login Your Account</h3>
 
-            {/* Error Message */}
             {error && (
               <div className="error-message">
                 {error}
               </div>
             )}
 
-            {/* Login Form */}
             <form onSubmit={handleLogin}>
-              {/* Email Field */}
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input
@@ -124,7 +115,6 @@ const Login = () => {
                 />
               </div>
 
-              {/* Password Field */}
               <div className="form-group">
                 <label htmlFor="password">Password</label>
                 <div className="password">
@@ -157,7 +147,6 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Login Button */}
               <button
                 type="submit"
                 className={`login-btn ${isLoading ? 'loading' : ''}`}
