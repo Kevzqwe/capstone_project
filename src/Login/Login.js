@@ -75,16 +75,21 @@ const Login = () => {
   return (
     <div className="login-wrapper">
       <div className="container">
+        {/* Left Panel - Logo and School Info */}
         <div className="left-panel">
+          {/* Logo Container */}
           <div className="logo-container">
-            <img src={PCSlogo} alt="School Logo" className="school-logo" />
+            <img src={PCSlogo} alt="Pateros Catholic School Logo" className="school-logo" />
           </div>
+          
+          {/* School Info - CORRECTED ORDER */}
           <div className="school-info">
-            <h2>Online Document Request System</h2>
-            <p>Pateros Catholic School</p>
+            <h2>Pateros Catholic School</h2>
+            <p>Online Document Request System</p>
           </div>
         </div>
 
+        {/* Right Panel - Login Form */}
         <div className="right-panel">
           <div className="login-box">
             <h3>Login Your Account</h3>
