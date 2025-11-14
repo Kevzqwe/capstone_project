@@ -369,6 +369,7 @@ body {
 .page-content {
     padding: 40px;
     flex: 1;
+    min-height: calc(100vh - 80px);
     background: transparent;
 }
 
@@ -1032,8 +1033,8 @@ body {
 .footer {
     background: linear-gradient(135deg, #2A3663 0%, #1a2442 100%);
     color: white;
-    margin-top: auto;
-    padding: 40px 0 0;
+    margin-top: 60px;
+    padding: 50px 0 0;
     width: 100%;
 }
 
@@ -1469,37 +1470,12 @@ body {
     .page-content {
         padding: 20px;
         padding-top: 84px !important;
-        padding-bottom: 20px !important;
+        min-height: 100vh !important;
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
         box-sizing: border-box;
         background: transparent !important;
-    }
-
-    /* Ensure footer stays at bottom on mobile */
-    .page {
-        display: flex;
-        flex-direction: column;
-        min-height: calc(100vh - 64px);
-    }
-
-    .page.active {
-        display: flex;
-    }
-
-    #request-history .page-content,
-    #dashboard .page-content,
-    #documents .page-content,
-    #account .page-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    #requestHistoryTableContainer {
-        flex: 1;
-        margin-bottom: 20px;
     }
 
     /* Welcome card */
@@ -1705,8 +1681,8 @@ body {
 
     /* Footer - Mobile */
     .footer {
-        margin-top: auto;
-        padding: 30px 0 0;
+        margin-top: 40px;
+        padding: 40px 0 0;
     }
 
     .footer-content {
@@ -1893,7 +1869,6 @@ body {
     .page-content {
         padding: 15px;
         padding-top: 76px !important;
-        padding-bottom: 15px !important;
     }
 
     .welcome-card {
@@ -2046,8 +2021,8 @@ body {
 
     /* Footer - Small Mobile */
     .footer {
-        margin-top: auto;
-        padding: 25px 0 0;
+        margin-top: 30px;
+        padding: 30px 0 0;
     }
 
     .footer-content {
@@ -2199,7 +2174,6 @@ body {
 
     .page-content {
         padding-top: 72px !important;
-        padding-bottom: 12px !important;
     }
 
     .welcome-message h2 {
@@ -2270,8 +2244,7 @@ body {
 
     /* Footer - Extra Small */
     .footer {
-        padding: 20px 0 0;
-        margin-top: auto;
+        padding: 25px 0 0;
     }
 
     .footer-content {
