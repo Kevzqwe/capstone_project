@@ -1,6 +1,6 @@
 /* ===================================
    COMPLETE LOGIN.CSS FILE
-   CENTERED LAYOUT - ALL DEVICES
+   FIXED TO MATCH DESIGN
    =================================== */
 
 /* Reset and base styles */
@@ -46,7 +46,7 @@ body {
 }
 
 .logo-container {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
 }
 
 .school-logo {
@@ -90,11 +90,11 @@ body {
     margin-bottom: 0.5rem;
     line-height: 1.3;
     color: #2c2c2c;
-    letter-spacing: -0.5px;
+    letter-spacing: 0;
 }
 
 .left-panel p {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 400;
     margin-top: 0.25rem;
     color: #4a4a4a;
@@ -296,30 +296,38 @@ body {
 
 /* ===================================
    MOBILE STYLES (≤768px)
-   CENTERED LAYOUT LIKE DESKTOP
+   Floating Form Design
    =================================== */
 @media (max-width: 768px) {
     body {
-        overflow: hidden;
+        overflow: auto;
     }
 
     .login-wrapper {
-        overflow: hidden;
+        overflow: auto;
     }
 
     .container {
-        flex-direction: row;
-        height: 100vh;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        min-height: 100vh;
+        height: auto;
+        padding: 0;
+        position: relative;
     }
 
-    /* Left panel - Same centered layout */
+    /* Left panel - Background with logo */
     .left-panel {
-        flex: 1;
+        order: 1;
+        width: 100%;
+        min-height: 55vh;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 2rem 1.5rem;
+        padding: 3rem 1.5rem 2rem;
+        background: linear-gradient(135deg, #fdf3e7 0%, #e1c28f 100%);
     }
 
     .logo-container {
@@ -327,44 +335,65 @@ body {
     }
 
     .school-logo {
-        width: 160px;
-        height: 160px;
+        width: 180px;
+        height: 180px;
+        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
     }
 
     .school-info h2 {
-        font-size: 1.6rem;
-        margin-bottom: 0.4rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
         font-weight: 600;
         line-height: 1.3;
     }
 
     .school-info p {
-        font-size: 0.95rem;
+        font-size: 1.1rem;
         font-weight: 400;
     }
 
-    /* Right panel - Centered login form */
+    /* Right panel - Floating form container */
     .right-panel {
-        flex: 1;
+        order: 2;
+        width: 100%;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 2rem 1.5rem;
+        padding: 0 1rem;
+        margin-top: -70px;
+        position: relative;
+        z-index: 10;
+        min-height: 45vh;
+        padding-bottom: 3rem;
     }
 
+    /* Floating login box */
     .login-box {
         background: white;
-        padding: 2rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 2rem 1.75rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         width: 100%;
-        max-width: 380px;
-        animation: slideIn 0.6s ease-out;
+        max-width: 400px;
+        animation: floatIn 0.6s ease-out;
+    }
+
+    @keyframes floatIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .login-box h3 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         margin-bottom: 1.5rem;
+        text-align: center;
+        color: #333;
     }
 
     .form-group {
@@ -373,16 +402,24 @@ body {
 
     .form-group label {
         font-size: 0.9rem;
+        margin-bottom: 0.5rem;
     }
 
     .form-group input {
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
+        padding: 0.85rem 1rem;
+        font-size: 1rem;
+        border-radius: 10px;
+    }
+
+    .password input {
+        padding-right: 3rem;
     }
 
     .login-btn {
-        padding: 0.85rem;
-        font-size: 0.95rem;
+        padding: 1rem;
+        font-size: 1.05rem;
+        border-radius: 10px;
+        margin-top: 1.25rem;
     }
 
     .error-message {
@@ -395,14 +432,9 @@ body {
    SMALL MOBILE (≤480px)
    =================================== */
 @media (max-width: 480px) {
-    .container {
-        flex-direction: column;
-    }
-
     .left-panel {
-        flex: none;
+        padding: 2.5rem 1rem 2rem;
         min-height: 50vh;
-        padding: 2rem 1rem;
     }
 
     .logo-container {
@@ -410,42 +442,42 @@ body {
     }
 
     .school-logo {
-        width: 140px;
-        height: 140px;
+        width: 160px;
+        height: 160px;
     }
 
     .school-info h2 {
-        font-size: 1.4rem;
-        margin-bottom: 0.3rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
     }
 
     .school-info p {
-        font-size: 0.85rem;
+        font-size: 1rem;
     }
 
     .right-panel {
-        flex: none;
-        min-height: 50vh;
-        padding: 1.5rem 1rem;
+        margin-top: -60px;
+        padding-bottom: 2.5rem;
     }
 
     .login-box {
-        padding: 1.75rem 1.25rem;
-        max-width: 100%;
+        padding: 1.75rem 1.5rem;
+        border-radius: 18px;
+        max-width: 360px;
     }
 
     .login-box h3 {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
     }
 
     .form-group input {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.9rem;
+        padding: 0.8rem 0.95rem;
+        font-size: 0.95rem;
     }
 
     .login-btn {
-        padding: 0.8rem;
-        font-size: 0.9rem;
+        padding: 0.95rem;
+        font-size: 1rem;
     }
 }
 
@@ -453,34 +485,58 @@ body {
    TABLET (769px - 1023px)
    =================================== */
 @media (min-width: 769px) and (max-width: 1023px) {
+    .container {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .left-panel {
+        order: 1;
+        padding: 2rem;
+        min-height: auto;
+    }
+
     .school-logo {
         width: 180px;
         height: 180px;
     }
 
     .left-panel h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
 
     .left-panel p {
-        font-size: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .right-panel {
+        order: 2;
+        padding: 2rem;
+        margin-top: 0;
     }
 
     .login-box {
-        max-width: 400px;
+        width: 80%;
+        max-width: 500px;
         padding: 2.5rem;
+        border-radius: 14px;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
     }
 
     .login-box h3 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
     }
 
     .form-group input {
-        padding: 0.8rem 1rem;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
     }
 
     .login-btn {
-        font-size: 1rem;
+        font-size: 1.05rem;
+        padding: 0.95rem;
     }
 }
 
@@ -516,21 +572,22 @@ body {
     }
 
     .left-panel p {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
 
     .right-panel {
         flex: 1;
         padding: 3rem;
+        margin-top: 0;
     }
 
     .login-box {
-        max-width: 420px;
-        padding: 2.5rem;
+        max-width: 460px;
+        padding: 3rem;
     }
 
     .login-box h3 {
-        font-size: 1.75rem;
+        font-size: 1.9rem;
     }
 }
 
@@ -548,47 +605,11 @@ body {
     }
 
     .left-panel p {
-        font-size: 1.2rem;
-    }
-
-    .login-box {
-        max-width: 450px;
-        padding: 3rem;
-    }
-
-    .login-box h3 {
-        font-size: 1.85rem;
-    }
-
-    .form-group input {
-        padding: 0.8rem 1.05rem;
-    }
-
-    .login-btn {
-        padding: 0.95rem;
-        font-size: 1.05rem;
-    }
-}
-
-/* ===================================
-   EXTRA LARGE DESKTOP (≥1920px)
-   =================================== */
-@media (min-width: 1920px) {
-    .school-logo {
-        width: 240px;
-        height: 240px;
-    }
-
-    .left-panel h2 {
-        font-size: 2.4rem;
-    }
-
-    .left-panel p {
         font-size: 1.3rem;
     }
 
     .login-box {
-        max-width: 480px;
+        max-width: 500px;
         padding: 3.5rem;
     }
 
@@ -608,6 +629,43 @@ body {
 }
 
 /* ===================================
+   EXTRA LARGE DESKTOP (≥1920px)
+   =================================== */
+@media (min-width: 1920px) {
+    .school-logo {
+        width: 240px;
+        height: 240px;
+    }
+
+    .left-panel h2 {
+        font-size: 2.4rem;
+    }
+
+    .left-panel p {
+        font-size: 1.4rem;
+    }
+
+    .login-box {
+        max-width: 550px;
+        padding: 4rem;
+    }
+
+    .login-box h3 {
+        font-size: 2.2rem;
+    }
+
+    .form-group input {
+        padding: 1rem 1.2rem;
+        font-size: 1.05rem;
+    }
+
+    .login-btn {
+        padding: 1.1rem;
+        font-size: 1.15rem;
+    }
+}
+
+/* ===================================
    ACCESSIBILITY IMPROVEMENTS
    =================================== */
 .form-group input:focus-visible,
@@ -615,6 +673,13 @@ body {
 .pass-opeen:focus-visible {
     outline: 2px solid #e1c28f;
     outline-offset: 2px;
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 768px) {
+    html {
+        scroll-behavior: smooth;
+    }
 }
 
 /* Print styles */
