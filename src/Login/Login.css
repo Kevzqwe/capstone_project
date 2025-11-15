@@ -1,690 +1,342 @@
-/* ===================================
-   COMPLETE LOGIN.CSS FILE
-   ACCURATE FIX TO MATCH REFERENCE IMAGE
-   =================================== */
-
-/* Reset and base styles */
+/* Reset and Base Styles */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    height: 100vh;
-    overflow: hidden;
-}
-
-/* Main wrapper */
+/* Login Wrapper */
 .login-wrapper {
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5e6d3 0%, #d4c4a8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
-/* Main container */
+/* Main Container */
 .container {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-    background: linear-gradient(135deg, #fdf3e7 0%, #e1c28f 100%);
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  min-height: 600px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  background: white;
 }
 
-/* ===================================
-   LEFT PANEL - LOGO & SCHOOL INFO
-   =================================== */
+/* Left Panel */
 .left-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #333;
-    padding: 2rem;
-    text-align: center;
+  flex: 1;
+  background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  gap: 30px;
 }
 
+/* Logo Container - BIGGER SIZE */
 .logo-container {
-    margin-bottom: 2rem;
+  width: 220px;
+  height: 220px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .school-logo {
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
-    animation: fadeInScale 0.6s ease-out;
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.12));
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
+/* School Info - FIXED HIERARCHY */
 .school-info {
-    animation: fadeInUp 0.8s ease-out;
-    max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.school-info h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c1810;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.left-panel h2 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-    color: #2c2c2c;
-    letter-spacing: 0;
+.school-info p {
+  font-size: 20px;
+  color: #5c4a3a;
+  margin: 0;
+  font-weight: 500;
 }
 
-.left-panel p {
-    font-size: 1.1rem;
-    font-weight: 400;
-    margin-top: 0.25rem;
-    color: #4a4a4a;
-    line-height: 1.4;
-}
-
-/* ===================================
-   RIGHT PANEL - LOGIN FORM
-   =================================== */
+/* Right Panel */
 .right-panel {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 50px;
+  background: white;
 }
 
-/* Login box */
+/* Login Box */
 .login-box {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    width: 100%;
-    max-width: 420px;
-    z-index: 10;
-    animation: slideIn 0.6s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  width: 100%;
+  max-width: 400px;
 }
 
 .login-box h3 {
-    font-size: 1.75rem;
-    color: #333;
-    margin-bottom: 1.75rem;
-    text-align: center;
-    font-weight: 600;
+  font-size: 28px;
+  font-weight: 600;
+  color: #2c1810;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-/* ===================================
-   ERROR MESSAGE
-   =================================== */
+/* Error Message */
 .error-message {
-    background: #fee;
-    color: #c33;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.25rem;
-    font-size: 0.9rem;
-    border-left: 4px solid #c33;
-    animation: shake 0.4s ease-in-out;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 14px;
+  text-align: center;
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
+/* Form */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* ===================================
-   FORM STYLES
-   =================================== */
+/* Form Group */
 .form-group {
-    margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
-    font-size: 0.95rem;
-    font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c1810;
 }
 
 .form-group input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    background: #fafafa;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border 0.3s;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
 .form-group input:focus {
-    outline: none;
-    border-color: #e1c28f;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(225, 194, 143, 0.1);
+  border-color: #8b7355;
+  box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
 }
 
 .form-group input:disabled {
-    background: #e9ecef;
-    cursor: not-allowed;
-    opacity: 0.7;
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* ===================================
-   PASSWORD FIELD
-   =================================== */
+.form-group input::placeholder {
+  color: #999;
+}
+
+/* Password Field */
 .password {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.password input {
-    padding-right: 3rem;
+.password input.Password {
+  width: 100%;
+  padding: 12px 45px 12px 16px;
 }
 
 .pass-opeen {
-    position: absolute;
-    right: 1rem;
-    cursor: pointer;
-    color: #666;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    transition: color 0.3s ease;
-    user-select: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+  user-select: none;
+  background: none;
+  border: none;
+  padding: 5px;
 }
 
 .pass-opeen:hover {
-    color: #e1c28f;
+  color: #2c1810;
 }
 
 .pass-opeen:focus {
-    outline: 2px solid #e1c28f;
-    outline-offset: 2px;
-    border-radius: 4px;
+  outline: 2px solid #8b7355;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* ===================================
-   LOGIN BUTTON
-   =================================== */
+/* Login Button */
 .login-btn {
-    width: 100%;
-    padding: 0.875rem;
-    background: linear-gradient(135deg, #fdf3e7 0%, #e1c28f 100%);
-    color: #333;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c1810;
+  background: #d4c4a8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
 }
 
 .login-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(225, 194, 143, 0.4);
+  background: #c4b498;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .login-btn:active:not(:disabled) {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .login-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
+  background: #e8d4b8;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
-/* Loader spinner */
-.loader {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(51, 51, 51, 0.3);
-    border-top-color: #333;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 0.5rem;
-}
-
-@keyframes spin {
-    to { 
-        transform: rotate(360deg); 
-    }
+.login-btn.loading {
+  pointer-events: none;
 }
 
 .btn-text {
-    display: inline-block;
+  display: inline-block;
 }
 
-/* ===================================
-   MOBILE STYLES (≤768px)
-   Floating Form Design
-   =================================== */
-@media (max-width: 768px) {
-    body {
-        overflow: auto;
-    }
-
-    .login-wrapper {
-        overflow: auto;
-    }
-
-    .container {
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        min-height: 100vh;
-        height: auto;
-        padding: 0;
-        position: relative;
-    }
-
-    /* Left panel - Background with logo */
-    .left-panel {
-        order: 1;
-        width: 100%;
-        min-height: 55vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 3rem 1.5rem 2rem;
-        background: linear-gradient(135deg, #fdf3e7 0%, #e1c28f 100%);
-    }
-
-    .logo-container {
-        margin-bottom: 2rem;
-    }
-
-    .school-logo {
-        width: 160px;
-        height: 160px;
-        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
-    }
-
-    .school-info h2 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        line-height: 1.3;
-    }
-
-    .school-info p {
-        font-size: 1rem;
-        font-weight: 400;
-    }
-
-    /* Right panel - Floating form container */
-    .right-panel {
-        order: 2;
-        width: 100%;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 0 1rem;
-        margin-top: -70px;
-        position: relative;
-        z-index: 10;
-        min-height: 45vh;
-        padding-bottom: 3rem;
-    }
-
-    /* Floating login box */
-    .login-box {
-        background: white;
-        padding: 2rem 1.75rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        width: 100%;
-        max-width: 400px;
-        animation: floatIn 0.6s ease-out;
-    }
-
-    @keyframes floatIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .login-box h3 {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        color: #333;
-    }
-
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-
-    .form-group label {
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-group input {
-        padding: 0.85rem 1rem;
-        font-size: 1rem;
-        border-radius: 10px;
-    }
-
-    .password input {
-        padding-right: 3rem;
-    }
-
-    .login-btn {
-        padding: 1rem;
-        font-size: 1.05rem;
-        border-radius: 10px;
-        margin-top: 1.25rem;
-    }
-
-    .error-message {
-        font-size: 0.85rem;
-        padding: 0.65rem 0.85rem;
-    }
+/* Loader */
+.loader {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #2c1810;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
 }
 
-/* ===================================
-   SMALL MOBILE (≤480px)
-   =================================== */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .container {
+    flex-direction: column;
+    max-width: 500px;
+  }
+
+  .left-panel {
+    padding: 40px 30px;
+  }
+
+  .logo-container {
+    width: 180px;
+    height: 180px;
+  }
+
+  .school-info h2 {
+    font-size: 28px;
+  }
+
+  .school-info p {
+    font-size: 18px;
+  }
+
+  .right-panel {
+    padding: 40px 30px;
+  }
+}
+
 @media (max-width: 480px) {
-    .left-panel {
-        padding: 2.5rem 1rem 2rem;
-        min-height: 50vh;
-    }
+  .login-wrapper {
+    padding: 10px;
+  }
 
-    .logo-container {
-        margin-bottom: 1.5rem;
-    }
+  .container {
+    border-radius: 15px;
+    min-height: auto;
+  }
 
-    .school-logo {
-        width: 140px;
-        height: 140px;
-    }
+  .left-panel {
+    padding: 30px 20px;
+  }
 
-    .school-info h2 {
-        font-size: 1.3rem;
-        margin-bottom: 0.4rem;
-    }
+  .logo-container {
+    width: 150px;
+    height: 150px;
+  }
 
-    .school-info p {
-        font-size: 0.95rem;
-    }
+  .school-info h2 {
+    font-size: 24px;
+  }
 
-    .right-panel {
-        margin-top: -60px;
-        padding-bottom: 2.5rem;
-    }
+  .school-info p {
+    font-size: 16px;
+  }
 
-    .login-box {
-        padding: 1.75rem 1.5rem;
-        border-radius: 18px;
-        max-width: 360px;
-    }
+  .right-panel {
+    padding: 30px 20px;
+  }
 
-    .login-box h3 {
-        font-size: 1.3rem;
-    }
+  .login-box h3 {
+    font-size: 24px;
+    margin-bottom: 25px;
+  }
 
-    .form-group input {
-        padding: 0.8rem 0.95rem;
-        font-size: 0.95rem;
-    }
+  .form-group {
+    gap: 16px;
+  }
 
-    .login-btn {
-        padding: 0.95rem;
-        font-size: 1rem;
-    }
-}
-
-/* ===================================
-   TABLET (769px - 1023px)
-   =================================== */
-@media (min-width: 769px) and (max-width: 1023px) {
-    .container {
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-    }
-
-    .left-panel {
-        order: 1;
-        padding: 2rem;
-        min-height: auto;
-    }
-
-    .school-logo {
-        width: 170px;
-        height: 170px;
-    }
-
-    .left-panel h2 {
-        font-size: 1.8rem;
-    }
-
-    .left-panel p {
-        font-size: 1.1rem;
-    }
-
-    .right-panel {
-        order: 2;
-        padding: 2rem;
-        margin-top: 0;
-    }
-
-    .login-box {
-        width: 80%;
-        max-width: 500px;
-        padding: 2.5rem;
-        border-radius: 14px;
-        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .login-box h3 {
-        font-size: 1.7rem;
-    }
-
-    .form-group input {
-        padding: 0.9rem 1rem;
-        font-size: 1rem;
-    }
-
-    .login-btn {
-        font-size: 1.05rem;
-        padding: 0.95rem;
-    }
-}
-
-/* ===================================
-   DESKTOP (1024px - 1439px)
-   =================================== */
-@media (min-width: 1024px) {
-    body {
-        overflow: hidden;
-    }
-
-    .login-wrapper {
-        overflow: hidden;
-    }
-
-    .container {
-        flex-direction: row;
-        height: 100vh;
-    }
-
-    .left-panel {
-        flex: 1;
-        padding: 3rem;
-    }
-
-    .school-logo {
-        width: 180px;
-        height: 180px;
-    }
-
-    .left-panel h2 {
-        font-size: 1.75rem;
-    }
-
-    .left-panel p {
-        font-size: 1.1rem;
-    }
-
-    .right-panel {
-        flex: 1;
-        padding: 3rem;
-        margin-top: 0;
-    }
-
-    .login-box {
-        max-width: 460px;
-        padding: 3rem;
-    }
-
-    .login-box h3 {
-        font-size: 1.85rem;
-    }
-}
-
-/* ===================================
-   LARGE DESKTOP (≥1440px)
-   =================================== */
-@media (min-width: 1440px) {
-    .school-logo {
-        width: 200px;
-        height: 200px;
-    }
-
-    .left-panel h2 {
-        font-size: 2rem;
-    }
-
-    .left-panel p {
-        font-size: 1.2rem;
-    }
-
-    .login-box {
-        max-width: 500px;
-        padding: 3.5rem;
-    }
-
-    .login-box h3 {
-        font-size: 2rem;
-    }
-
-    .form-group input {
-        padding: 0.85rem 1.1rem;
-        font-size: 1rem;
-    }
-
-    .login-btn {
-        padding: 1rem;
-        font-size: 1.1rem;
-    }
-}
-
-/* ===================================
-   EXTRA LARGE DESKTOP (≥1920px)
-   =================================== */
-@media (min-width: 1920px) {
-    .school-logo {
-        width: 220px;
-        height: 220px;
-    }
-
-    .left-panel h2 {
-        font-size: 2.2rem;
-    }
-
-    .left-panel p {
-        font-size: 1.3rem;
-    }
-
-    .login-box {
-        max-width: 550px;
-        padding: 4rem;
-    }
-
-    .login-box h3 {
-        font-size: 2.2rem;
-    }
-
-    .form-group input {
-        padding: 1rem 1.2rem;
-        font-size: 1.05rem;
-    }
-
-    .login-btn {
-        padding: 1.1rem;
-        font-size: 1.15rem;
-    }
-}
-
-/* ===================================
-   ACCESSIBILITY IMPROVEMENTS
-   =================================== */
-.form-group input:focus-visible,
-.login-btn:focus-visible,
-.pass-opeen:focus-visible {
-    outline: 2px solid #e1c28f;
-    outline-offset: 2px;
-}
-
-/* Smooth scrolling for mobile */
-@media (max-width: 768px) {
-    html {
-        scroll-behavior: smooth;
-    }
-}
-
-/* Print styles */
-@media print {
-    .login-wrapper {
-        display: none;
-    }
+  .login-btn {
+    padding: 12px;
+    font-size: 15px;
+  }
 }
