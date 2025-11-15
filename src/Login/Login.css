@@ -36,13 +36,13 @@
   align-items: center;
   justify-content: center;
   padding: 60px 40px;
-  gap: 40px;
+  gap: 50px;
 }
 
-/* Logo Container - 240PX LOGO */
+/* Logo Container - LARGE 400PX LOGO */
 .logo-container {
-  width: 240px;
-  height: 240px;
+  width: 400px;
+  height: 400px;
   background: transparent;
   border-radius: 50%;
   display: flex;
@@ -54,8 +54,8 @@
 }
 
 .school-logo {
-  width: 240px;
-  height: 240px;
+  width: 400px;
+  height: 400px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
@@ -66,11 +66,11 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
 }
 
 .school-info h2 {
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 700;
   color: #2c1810;
   margin: 0;
@@ -78,7 +78,7 @@
 }
 
 .school-info p {
-  font-size: 22px;
+  font-size: 16px;
   color: #5c4a3a;
   margin: 0;
   font-weight: 500;
@@ -97,26 +97,26 @@
 /* Login Box - SMALLER AND CENTERED */
 .login-box {
   width: 100%;
-  max-width: 320px;
+  max-width: 260px;
 }
 
 .login-box h3 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  color: #2c1810;
+  color: #000;
   margin-bottom: 25px;
   text-align: center;
 }
 
 /* Error Message */
 .error-message {
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
   background: #fee;
   border: 1px solid #fcc;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #c33;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -124,7 +124,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 /* Form Group */
@@ -136,26 +136,28 @@ form {
 .form-group label {
   display: block;
   margin-bottom: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #2c1810;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px 14px;
-  font-size: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 6px;
   outline: none;
   transition: border 0.3s;
   box-sizing: border-box;
   font-family: inherit;
+  background: #f0f2f5;
 }
 
 .form-group input:focus {
   border-color: #8b7355;
   box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+  background: white;
 }
 
 .form-group input:disabled {
@@ -177,17 +179,17 @@ form {
 
 .password input.Password {
   width: 100%;
-  padding: 10px 40px 10px 14px;
+  padding: 10px 38px 10px 12px;
 }
 
 .pass-opeen {
   position: absolute;
-  right: 16px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   color: #666;
-  font-size: 18px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -195,7 +197,7 @@ form {
   user-select: none;
   background: none;
   border: none;
-  padding: 5px;
+  padding: 4px;
 }
 
 .pass-opeen:hover {
@@ -211,20 +213,20 @@ form {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 12px;
-  font-size: 15px;
+  padding: 11px;
+  font-size: 14px;
   font-weight: 600;
   color: #2c1810;
   background: #d4c4a8;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   font-family: inherit;
 }
 
@@ -276,21 +278,21 @@ form {
   }
 
   .logo-container {
-    width: 450px;
-    height: 450px;
+    width: 350px;
+    height: 350px;
   }
 
   .school-logo {
-    width: 450px;
-    height: 450px;
+    width: 350px;
+    height: 350px;
   }
 
   .school-info h2 {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .school-info p {
-    font-size: 20px;
+    font-size: 16px;
   }
 }
 
@@ -307,21 +309,21 @@ form {
   }
 
   .logo-container {
-    width: 350px;
-    height: 350px;
+    width: 280px;
+    height: 280px;
   }
 
   .school-logo {
-    width: 350px;
-    height: 350px;
+    width: 280px;
+    height: 280px;
   }
 
   .school-info h2 {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .school-info p {
-    font-size: 18px;
+    font-size: 15px;
   }
 
   .right-panel {
@@ -329,7 +331,7 @@ form {
   }
 
   .login-box {
-    max-width: 350px;
+    max-width: 300px;
   }
 }
 
@@ -347,21 +349,21 @@ form {
   }
 
   .logo-container {
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 200px;
   }
 
   .school-logo {
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 200px;
   }
 
   .school-info h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .school-info p {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .right-panel {
@@ -373,21 +375,21 @@ form {
   }
 
   .login-box h3 {
-    font-size: 24px;
+    font-size: 20px;
     margin-bottom: 25px;
   }
 
   .form-group input {
-    padding: 11px 14px;
-    font-size: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
   }
 
   .password input.Password {
-    padding: 11px 40px 11px 14px;
+    padding: 10px 38px 10px 12px;
   }
 
   .login-btn {
-    padding: 12px;
-    font-size: 15px;
+    padding: 11px;
+    font-size: 14px;
   }
 }
