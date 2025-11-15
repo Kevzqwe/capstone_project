@@ -39,10 +39,10 @@
   gap: 40px;
 }
 
-/* Logo Container - BIGGER 600PX LOGO */
+/* Logo Container - 540PX LOGO */
 .logo-container {
-  width: 600px;
-  height: 600px;
+  width: 540px;
+  height: 540px;
   background: transparent;
   border-radius: 50%;
   display: flex;
@@ -54,8 +54,8 @@
 }
 
 .school-logo {
-  width: 600px;
-  height: 600px;
+  width: 540px;
+  height: 540px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
@@ -97,14 +97,14 @@
 /* Login Box - SMALLER AND CENTERED */
 .login-box {
   width: 100%;
-  max-width: 350px;
+  max-width: 320px;
 }
 
 .login-box h3 {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 600;
   color: #2c1810;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   text-align: center;
 }
 
@@ -124,7 +124,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 /* Form Group */
@@ -135,16 +135,16 @@ form {
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 6px;
+  font-size: 13px;
   font-weight: 500;
   color: #2c1810;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 8px;
   outline: none;
@@ -177,7 +177,7 @@ form {
 
 .password input.Password {
   width: 100%;
-  padding: 12px 45px 12px 16px;
+  padding: 10px 40px 10px 14px;
 }
 
 .pass-opeen {
@@ -211,8 +211,8 @@ form {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 14px;
-  font-size: 16px;
+  padding: 12px;
+  font-size: 15px;
   font-weight: 600;
   color: #2c1810;
   background: #d4c4a8;
@@ -220,7 +220,7 @@ form {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 10px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
