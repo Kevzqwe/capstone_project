@@ -43,21 +43,22 @@
 .logo-container {
   width: 500px;
   height: 500px;
-  background: white;
+  background: transparent;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  padding: 30px;
-  overflow: hidden;
+  padding: 0;
+  overflow: visible;
 }
 
 .school-logo {
-  width: 440px;
-  height: 440px;
+  width: 500px;
+  height: 500px;
   object-fit: contain;
   object-position: center;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
 }
 
 /* School Info - FIXED HIERARCHY */
@@ -277,12 +278,11 @@ form {
   .logo-container {
     width: 400px;
     height: 400px;
-    padding: 25px;
   }
 
   .school-logo {
-    width: 350px;
-    height: 350px;
+    width: 400px;
+    height: 400px;
   }
 
   .school-info h2 {
@@ -309,12 +309,11 @@ form {
   .logo-container {
     width: 300px;
     height: 300px;
-    padding: 20px;
   }
 
   .school-logo {
-    width: 260px;
-    height: 260px;
+    width: 300px;
+    height: 300px;
   }
 
   .school-info h2 {
@@ -344,14 +343,13 @@ form {
   }
 
   .logo-container {
-    width: 200px;
-    height: 200px;
-    padding: 15px;
+    width: 220px;
+    height: 220px;
   }
 
   .school-logo {
-    width: 170px;
-    height: 170px;
+    width: 220px;
+    height: 220px;
   }
 
   .school-info h2 {
