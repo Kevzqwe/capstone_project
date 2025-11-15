@@ -18,9 +18,9 @@
 /* Main Container */
 .container {
   display: flex;
-  max-width: 1400px;
+  max-width: 1200px;
   width: 100%;
-  min-height: 700px;
+  min-height: 600px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   overflow: hidden;
@@ -94,29 +94,29 @@
   background: white;
 }
 
-/* Login Box - MUCH SMALLER AND CENTERED */
+/* Login Box - VERY SMALL AND CENTERED */
 .login-box {
   width: 100%;
-  max-width: 240px;
+  max-width: 200px;
 }
 
 .login-box h3 {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   color: #000;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   text-align: center;
 }
 
 /* Error Message */
 .error-message {
-  padding: 10px 14px;
-  margin-bottom: 16px;
+  padding: 7px 10px;
+  margin-bottom: 10px;
   background: #fee;
   border: 1px solid #fcc;
-  border-radius: 6px;
+  border-radius: 4px;
   color: #c33;
-  font-size: 13px;
+  font-size: 10px;
   text-align: center;
 }
 
@@ -124,7 +124,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 /* Form Group */
@@ -135,18 +135,18 @@ form {
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 11px;
+  margin-bottom: 4px;
+  font-size: 10px;
   font-weight: 600;
   color: #000;
 }
 
 .form-group input {
   width: 100%;
-  padding: 9px 11px;
-  font-size: 12px;
+  padding: 8px 10px;
+  font-size: 11px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 4px;
   outline: none;
   transition: border 0.3s;
   box-sizing: border-box;
@@ -179,17 +179,17 @@ form {
 
 .password input.Password {
   width: 100%;
-  padding: 9px 36px 9px 11px;
+  padding: 8px 34px 8px 10px;
 }
 
 .pass-opeen {
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   color: #666;
-  font-size: 16px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,7 +197,7 @@ form {
   user-select: none;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 3px;
 }
 
 .pass-opeen:hover {
@@ -213,20 +213,20 @@ form {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 10px;
-  font-size: 13px;
+  padding: 9px;
+  font-size: 12px;
   font-weight: 600;
   color: #2c1810;
   background: #d4c4a8;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 4px;
+  margin-top: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   font-family: inherit;
 }
 
