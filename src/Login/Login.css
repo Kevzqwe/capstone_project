@@ -94,17 +94,17 @@
   background: white;
 }
 
-/* Login Box - SMALLER AND CENTERED */
+/* Login Box - MUCH SMALLER AND CENTERED */
 .login-box {
   width: 100%;
-  max-width: 260px;
+  max-width: 240px;
 }
 
 .login-box h3 {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 600;
   color: #000;
-  margin-bottom: 25px;
+  margin-bottom: 22px;
   text-align: center;
 }
 
@@ -124,7 +124,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* Form Group */
@@ -135,18 +135,18 @@ form {
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 5px;
+  font-size: 11px;
   font-weight: 600;
   color: #000;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 9px 11px;
+  font-size: 12px;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 5px;
   outline: none;
   transition: border 0.3s;
   box-sizing: border-box;
@@ -179,7 +179,7 @@ form {
 
 .password input.Password {
   width: 100%;
-  padding: 10px 38px 10px 12px;
+  padding: 9px 36px 9px 11px;
 }
 
 .pass-opeen {
@@ -213,16 +213,16 @@ form {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 11px;
-  font-size: 14px;
+  padding: 10px;
+  font-size: 13px;
   font-weight: 600;
   color: #2c1810;
   background: #d4c4a8;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
