@@ -82,10 +82,10 @@ const Login = () => {
             <img src={PCSlogo} alt="Pateros Catholic School Logo" className="school-logo" />
           </div>
           
-          {/* School Info - FIXED: Title first, then subtitle */}
+          {/* School Info - FIXED: School name first, then system name */}
           <div className="school-info">
-            <h2>Online Document Request System</h2>
-            <p>Pateros Catholic School</p>
+            <h2>Pateros Catholic School</h2>
+            <p>Online Document Request System</p>
           </div>
         </div>
 
