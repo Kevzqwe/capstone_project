@@ -83,7 +83,7 @@ const Login = () => {
               src={PCSlogo} 
               alt="Pateros Catholic School Logo" 
               className="school-logo"
-              style={{ width: '600px', height: '600px' }}
+              style={{ width: '400px', height: '400px' }}
             />
           </div>
           
