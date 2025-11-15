@@ -39,10 +39,10 @@
   gap: 40px;
 }
 
-/* Logo Container - 540PX LOGO */
+/* Logo Container - 240PX LOGO */
 .logo-container {
-  width: 540px;
-  height: 540px;
+  width: 240px;
+  height: 240px;
   background: transparent;
   border-radius: 50%;
   display: flex;
@@ -54,8 +54,8 @@
 }
 
 .school-logo {
-  width: 540px;
-  height: 540px;
+  width: 240px;
+  height: 240px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
