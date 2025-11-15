@@ -18,9 +18,9 @@
 /* Main Container */
 .container {
   display: flex;
-  max-width: 1200px;
+  max-width: 1400px;
   width: 100%;
-  min-height: 600px;
+  min-height: 700px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   overflow: hidden;
@@ -36,26 +36,26 @@
   align-items: center;
   justify-content: center;
   padding: 60px 40px;
-  gap: 30px;
+  gap: 40px;
 }
 
-/* Logo Container - MUCH BIGGER SIZE */
+/* Logo Container - 500PX LOGO */
 .logo-container {
-  width: 280px;
-  height: 280px;
+  width: 500px;
+  height: 500px;
   background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 30px;
   overflow: hidden;
 }
 
 .school-logo {
-  width: 240px;
-  height: 240px;
+  width: 440px;
+  height: 440px;
   object-fit: contain;
   object-position: center;
 }
@@ -69,7 +69,7 @@
 }
 
 .school-info h2 {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: #2c1810;
   margin: 0;
@@ -77,7 +77,7 @@
 }
 
 .school-info p {
-  font-size: 20px;
+  font-size: 22px;
   color: #5c4a3a;
   margin: 0;
   font-weight: 500;
@@ -269,25 +269,52 @@ form {
 }
 
 /* Responsive Design */
-@media (max-width: 968px) {
+@media (max-width: 1200px) {
   .container {
-    flex-direction: column;
-    max-width: 500px;
-  }
-
-  .left-panel {
-    padding: 40px 30px;
+    max-width: 1100px;
   }
 
   .logo-container {
-    width: 220px;
-    height: 220px;
-    padding: 15px;
+    width: 400px;
+    height: 400px;
+    padding: 25px;
   }
 
   .school-logo {
-    width: 190px;
-    height: 190px;
+    width: 350px;
+    height: 350px;
+  }
+
+  .school-info h2 {
+    font-size: 32px;
+  }
+
+  .school-info p {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 968px) {
+  .container {
+    flex-direction: column;
+    max-width: 600px;
+    min-height: auto;
+  }
+
+  .left-panel {
+    padding: 50px 40px;
+    gap: 30px;
+  }
+
+  .logo-container {
+    width: 300px;
+    height: 300px;
+    padding: 20px;
+  }
+
+  .school-logo {
+    width: 260px;
+    height: 260px;
   }
 
   .school-info h2 {
@@ -310,7 +337,6 @@ form {
 
   .container {
     border-radius: 15px;
-    min-height: auto;
   }
 
   .left-panel {
@@ -318,14 +344,14 @@ form {
   }
 
   .logo-container {
-    width: 180px;
-    height: 180px;
-    padding: 10px;
+    width: 200px;
+    height: 200px;
+    padding: 15px;
   }
 
   .school-logo {
-    width: 160px;
-    height: 160px;
+    width: 170px;
+    height: 170px;
   }
 
   .school-info h2 {
