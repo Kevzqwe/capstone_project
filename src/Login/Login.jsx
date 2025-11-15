@@ -79,10 +79,15 @@ const Login = () => {
         <div className="left-panel">
           {/* Logo Container */}
           <div className="logo-container">
-            <img src={PCSlogo} alt="Pateros Catholic School Logo" className="school-logo" />
+            <img 
+              src={PCSlogo} 
+              alt="Pateros Catholic School Logo" 
+              className="school-logo"
+              style={{ width: '600px', height: '600px' }}
+            />
           </div>
           
-          {/* School Info - FIXED: School name first, then system name */}
+          {/* School Info */}
           <div className="school-info">
             <h2>Pateros Catholic School</h2>
             <p>Online Document Request System</p>
