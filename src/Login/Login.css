@@ -20,7 +20,7 @@
   display: flex;
   max-width: 1200px;
   width: 100%;
-  min-height: 600px;
+  min-height: 350px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   overflow: hidden;
@@ -35,14 +35,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 40px;
-  gap: 50px;
+  padding: 50px 30px;
+  gap: 40px;
 }
 
-/* Logo Container - LARGE 400PX LOGO */
+/* Logo Container - LARGE 350PX LOGO */
 .logo-container {
-  width: 400px;
-  height: 400px;
+  width: 350px;
+  height: 350px;
   background: transparent;
   border-radius: 50%;
   display: flex;
@@ -54,8 +54,8 @@
 }
 
 .school-logo {
-  width: 400px;
-  height: 400px;
+  width: 350px;
+  height: 350px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
@@ -66,11 +66,11 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .school-info h2 {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 700;
   color: #2c1810;
   margin: 0;
@@ -78,7 +78,7 @@
 }
 
 .school-info p {
-  font-size: 16px;
+  font-size: 15px;
   color: #5c4a3a;
   margin: 0;
   font-weight: 500;
@@ -90,7 +90,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px 50px;
+  padding: 50px 40px;
   background: white;
 }
 
