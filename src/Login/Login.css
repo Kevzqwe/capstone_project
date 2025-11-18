@@ -21,7 +21,7 @@
   display: flex;
   max-width: 1100px;
   width: 100%;
-  height: 550px;
+  height: 300px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   overflow: hidden;
@@ -36,14 +36,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 30px;
-  gap: 30px;
+  padding: 20px;
+  gap: 15px;
 }
 
 /* Logo Container */
 .logo-container {
-  width: 320px;
-  height: 320px;
+  width: 200px;
+  height: 200px;
   background: transparent;
   border-radius: 50%;
   display: flex;
@@ -55,8 +55,8 @@
 }
 
 .school-logo {
-  width: 320px;
-  height: 320px;
+  width: 200px;
+  height: 200px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
@@ -67,11 +67,11 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .school-info h2 {
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 700;
   color: #2c1810;
   margin: 0;
@@ -79,7 +79,7 @@
 }
 
 .school-info p {
-  font-size: 14px;
+  font-size: 12px;
   color: #5c4a3a;
   margin: 0;
   font-weight: 500;
@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 50px;
+  padding: 20px 40px;
   background: white;
 }
 
@@ -102,10 +102,10 @@
 }
 
 .login-box h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #000;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-align: center;
 }
 
@@ -125,7 +125,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 /* Form Group */
@@ -144,7 +144,7 @@ form {
 
 .form-group input {
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 12px;
   font-size: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -180,7 +180,7 @@ form {
 
 .password input.Password {
   width: 100%;
-  padding: 9px 36px 9px 12px;
+  padding: 8px 36px 8px 12px;
 }
 
 .pass-opeen {
@@ -214,7 +214,7 @@ form {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 10px;
+  padding: 9px;
   font-size: 13px;
   font-weight: 600;
   color: #2c1810;
@@ -276,25 +276,25 @@ form {
 @media (max-width: 1200px) {
   .container {
     max-width: 1000px;
-    height: 500px;
+    height: 300px;
   }
 
   .logo-container {
-    width: 280px;
-    height: 280px;
+    width: 180px;
+    height: 180px;
   }
 
   .school-logo {
-    width: 280px;
-    height: 280px;
+    width: 180px;
+    height: 180px;
   }
 
   .school-info h2 {
-    font-size: 24px;
+    font-size: 17px;
   }
 
   .school-info p {
-    font-size: 13px;
+    font-size: 11px;
   }
 }
 
@@ -307,30 +307,30 @@ form {
   }
 
   .left-panel {
-    padding: 40px 30px;
-    gap: 25px;
+    padding: 30px 20px;
+    gap: 15px;
   }
 
   .logo-container {
-    width: 240px;
-    height: 240px;
+    width: 160px;
+    height: 160px;
   }
 
   .school-logo {
-    width: 240px;
-    height: 240px;
+    width: 160px;
+    height: 160px;
   }
 
   .school-info h2 {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .school-info p {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .right-panel {
-    padding: 35px 30px;
+    padding: 30px 25px;
   }
 
   .login-box {
@@ -348,30 +348,30 @@ form {
   }
 
   .left-panel {
-    padding: 30px 20px;
-    gap: 20px;
+    padding: 25px 15px;
+    gap: 12px;
   }
 
   .logo-container {
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
   }
 
   .school-logo {
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
   }
 
   .school-info h2 {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .school-info p {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .right-panel {
-    padding: 30px 20px;
+    padding: 25px 20px;
   }
 
   .login-box {
@@ -379,21 +379,21 @@ form {
   }
 
   .login-box h3 {
-    font-size: 17px;
-    margin-bottom: 18px;
+    font-size: 15px;
+    margin-bottom: 15px;
   }
 
   .form-group input {
-    padding: 9px 12px;
+    padding: 8px 12px;
     font-size: 12px;
   }
 
   .password input.Password {
-    padding: 9px 36px 9px 12px;
+    padding: 8px 36px 8px 12px;
   }
 
   .login-btn {
-    padding: 10px;
+    padding: 9px;
     font-size: 13px;
   }
 }
