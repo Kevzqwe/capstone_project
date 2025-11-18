@@ -36,8 +36,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  gap: 15px;
+  padding: 15px 20px;
+  gap: 10px;
 }
 
 /* Logo Container */
@@ -67,11 +67,11 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .school-info h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #2c1810;
   margin: 0;
@@ -79,7 +79,7 @@
 }
 
 .school-info p {
-  font-size: 12px;
+  font-size: 11px;
   color: #5c4a3a;
   margin: 0;
   font-weight: 500;
@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 40px;
+  padding: 15px 35px;
   background: white;
 }
 
@@ -102,10 +102,10 @@
 }
 
 .login-box h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #000;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
@@ -125,7 +125,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* Form Group */
